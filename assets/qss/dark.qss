@@ -1,0 +1,65 @@
+/* Dark Style Sheet */
+
+QMainWindow {
+    background-color: #333333;
+    color: #ffffff;
+}
+
+QMenuBar {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+QMenuBar::item {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+QMenuBar::item:selected {
+    background-color: #3e3e3e;
+}
+
+QToolBar {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+QToolButton {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+QToolButton:hover {
+    background-color: #3e3e3e;
+}
+
+/* Custom QDockWidget Title Bar Style */
+QDockWidget::title {
+    background-color: #3498db; /* 设置标题栏背景颜色 */
+    padding: 5px; /* 设置标题栏内边距 */
+    border: 1px solid #2980b9; /* 设置标题栏边框颜色 */
+    border-radius: 3px; /* 设置标题栏边框圆角 */
+}
+
+QDockWidget::float {
+    /* 根据需要设置悬浮时的样式 */
+    background-color: #3498db; /* 设置悬浮时背景颜色 */
+    padding: 5px; /* 设置悬浮时内边距 */
+    border: 1px solid #2980b9; /* 设置悬浮时边框颜色 */
+    border-radius: 3px; /* 设置悬浮时边框圆角 */
+}
+
+QDockWidget::floatable {
+    /* 根据需要设置悬浮时可移动的样式 */
+    background-color: #3498db; /* 设置悬浮时背景颜色 */
+    padding: 5px; /* 设置悬浮时内边距 */
+    border: 1px solid #2980b9; /* 设置悬浮时边框颜色 */
+    border-radius: 3px; /* 设置悬浮时边框圆角 */
+}
+
+QDockWidget::close-button, QDockWidget::float-button {
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: #3498db; 
+}
+
