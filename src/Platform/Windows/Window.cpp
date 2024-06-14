@@ -6,7 +6,7 @@ namespace Airwave {
 #ifdef PLATFORM_WIN32
 		return std::make_unique<GLFWWindow>(width, height, title);
 #elif PLATFORM_LINUX
-		return std::make_unique<WindowLinux>(width, height, title);
+		return std::make_unique<GLFWWindow>(width, height, title);
 #elif PLATFORM_MACOS
 		return std::make_unique<WindowMacOS>(width, height, title);
 #endif

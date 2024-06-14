@@ -7,7 +7,6 @@
 extern Airwave::Application* CreateApplicationEntryPoint();
 
 
-#ifdef PLATFORM_WIN32 || PLATFORM_LINUX || PLATFORM_MACOS
 
 int main(int argc, char** argv) {
 
@@ -30,11 +29,6 @@ int main(int argc, char** argv) {
 	return EXIT_SUCCESS;
 
 }
-
-#endif // PLATFORM_WIN32 || PLATFORM_LINUX || PLATFORM_MACOS
-
-
-
 
 
 #endif // !ENTRYPOINT_H

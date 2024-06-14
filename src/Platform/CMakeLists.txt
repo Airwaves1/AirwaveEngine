@@ -16,5 +16,4 @@ set (PLATFORM_SOURCE_FILE
 add_library(Platform ${PLATFORM_SOURCE_FILE})
 
 #添加链接库
-target_link_libraries(Platform glfw3.lib)
-target_link_libraries(Platform glad.lib)
+target_link_libraries(Platform ThirdParty)

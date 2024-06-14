@@ -1,4 +1,4 @@
-#ifndef GLFW_WINDOW_H
+#ifndef GLFW_WINODW_H
 #define GLFW_WINODW_H
 
 #include "Utils/Common.h"
@@ -28,4 +28,4 @@ namespace Airwave {
 
 
 
-#endif // !GLFW_WINDOW_H
+#endif // !MY_GLFW_WINDOW_H

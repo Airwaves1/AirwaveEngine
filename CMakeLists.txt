@@ -8,9 +8,9 @@ project(${PROJECT_NAME})
 #设置输出路径
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -Wall")
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/out/bin)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/out/bin)
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/out/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/bin)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/build/bin)
 
 
 add_definitions(-DASSETS_DEFINE_ROOT_DIR="${CMAKE_SOURCE_DIR}/assets/")
@@ -47,11 +47,6 @@ include_directories(
     SYSTEM ${CMAKE_CURRENT_SOURCE_DIR}/src/ThirdParty/stb_image
 )
 
-#库文件搜索路径
-link_directories(
-	${CMAKE_CURRENT_SOURCE_DIR}/src/ThirdParty/glfw/lib
-	${CMAKE_CURRENT_SOURCE_DIR}/src/ThirdParty/glad/lib
-)
 
 #添加头文件搜索路径
 include_directories(
@@ -62,4 +57,4 @@ include_directories(
 add_subdirectory(src/ThirdParty)
 add_subdirectory(src/Core)
 add_subdirectory(src/Platform)
-add_subdirectory(src/Sandbox)
+add_subdirectory(src/SandBox)
