@@ -67,6 +67,14 @@ namespace Airwave {
 		}
 	}
 
+	uint32_t Application::GetWindowWidth() const { 
+		return m_Window->GetWidth();
+	}
+	uint32_t Application::GetWindowHeight() const{
+		return m_Window->GetHeight();
+	
+	}
+
 
 
 	void Application::ParseArgs(int argc, char* argv[])

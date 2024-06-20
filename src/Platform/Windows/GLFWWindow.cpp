@@ -19,11 +19,20 @@ namespace Airwave {
 			return;
 		}
 
-		//glfwWindowHint()
 #ifdef GRAPHICS_API_OPENGL
+
+		#ifdef PLATFORM_MACOS
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		#endif
+
+		#if defined(PLATFORM_WIN32) || defined(PLATFORM_LINUX)
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		#endif
 
 #elif GRAPHICS_API_VULKAN
 		GLFWWindowHint(GLFW_CLINET_API, GLFW_NO_API);
@@ -64,6 +73,15 @@ namespace Airwave {
 	void GLFWWindow::SwapBuffers()
 	{
 		glfwSwapBuffers(m_Window);
+	}
+
+	uint32_t GLFWWindow::GetWidth() {
+		glfwGetWindowSize(m_Window, (int*)&m_Width, nullptr);
+		return m_Width;
+	}
+	uint32_t GLFWWindow::GetHeight(){
+		glfwGetWindowSize(m_Window, nullptr, (int*)&m_Height);
+		return m_Height;
 	}
 
 }

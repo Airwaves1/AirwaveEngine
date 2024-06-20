@@ -19,9 +19,14 @@ namespace Airwave {
 		void PollEvents() override;
 		void SwapBuffers() override;
 
+		uint32_t GetWidth() override;
+		uint32_t GetHeight() override;
+
 	private:
 
 		GLFWwindow* m_Window;
+		uint32_t m_Width;
+		uint32_t m_Height;
 	};
 
 }

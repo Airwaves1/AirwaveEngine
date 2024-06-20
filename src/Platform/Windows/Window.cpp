@@ -8,7 +8,7 @@ namespace Airwave {
 #elif PLATFORM_LINUX
 		return std::make_unique<GLFWWindow>(width, height, title);
 #elif PLATFORM_MACOS
-		return std::make_unique<WindowMacOS>(width, height, title);
+		return std::make_unique<GLFWWindow>(width, height, title);
 #endif
 		return nullptr;
 	}

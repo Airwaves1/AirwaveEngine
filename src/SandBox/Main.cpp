@@ -20,6 +20,9 @@
 #include "Data.h"
 #include "Utils/FileUtils.h"
 
+#include "Geometry/Geometry.h"
+
+
 class SandBoxApp : public Airwave::Application
 {
 public:
@@ -32,9 +35,6 @@ protected:
 		appSettings->height = 1120;
 		appSettings->title = "SandBox";
 
-		m_Width = appSettings->width;
-		m_Height = appSettings->height;
-
 	}
 
 	void OnInit() override
@@ -42,27 +42,17 @@ protected:
 		Airwave::OpenGLContext m_OpenGLContext = Airwave::OpenGLContext(GetWindow());
 		m_OpenGLContext.Init();
 
-		//创建立方体
-		GLuint VBO;
-		
-		glGenVertexArrays(1, &m_VAO);
-		glGenBuffers(1, &VBO);
+		//创建立方体对象
+		box = new Airwave::BoxGeometry(1.0f, 1.0f, 1.0f);
+		LOG_INFO("BoxGeometry created");
 
-		glBindVertexArray(m_VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(CubeVertices), CubeVertices, GL_STATIC_DRAW);
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-		glEnableVertexAttribArray(0);
+		LOG_DEBUG("Box_Width: {0}", dynamic_cast<Airwave::BoxGeometry*>(box)->GetBoxWidth());
+		LOG_DEBUG("Box_Height: {0}", dynamic_cast<Airwave::BoxGeometry*>(box)->GetBoxHeight());
+		LOG_DEBUG("Box_Depth: {0}", dynamic_cast<Airwave::BoxGeometry*>(box)->GetBoxDepth());
 
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-		glEnableVertexAttribArray(1);
+		LOG_DEBUG("BoxGeometry vertices: {0}", box->GetVertices().size());
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-		glEnableVertexAttribArray(2);
-
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
 
 		//创建着色器
 		std::string vertexShaderPath = ASSETS_SHADER_DIR "00/003_multitexture_cube.vert";
@@ -85,6 +75,8 @@ protected:
 
 	void OnUpdate(float deltaTime) override
 	{
+		glViewport(0, 0, GetWindowWidth(), GetWindowHeight());
+
 		glClearColor(0.3f, 0.2f, 0.4f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
@@ -96,7 +88,7 @@ protected:
 
 		model = glm::rotate(model, glm::radians(m_Angle), glm::vec3(0.5f, 0.8f, 0.5f));
 		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		projection = glm::perspective(glm::radians(45.0f), m_Width / m_Height, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(45.0f), float(GetWindowWidth() / GetWindowHeight()), 0.1f, 100.0f);
 
 		m_Shader->Bind();
 		m_Shader->UploadUniformMat4("u_Model", model);
@@ -115,8 +107,7 @@ protected:
 		m_Texture0->Bind(0);
 		m_Texture1->Bind(1);
 
-		glBindVertexArray(m_VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		box->Show();
 
 		m_Angle += 0.1f;
 	
@@ -132,14 +123,16 @@ protected:
 private:
 	GLuint m_VAO;
 
+
+	//创建立方体对象
+	Airwave::Geometry* box;
+
 	std::unique_ptr<Airwave::OpenGLShader> m_Shader;
 	std::unique_ptr<Airwave::OpenGLTexture> m_Texture0;
 	std::unique_ptr<Airwave::OpenGLTexture> m_Texture1;
 
 	float m_Angle = 0.0f;
 
-	float m_Width { 1280 };
-	float m_Height{ 1120 };
 };
 
 Airwave::Application* CreateApplicationEntryPoint()

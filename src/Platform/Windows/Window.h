@@ -16,6 +16,9 @@ namespace Airwave {
 		virtual bool ShouldClose() = 0;	
 		virtual void PollEvents() = 0;	//设置回调函数
 		virtual void SwapBuffers() = 0;	//双缓冲交换
+
+		virtual uint32_t GetWidth() = 0;
+		virtual uint32_t GetHeight() = 0;
 		
 	protected:
 		Window() = default;

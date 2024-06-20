@@ -16,6 +16,8 @@ set (CORE_SOURCE_FILE
     "Controller/GameCameraController.cpp"
     "Controller/TrackBallCameraController.cpp"
 
+    "Geometry/GeometryUtils.cpp"
+    "Geometry/Geometry.cpp"
 )
 
 

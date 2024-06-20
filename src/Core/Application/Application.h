@@ -38,7 +38,6 @@ namespace Airwave {
 		void MainLoop();
 
 
-
 		void Pause() { b_Pause = true; }
 		void Resume() { if(b_Pause) {b_Pause = false; } }
 		bool IsPaused() const { return b_Pause; }
@@ -46,6 +45,8 @@ namespace Airwave {
 		//获取窗口
 		Window* GetWindow() { return m_Window.get(); }
 
+		virtual uint32_t GetWindowWidth() const;
+		virtual uint32_t GetWindowHeight() const;
 
 	protected:
 		virtual void OnConfiguration(AppSettings* appSettings) {}
