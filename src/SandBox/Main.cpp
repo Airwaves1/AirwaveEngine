@@ -34,7 +34,6 @@ protected:
 		appSettings->width = 1280;
 		appSettings->height = 1120;
 		appSettings->title = "SandBox";
-
 	}
 
 	void OnInit() override
@@ -44,15 +43,11 @@ protected:
 
 		//创建立方体对象
 		box = new Airwave::BoxGeometry(1.0f, 1.0f, 1.0f);
-		LOG_INFO("BoxGeometry created");
-
-
-		LOG_DEBUG("Box_Width: {0}", dynamic_cast<Airwave::BoxGeometry*>(box)->GetBoxWidth());
-		LOG_DEBUG("Box_Height: {0}", dynamic_cast<Airwave::BoxGeometry*>(box)->GetBoxHeight());
-		LOG_DEBUG("Box_Depth: {0}", dynamic_cast<Airwave::BoxGeometry*>(box)->GetBoxDepth());
-
-		LOG_DEBUG("BoxGeometry vertices: {0}", box->GetVertices().size());
-
+		sphere = new Airwave::SphereGeometry(1.0f, 100, 0.0f, 180.0f, 0.0f, 360.0f);
+		cylinder = new Airwave::CylinderGeometry(0.4f, 2.0f, 1000);
+		cone = new Airwave::ConeGeometry(0.4f, 3.0f, 1000);
+		ring = new Airwave::RingGeometry(1.0f, 3.3f, 100);
+		plane = new Airwave::PlaneGeometry(1.0f, 1.0f);
 
 		//创建着色器
 		std::string vertexShaderPath = ASSETS_SHADER_DIR "00/003_multitexture_cube.vert";
@@ -107,7 +102,12 @@ protected:
 		m_Texture0->Bind(0);
 		m_Texture1->Bind(1);
 
-		box->Show();
+		//box->Show();
+		//sphere->Show();
+		//cylinder->Show();
+		//cone->Show();
+		//ring->Show();
+		plane->Show();
 
 		m_Angle += 0.1f;
 	
@@ -125,7 +125,15 @@ private:
 
 
 	//创建立方体对象
-	Airwave::Geometry* box;
+	Airwave::Geometry* box;	//立方体
+	Airwave::Geometry* sphere;	//球体
+	Airwave::Geometry* cylinder;	//圆柱体
+	Airwave::Geometry* cone;	//圆锥体
+	Airwave::Geometry* ring;	//圆环体
+	Airwave::Geometry* plane;	//平面
+	
+
+
 
 	std::unique_ptr<Airwave::OpenGLShader> m_Shader;
 	std::unique_ptr<Airwave::OpenGLTexture> m_Texture0;

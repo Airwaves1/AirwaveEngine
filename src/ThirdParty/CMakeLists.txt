@@ -9,4 +9,9 @@ option(GLFW_BUILD_TESTS OFF)
 option(GLFW_INSTALL OFF)
 add_subdirectory(glfw)
 
+add_definitions(-DSPDLOG_NO_DATETIME -DSPDLOG_NO_THREAD_ID)
+add_definitions(-DGLM_FORCE_NO_WARNINGS)
+
+
 target_link_libraries(ThirdParty glfw)
+
