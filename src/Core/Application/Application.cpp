@@ -38,6 +38,13 @@ namespace Airwave {
 
 		m_StartTimePoint = std::chrono::steady_clock::now();
 
+		if(m_Window->GetWindowHandle() != nullptr)
+			glfwSetCursorPosCallback(m_Window->GetWindowHandle(), EventManager::CursorPosCallback);
+			glfwSetMouseButtonCallback(m_Window->GetWindowHandle(), EventManager::MouseButtonCallback);
+			glfwSetScrollCallback(m_Window->GetWindowHandle(), EventManager::ScrollCallback);
+			glfwSetKeyCallback(m_Window->GetWindowHandle(), EventManager::KeyCallback);
+			glfwSetWindowSizeCallback(m_Window->GetWindowHandle(), EventManager::frameBufferSizeCallback);
+
 	}
 
 	void Application::Stop()

@@ -3,7 +3,6 @@
 
 #include <glad/glad.h>
 
-
 #include "glm/glm.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -11,17 +10,17 @@
 
 #include "Utils/Common.h"
 #include "Utils/Log.h"
-
+#include "Utils/FileUtils.h"
 
 #include "OpenGL/OpenGLContext.h"
 #include "OpenGL/OpenGLShader.h"
 #include "OpenGL/OpenGLTexture.h"
 
-#include "Data.h"
-#include "Utils/FileUtils.h"
-
 #include "Geometry/Geometry.h"
 
+#include "Camera/PerspectiveCamera.h"
+#include "Controller/TrackBallCameraController.h"
+#include "Application/ControllerEvent.h"
 
 class SandBoxApp : public Airwave::Application
 {
@@ -41,23 +40,26 @@ protected:
 		Airwave::OpenGLContext m_OpenGLContext = Airwave::OpenGLContext(GetWindow());
 		m_OpenGLContext.Init();
 
+		//创建相机和控制器
+		m_Camera = std::make_unique<Airwave::PerspectiveCamera>(75.0f, float(GetWindowWidth()) / GetWindowHeight(), 0.1f, 100.0f);
+		m_CameraController = std::make_shared<Airwave::TrackBallCameraController>(m_Camera.get());
+
+		//设置事件
+		Airwave::ControllerEvent::GetInstance()->SetEvent(m_CameraController.get(), GetWindow());
+
 		//创建立方体对象
-		box = new Airwave::BoxGeometry(1.0f, 1.0f, 1.0f);
-		sphere = new Airwave::SphereGeometry(1.0f, 100, 0.0f, 180.0f, 0.0f, 360.0f);
-		cylinder = new Airwave::CylinderGeometry(0.4f, 2.0f, 1000);
-		cone = new Airwave::ConeGeometry(0.4f, 3.0f, 1000);
-		ring = new Airwave::RingGeometry(1.0f, 3.3f, 100);
-		plane = new Airwave::PlaneGeometry(1.0f, 1.0f);
+		m_Box = std::make_shared<Airwave::BoxGeometry>(1.0, 1.0, 1.0);
 
 		//创建着色器
 		std::string vertexShaderPath = ASSETS_SHADER_DIR "00/003_multitexture_cube.vert";
 		std::string fragmentShaderPath = ASSETS_SHADER_DIR "00/003_multitexture_cube.frag";
 		m_Shader = std::make_unique<Airwave::OpenGLShader>(vertexShaderPath, fragmentShaderPath);
 
+		// Airwave::PrintFileInfoOnLog(vertexShaderPath);
 
 		//创建纹理
-		std::string texture0Path = ASSETS_TEXTURE_DIR "R-C.jpeg";
-		std::string texture1Path = ASSETS_TEXTURE_DIR "awesomeface.png";
+		std::string texture0Path = ASSETS_TEXTURE_DIR "container2.png";
+		std::string texture1Path = ASSETS_TEXTURE_DIR "container2_specular.png";
 
 		m_Texture0 = std::make_unique<Airwave::OpenGLTexture>(texture0Path);
 		m_Texture1 = std::make_unique<Airwave::OpenGLTexture>(texture1Path);
@@ -82,16 +84,16 @@ protected:
 		glm::mat4 projection = glm::mat4(1.0f);
 
 		model = glm::rotate(model, glm::radians(m_Angle), glm::vec3(0.5f, 0.8f, 0.5f));
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-		projection = glm::perspective(glm::radians(45.0f), float(GetWindowWidth() / GetWindowHeight()), 0.1f, 100.0f);
+		view = m_Camera->GetViewMatrix();
+		projection = m_Camera->GetProjectionMatrix();
 
 		m_Shader->Bind();
 		m_Shader->UploadUniformMat4("u_Model", model);
 		m_Shader->UploadUniformMat4("u_View", view);
 		m_Shader->UploadUniformMat4("u_Projection", projection);
 
-
-
+		m_Angle += 0.1f;
+		m_CameraController->Update(deltaTime);
 	}
 
 	void OnRender() override
@@ -102,14 +104,9 @@ protected:
 		m_Texture0->Bind(0);
 		m_Texture1->Bind(1);
 
-		//box->Show();
-		//sphere->Show();
-		//cylinder->Show();
-		//cone->Show();
-		//ring->Show();
-		plane->Show();
+		m_Box->Show();
 
-		m_Angle += 0.1f;
+
 	
 	}
 
@@ -118,29 +115,21 @@ protected:
 
 	}
 
-	
-
 private:
 	GLuint m_VAO;
 
+	float m_Angle = 0.0f;
 
 	//创建立方体对象
-	Airwave::Geometry* box;	//立方体
-	Airwave::Geometry* sphere;	//球体
-	Airwave::Geometry* cylinder;	//圆柱体
-	Airwave::Geometry* cone;	//圆锥体
-	Airwave::Geometry* ring;	//圆环体
-	Airwave::Geometry* plane;	//平面
-	
-
-
+	std::shared_ptr<Airwave::Geometry> m_Box;
 
 	std::unique_ptr<Airwave::OpenGLShader> m_Shader;
 	std::unique_ptr<Airwave::OpenGLTexture> m_Texture0;
 	std::unique_ptr<Airwave::OpenGLTexture> m_Texture1;
 
-	float m_Angle = 0.0f;
-
+	//创建相机和控制器
+	std::unique_ptr<Airwave::Camera> m_Camera;
+	std::shared_ptr<Airwave::CameraController> m_CameraController;
 };
 
 Airwave::Application* CreateApplicationEntryPoint()

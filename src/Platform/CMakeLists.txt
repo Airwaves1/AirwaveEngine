@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.22)
-set (PLATFORM_SOURCE_FILE
+set(PLATFORM_SOURCE_FILE
+
+    "Utils/Log.cpp"
 
     "Windows/Window.cpp"
     "Windows/GLFWWindow.cpp"
@@ -9,11 +11,9 @@ set (PLATFORM_SOURCE_FILE
     "OpenGL/OpenGLContext.cpp"
     "OpenGL/OpenGLShader.cpp"
     "OpenGL/OpenGLTexture.cpp"
-    
 )
-
 
 add_library(Platform ${PLATFORM_SOURCE_FILE})
 
-#添加链接库
+# 添加链接库
 target_link_libraries(Platform ThirdParty)

@@ -18,8 +18,6 @@ namespace Airwave {
 		std::string title{ "AirwaveEngine" };
 	};
 
-
-	class EventManager;
 	class Window;
 
 

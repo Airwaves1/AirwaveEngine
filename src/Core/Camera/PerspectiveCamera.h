@@ -3,9 +3,11 @@
 
 #include "Camera.h"
 
-namespace Airwave {
+namespace Airwave
+{
 
-	class PerspectiveCamera : public Camera {
+	class PerspectiveCamera : public Camera
+	{
 	public:
 		PerspectiveCamera(float fov, float aspect, float near, float far);
 		~PerspectiveCamera();
@@ -24,7 +26,6 @@ namespace Airwave {
 		float GetNear() const { return m_Near; }
 		float GetFar() const { return m_Far; }
 
-
 	private:
 		float m_FOV;
 		float m_Aspect;
@@ -33,6 +34,5 @@ namespace Airwave {
 	};
 
 }
-
 
 #endif // !PERSPECTIVE_CAMERA_H
