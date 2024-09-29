@@ -1,0 +1,49 @@
+---
+Language:        Cpp
+# 基础样式可以是LLVM, Google, Chromium, Mozilla, WebKit, Microsoft等
+BasedOnStyle:    LLVM
+
+# 缩进设置
+IndentWidth:     4          # 缩进宽度
+TabWidth:        4          # Tab 宽度
+UseTab:          Never      # 使用空格代替Tab
+
+# 换行和对齐设置
+AlignConsecutiveAssignments: true
+AlignOperands:               true
+AlignTrailingComments:       true
+
+# 括号和空格设置
+BreakBeforeBraces:    Allman
+SpaceBeforeParens:    ControlStatements
+
+# 列宽和换行设置
+ColumnLimit:         100     # 每行最大字符数
+PenaltyBreakComment: 10
+PenaltyBreakString:  5
+
+# 类、结构体和函数定义
+IndentCaseLabels:       true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+
+# 其他设置
+SortIncludes:           false
+IncludeCategories:
+  - Regex:           '^<.*\.h>'
+    Priority:        1
+  - Regex:           '^"'
+    Priority:        2
+
+Standard:            Cpp11  # 使用的C++标准
+
+# 重新排序和管理头文件
+IncludeIsMainRegex: '^[a-zA-Z0-9_]*'
+ReflowComments:     true
+SpacesInParentheses: false
+
+# 命名风格设置
+PointerAlignment:    Right
+DerivePointerAlignment: false
+...
