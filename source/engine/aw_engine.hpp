@@ -18,6 +18,8 @@
 //---------------opengl-------------------
 #include "platform/opengl/gl_shader.hpp"
 #include "platform/opengl/gl_texture.hpp"
+#include "platform/opengl/gl_vertex_array.hpp"
+#include "platform/opengl/gl_vertex_buffer.hpp"
 
 //---------------ecs-------------------
 #include "core/ecs/aw_entity.hpp"

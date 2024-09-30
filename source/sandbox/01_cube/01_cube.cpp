@@ -12,73 +12,37 @@ class Sandbox : public Airwave::Application
     void onInit() override
     {
         m_eventObserver = std::make_shared<Airwave::EventObserver>();
-        m_eventObserver->onEvent<Airwave::MouseMovedEvent>([](const Airwave::MouseMovedEvent &event) {
-            // std::cout << "MouseMovedEvent: " << event.getX() << ", " << event.getY() << std::endl;
-        });
+        m_eventObserver->onEvent<Airwave::MouseMovedEvent>(
+            [](const Airwave::MouseMovedEvent &event)
+            {
+                // std::cout << "MouseMovedEvent: " << event.getX() << ", " << event.getY() <<
+                // std::endl;
+            });
 
-        // 创建立方体数据
-        // 顶点数据
-        float cubeVertices[] = {
-            // 位置           // 法线           // UV
-            -1.0f, -1.0f, 1.0f,  0.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f,  -1.0f, 1.0f,  0.0f,  0.0f,  1.0f,  1.0f, 0.0f,
-            1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  1.0f, 1.0f, -1.0f, 1.0f,  1.0f,  0.0f,  0.0f,  1.0f,  0.0f, 1.0f,
-
-            -1.0f, -1.0f, -1.0f, 0.0f,  0.0f,  -1.0f, 0.0f, 0.0f, -1.0f, 1.0f,  -1.0f, 0.0f,  0.0f,  -1.0f, 0.0f, 1.0f,
-            1.0f,  1.0f,  -1.0f, 0.0f,  0.0f,  -1.0f, 1.0f, 1.0f, 1.0f,  -1.0f, -1.0f, 0.0f,  0.0f,  -1.0f, 1.0f, 0.0f,
-
-            -1.0f, -1.0f, -1.0f, -1.0f, 0.0f,  0.0f,  0.0f, 0.0f, -1.0f, -1.0f, 1.0f,  -1.0f, 0.0f,  0.0f,  1.0f, 0.0f,
-            -1.0f, 1.0f,  1.0f,  -1.0f, 0.0f,  0.0f,  1.0f, 1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, 0.0f,  0.0f,  0.0f, 1.0f,
-
-            1.0f,  -1.0f, -1.0f, 1.0f,  0.0f,  0.0f,  0.0f, 0.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-            1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-            -1.0f, 1.0f,  -1.0f, 0.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  1.0f,  -1.0f, 0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-            1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f, -1.0f, 1.0f,  1.0f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-
-            -1.0f, -1.0f, -1.0f, 0.0f,  -1.0f, 0.0f,  0.0f, 0.0f, 1.0f,  -1.0f, -1.0f, 0.0f,  -1.0f, 0.0f,  1.0f, 0.0f,
-            1.0f,  -1.0f, 1.0f,  0.0f,  -1.0f, 0.0f,  1.0f, 1.0f, -1.0f, -1.0f, 1.0f,  0.0f,  -1.0f, 0.0f,  0.0f, 1.0f,
+        // 顶点数据, 四边形
+        std::vector<float> vertices = {
+            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+            0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+            0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
+            -0.5f, 0.5f,  0.0f, 0.0f, 1.0f  // top left
         };
 
         // 索引数据
-        unsigned int cubeIndices[] = {
-            0,  1,  2,  2,  3,  0,
-            4,  5,  6,  6,  7,  4,
-            8,  9,  10, 10, 11, 8,
-            12, 13, 14, 14, 15, 12,
-            16, 17, 18, 18, 19, 16,
-            20, 21, 22, 22, 23, 20,
-        };
+        std::vector<uint32_t> indices = {0, 1, 2, 2, 3, 0};
 
-        // 创建立方体
-        glGenVertexArrays(1, &m_vao);
-        glBindVertexArray(m_vao);
-
-        glGenBuffers(1, &m_vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), cubeVertices, GL_STATIC_DRAW);
-
-        glGenBuffers(1, &m_ibo);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cubeIndices), cubeIndices, GL_STATIC_DRAW);
-
-        // 位置属性
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
-        glEnableVertexAttribArray(0);
-
-        // 法线属性
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
-        glEnableVertexAttribArray(1);
-
-        // UV属性
-        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
-        glEnableVertexAttribArray(2);
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
-
-
-
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        m_vertexArray = std::make_shared<Airwave::VertexArray>();
+        {
+            m_vertexArray->bind();
+            auto vertexBuffer = std::make_shared<Airwave::VertexBuffer>(
+                vertices.data(), vertices.size() * sizeof(float));
+            vertexBuffer->setLayout({{Airwave::ShaderDataType::Float3, "aPos"},
+                                     {Airwave::ShaderDataType::Float2, "aTexCoord"}});
+            m_vertexArray->addVertexBuffer(vertexBuffer);
+            auto indexBuffer =
+                std::make_shared<Airwave::IndexBuffer>(indices.data(), indices.size());
+            m_vertexArray->setIndexBuffer(indexBuffer);
+            m_vertexArray->unbind();
+        }
 
         std::string vertexSrc = R"(
             #version 330 core
@@ -122,7 +86,7 @@ class Sandbox : public Airwave::Application
         m_shader->bind();
         m_shader->uploadUniformInt("u_Texture", 0.0);
 
-        m_scene = std::make_shared<Airwave::Scene>(Airwave::SceneSpecification("Sandbox"));
+        m_scene     = std::make_shared<Airwave::Scene>(Airwave::SceneSpecification("Sandbox"));
         auto entity = m_scene->createEntity("Cube");
         auto system = m_scene->addSystem(std::make_shared<Airwave::CameraSystem>(), "CameraSystem");
     }
@@ -135,8 +99,8 @@ class Sandbox : public Airwave::Application
 
         m_shader->bind();
         m_texture->bind(0);
-        glBindVertexArray(m_vao);
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
+        m_vertexArray->bind();
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
     }
 
     void onImGuiRender() override
@@ -148,13 +112,12 @@ class Sandbox : public Airwave::Application
 
   private:
     std::shared_ptr<Airwave::EventObserver> m_eventObserver;
-    uint32_t m_vao, m_vbo, m_ibo;
+
+    std::shared_ptr<Airwave::VertexArray> m_vertexArray;
     std::shared_ptr<Airwave::Shader> m_shader;
     std::shared_ptr<Airwave::Texture> m_texture;
 
     std::shared_ptr<Airwave::Scene> m_scene;
-
-    
 };
 
 Airwave::Application *CreateAirwaveEngineApplication() { return new Sandbox(); }

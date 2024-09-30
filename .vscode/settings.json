@@ -82,5 +82,6 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "expected": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "cl.exe"
 }
