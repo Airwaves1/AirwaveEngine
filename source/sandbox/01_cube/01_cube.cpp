@@ -89,6 +89,7 @@ class Sandbox : public Airwave::Application
         m_scene     = std::make_shared<Airwave::Scene>(Airwave::SceneSpecification("Sandbox"));
         auto entity = m_scene->createEntity("Cube");
         auto system = m_scene->addSystem(std::make_shared<Airwave::CameraSystem>(), "CameraSystem");
+        auto renderSystem = m_scene->addSystem(std::make_shared<Airwave::ForwardRenderSystem>(), "ForwardRenderSystem");
     }
 
     void onRender() override

@@ -29,6 +29,7 @@
 
 //---------------system-------------------
 #include "core/ecs/system/camera/camera_system.hpp"
+#include "core/ecs/system/render/forward_render_system.hpp"
 
 //---------------application-------------------
 #include "core/application/application.hpp"
