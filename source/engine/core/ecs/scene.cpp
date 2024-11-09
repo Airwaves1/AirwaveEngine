@@ -6,7 +6,8 @@ namespace Airwave
 {
 Scene::Scene(const SceneSpecification &specification) : m_specification(specification)
 {
-    m_registry   = std::make_shared<entt::registry>();
+    m_registry = std::make_shared<entt::registry>();
+
 }
 
 Scene::~Scene()
@@ -19,16 +20,16 @@ Scene::~Scene()
 
 std::shared_ptr<AwEntity> Scene::createEntity(const std::string &name)
 {
-    if(m_rootEntity == nullptr)
+    if (m_rootEntity == nullptr)
     {
         auto entity        = m_registry->create();
-        auto specification = AwEntitySpecification(name);
-        m_rootEntity      = std::make_shared<AwEntity>(shared_from_this(), entity, specification);
-        return m_rootEntity;
+        auto specification = AwEntitySpecification(m_specification.name);
+        m_rootEntity       = std::make_shared<AwEntity>(shared_from_this(), entity, specification);
     }
     auto entity        = m_registry->create();
     auto specification = AwEntitySpecification(name);
     auto awEntity      = std::make_shared<AwEntity>(shared_from_this(), entity, specification);
+    m_entities[entity] = awEntity;
     awEntity->setParent(m_rootEntity);
     return awEntity;
 }
@@ -55,6 +56,7 @@ std::shared_ptr<AwEntity> Scene::getEntity(const std::string &name)
     {
         if (pair.second->getName() == name) return pair.second;
     }
+    AW_ASSERT(false, "Entity " + name + "not found");
     return nullptr;
 }
 
@@ -119,40 +121,32 @@ bool Scene::destroyAllEntities()
     return true;
 }
 
-std::shared_ptr<AwSystem> Scene::addSystem(std::shared_ptr<AwSystem> system, std::string name)
+void Scene::addSystem(const std::shared_ptr<AwSystem> &system)
 {
-    m_systems[name] = system;
-    return system;
-}
-std::shared_ptr<AwSystem> Scene::getSystem(std::string name)
-{
-    if (m_systems.find(name) == m_systems.end())
+    if (system)
     {
-        LOG_WARN("System not found: {0}", name);
-        return nullptr;
+        auto &systemRef           = *system;
+        std::type_index typeIndex = std::type_index(typeid(systemRef));
+        m_systems[typeIndex]      = system;
     }
-
-    return m_systems[name];
 }
-bool Scene::destroySystem(std::string name)
+
+void Scene::removeSystem(const std::shared_ptr<AwSystem> &system)
 {
-    if (m_systems.find(name) == m_systems.end())
+    if (system)
     {
-        LOG_WARN("System not found: {0}", name);
-        return false;
+        auto &systemRef           = *system;
+        std::type_index typeIndex = std::type_index(typeid(systemRef));
+        m_systems.erase(typeIndex);
     }
-
-    m_systems.erase(name);
-    return true;
 }
 
-bool Scene::updateSystems(float deltaTime)
+void Scene::updateSystems(float deltaTime)
 {
     for (auto &pair : m_systems)
     {
         pair.second->onUpdate(deltaTime, shared_from_this());
     }
-    return true;
 }
 
 } // namespace Airwave

@@ -22,6 +22,9 @@ class AwWindow
 
     GLFWwindow *getHandle() const { return m_handle; }
 
+    uint32_t getWidth() const { return m_width; }
+    uint32_t getHeight() const { return m_height; }
+
     void getMousePosition(double &x, double &y);
     bool isMouseDown(MouseButton button = MouseButton::MOUSE_BUTTON_LEFT);
     bool isMouseUp(MouseButton button = MouseButton::MOUSE_BUTTON_LEFT);

@@ -111,6 +111,8 @@ struct TextureSpecification
     bool enableMSAA = false;
 
     uint32_t samples = 1;
+
+    TextureSpecification() = default;
 };
 
 class Texture
@@ -137,7 +139,7 @@ class Texture
 
     void setFormat(TextureFormat format) {}
 
-    void setInternalFormat(TextureInternalFormat internalFormat) {}
+    void setInternalFormat(TextureInternalFormat internalFormat);
 
     void setDataType(TextureDataType dataType) {}
 

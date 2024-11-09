@@ -10,8 +10,8 @@ namespace Airwave
 
 struct ApplicationConfig
 {
-    uint32_t width = 1280;
-    uint32_t height = 720;
+    uint32_t width = 1400;
+    uint32_t height = 900;
     std::string title = "Airwave Engine";
 
     bool enableImGui = true;
@@ -32,6 +32,8 @@ class Application
     const ApplicationConfig &getConfig() const { return m_config; }
 
     const std::unique_ptr<AwWindow> &getWindow() const { return m_window; }
+
+    void handleEvent();
 
   protected:
     virtual void onConfigurate(ApplicationConfig &config) {}
@@ -56,6 +58,7 @@ class Application
 
     std::unique_ptr<AwWindow> m_window;
 
+    std::shared_ptr<EventObserver> m_eventObserver;
 
 };
 

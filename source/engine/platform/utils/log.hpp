@@ -1,6 +1,7 @@
 #pragma once
 
 #include <spdlog/common.h>
+#include <assert.h>
 
 namespace Airwave
 {
@@ -51,6 +52,6 @@ class Log
     if (!x)                                                                                        \
     {                                                                                              \
         LOG_ERROR("Assertion Failed: {0}", __VA_ARGS__);                                           \
-        __debugbreak();                                                                            \
+        assert(x);                                                                          \
     }
 } // namespace Airwave

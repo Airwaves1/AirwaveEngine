@@ -15,8 +15,8 @@ Texture::Texture(uint32_t width, uint32_t height, const TextureSpecification &sp
     {
         glGenTextures(1, &m_handle);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_handle);
-        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_spec.samples, static_cast<GLint>(m_spec.internalFormat),
-                                width, height, GL_TRUE);
+        glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_spec.samples,
+                                static_cast<GLint>(m_spec.internalFormat), width, height, GL_TRUE);
         glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
     }
     else
@@ -31,7 +31,8 @@ Texture::Texture(uint32_t width, uint32_t height, const TextureSpecification &sp
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(m_spec.magFilter));
 
         glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), width, height, 0,
-                     static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.dataType), nullptr);
+                     static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.dataType),
+                     nullptr);
 
         if (m_spec.generateMipmaps)
         {
@@ -66,11 +67,11 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec, bool
 
     m_height = height;
 
-    if(channels == 3)
+    if (channels == 3)
     {
         m_spec.format = TextureFormat::RGB;
     }
-    else if(channels == 4)
+    else if (channels == 4)
     {
         m_spec.format = TextureFormat::RGBA;
     }
@@ -113,26 +114,13 @@ Texture::~Texture()
 void Texture::bind(uint32_t slot) const
 {
     glActiveTexture(GL_TEXTURE0 + slot);
-    if (m_spec.enableMSAA)
-    {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_handle);
-    }
-    else
-    {
-        glBindTexture(GL_TEXTURE_2D, m_handle);
-    }
+
+    glBindTexture(GL_TEXTURE_2D, m_handle);
 }
 
 void Texture::unbind() const
 {
-    if (m_spec.enableMSAA)
-    {
-        glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
-    }
-    else
-    {
-        glBindTexture(GL_TEXTURE_2D, 0);
-    }
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 std::vector<uint8_t> Texture::getData()
@@ -167,6 +155,14 @@ void Texture::setWrap(TextureWrap wrapS, TextureWrap wrapT, TextureWrap wrapR)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(m_spec.wrapS));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(m_spec.wrapT));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, static_cast<GLint>(m_spec.wrapR));
+    unbind();
+}
+
+void Texture::setInternalFormat(TextureInternalFormat internalFormat) {
+    m_spec.internalFormat = internalFormat;
+    bind();
+    glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
+                 static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.dataType), nullptr);
     unbind();
 }
 

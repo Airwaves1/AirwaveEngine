@@ -1,6 +1,5 @@
 #include <iostream>
 #include <memory>
-
 #include "aw_engine.hpp"
 #include <imgui.h>
 
@@ -11,98 +10,111 @@ class Sandbox : public Airwave::Application
   public:
     void onInit() override
     {
-        m_eventObserver = std::make_shared<Airwave::EventObserver>();
-        m_eventObserver->onEvent<Airwave::MouseMovedEvent>(
-            [](const Airwave::MouseMovedEvent &event)
-            {
-                // std::cout << "MouseMovedEvent: " << event.getX() << ", " << event.getY() <<
-                // std::endl;
-            });
+        // ================================初始化场景和系统===================================
+        // 创建场景
+        m_scene = std::make_shared<Airwave::Scene>(Airwave::SceneSpecification("Sandbox"));
 
-        // 顶点数据, 四边形
-        std::vector<float> vertices = {
-            -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
-            0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
-            0.5f,  0.5f,  0.0f, 1.0f, 1.0f, // top right
-            -0.5f, 0.5f,  0.0f, 0.0f, 1.0f  // top left
+        // 添加相机系统
+        auto cameraSystem = std::make_shared<Airwave::CameraSystem>();
+        m_scene->addSystem(cameraSystem);
+
+        // 添加渲染系统
+        auto renderSystem = std::make_shared<Airwave::ForwardRenderSystem>();
+        m_scene->addSystem(renderSystem);
+
+        // 添加背景系统
+        std::array<std::string, 6> skyboxPaths = {
+            TEXTURE_DIR "cube_textures/bridge2/posx.jpg",
+            TEXTURE_DIR "cube_textures/bridge2/negx.jpg",
+            TEXTURE_DIR "cube_textures/bridge2/posy.jpg",
+            TEXTURE_DIR "cube_textures/bridge2/negy.jpg",
+            TEXTURE_DIR "cube_textures/bridge2/posz.jpg",
+            TEXTURE_DIR "cube_textures/bridge2/negz.jpg",
         };
+        std::shared_ptr<Airwave::CubeTexture> skyboxTexture =
+            std::make_shared<Airwave::CubeTexture>(skyboxPaths);
+        auto backgroundSystem = std::make_shared<Airwave::BackgroundSystem>(skyboxTexture);
+        m_scene->addSystem(backgroundSystem);
+        //===============================================================================
 
-        // 索引数据
-        std::vector<uint32_t> indices = {0, 1, 2, 2, 3, 0};
+        // ================================创建相机实体===================================
+        auto cameraEntity = m_scene->createEntity("Camera");
+        // 添加相机组件
+        auto cameraComp = cameraEntity->addComponent<Airwave::CameraComponent>(
+            Airwave::CameraType::Perspective, 45.0f,
+            getWindow()->getWidth() / getWindow()->getHeight(), 0.1, 100.0);
 
-        m_vertexArray = std::make_shared<Airwave::VertexArray>();
-        {
-            m_vertexArray->bind();
-            auto vertexBuffer = std::make_shared<Airwave::VertexBuffer>(
-                vertices.data(), vertices.size() * sizeof(float));
-            vertexBuffer->setLayout({{Airwave::ShaderDataType::Float3, "aPos"},
-                                     {Airwave::ShaderDataType::Float2, "aTexCoord"}});
-            m_vertexArray->addVertexBuffer(vertexBuffer);
-            auto indexBuffer =
-                std::make_shared<Airwave::IndexBuffer>(indices.data(), indices.size());
-            m_vertexArray->setIndexBuffer(indexBuffer);
-            m_vertexArray->unbind();
-        }
+        cameraComp.camera->setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+        // 添加控制器组件
+        auto controllerComp =
+            cameraEntity->addComponent<Airwave::FPSCameraControllerComponent>(cameraComp.camera);
+        //===============================================================================
 
-        std::string vertexSrc = R"(
-            #version 330 core
+        // ================================创建光源实体===================================
+        auto pointLightEntity = m_scene->createEntity("PointLight");
+        // 添加光源组件
+        auto &pointLightComp = pointLightEntity->addComponent<Airwave::LightComponent>(
+            Airwave::LightType::Point, 1.0f, true);
+        pointLightComp.ambient   = glm::vec3(0.2f);
+        pointLightComp.diffuse   = glm::vec3(1.0f);
+        pointLightComp.specular  = glm::vec3(1.0f);
+        pointLightComp.position  = glm::vec3(0.0f, 3.0f, 2.0f);
+        pointLightComp.constant  = 1.0f;
+        pointLightComp.linear    = 0.09f;
+        pointLightComp.quadratic = 0.032f;
 
-            layout(location = 0) in vec3 aPos;
-            layout(location = 1) in vec2 aTexCoord;
+        auto dirLightEntity = m_scene->createEntity("DirLight");
+        // 添加光源组件
+        auto &dirLightComp = dirLightEntity->addComponent<Airwave::LightComponent>(
+            Airwave::LightType::Directional, 1.0f, true);
+        dirLightComp.ambient   = glm::vec3(0.2f);
+        dirLightComp.diffuse   = glm::vec3(1.0f);
+        dirLightComp.specular  = glm::vec3(1.0f);
+        dirLightComp.direction = glm::vec3(-2.0f, -1.0f, -3.0f);
+        //===============================================================================
 
-            out vec2 TexCoord;
+        // ================================创建立方体实体===================================
 
-            void main()
-            {
-                gl_Position = vec4(aPos, 1.0);
-                TexCoord = aTexCoord;
-            }
-        )";
+        // 创建实体
+        auto cubeEntity = m_scene->createEntity("Cube");
+        // 添加网格组件
+        std::vector<Airwave::AWVertex> vertices;
+        std::vector<uint32_t> indices;
+        Airwave::GeometryUtils::CreateCube(vertices, indices);
+        auto &meshComp = cubeEntity->addComponent<Airwave::MeshComponent>(vertices, indices);
+        // 添加材质组件
+        auto &materialComp      = cubeEntity->addComponent<Airwave::MaterialComponent>(Airwave::MaterialType::BlinnPhong);
+        materialComp.ambient    = glm::vec3(1.0f, 0.5f, 0.31f);
+        materialComp.diffuse    = glm::vec3(1.0f, 0.5f, 0.31f);
+        materialComp.specular   = glm::vec3(0.5f, 0.5f, 0.5f);
+        materialComp.shininess  = 32.0f;
+        materialComp.diffuseMap = Airwave::TEXTURE_LIB.load(
+            "container_diffuse", TEXTURE_DIR "container2.png", Airwave::TextureSpecification());
+        materialComp.specularMap =
+            Airwave::TEXTURE_LIB.load("container_specular", TEXTURE_DIR "container2_specular.png",
+                                      Airwave::TextureSpecification());
 
-        std::string fragmentSrc = R"(
-            #version 330 core
+        // 添加变换组件
+        auto transformComp = cubeEntity->addComponent<Airwave::TransformComponent>();
 
-            out vec4 FragColor;
-
-            in vec2 TexCoord;
-
-            // uniform vec3 u_Color;
-
-            uniform sampler2D u_Texture;
-
-            void main()
-            {   
-                // FragColor = vec4(u_Color, 1.0);
-                FragColor = vec4(texture(u_Texture, TexCoord).rgb,1.0);
-            }
-        )";
-
-        Airwave::TextureSpecification spec;
-        spec.format         = Airwave::TextureFormat::RGBA;
-        spec.internalFormat = Airwave::TextureInternalFormat::RGBA8;
-
-        m_texture = std::make_shared<Airwave::Texture>(TEXTURE_DIR "container2.png", spec, true);
-        m_shader  = std::make_shared<Airwave::Shader>(vertexSrc, fragmentSrc, false);
-        m_shader->bind();
-        m_shader->uploadUniformInt("u_Texture", 0.0);
-
-        m_scene     = std::make_shared<Airwave::Scene>(Airwave::SceneSpecification("Sandbox"));
-        auto entity = m_scene->createEntity("Cube");
-        auto system = m_scene->addSystem(std::make_shared<Airwave::CameraSystem>(), "CameraSystem");
-        auto renderSystem = m_scene->addSystem(std::make_shared<Airwave::ForwardRenderSystem>(), "ForwardRenderSystem");
+        //===============================================================================
     }
 
-    void onRender() override
+    void onUpdate(float deltaTime) override
     {
-        m_scene->updateSystems(0.0f);
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        auto pointLightEntity = m_scene->getEntity("PointLight");
+        auto &pointLightComp  = pointLightEntity->getComponent<Airwave::LightComponent>();
 
-        m_shader->bind();
-        m_texture->bind(0);
-        m_vertexArray->bind();
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        auto cameraEntity = m_scene->getEntity("Camera");
+        auto &cameraComp  = cameraEntity->getComponent<Airwave::CameraComponent>();
+
+        pointLightComp.position = cameraComp.camera->getPosition();
+
+        m_scene->updateSystems(deltaTime);
     }
+
+    void onRender() override {}
 
     void onImGuiRender() override
     {
@@ -112,12 +124,6 @@ class Sandbox : public Airwave::Application
     }
 
   private:
-    std::shared_ptr<Airwave::EventObserver> m_eventObserver;
-
-    std::shared_ptr<Airwave::VertexArray> m_vertexArray;
-    std::shared_ptr<Airwave::Shader> m_shader;
-    std::shared_ptr<Airwave::Texture> m_texture;
-
     std::shared_ptr<Airwave::Scene> m_scene;
 };
 

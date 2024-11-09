@@ -7,12 +7,13 @@ layout(location = 1) in vec2 v_uv;
 
 uniform vec4 u_color;         // 基础颜色
 
-
-uniform sampler2D u_texture_0;
+uniform sampler2D u_t_diffuse; // 漫反射纹理
 
 void main() {
 
     vec4 finalColor = u_color;
+
+    finalColor = texture(u_t_diffuse, v_uv);
 
     o_fragColor = finalColor;
 }

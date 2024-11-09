@@ -44,6 +44,10 @@ uniform Material u_material;
 uniform Light u_lights[16];    // 最多支持 16 个光源
 uniform int u_lightCount;       // 光源数量
 
+uniform int u_useDiffuseMap;
+uniform int u_useSpecularMap;
+uniform int u_useNormalMap;
+
 uniform vec3 u_cameraPosition;  // 相机位置
 
 vec3 CalPointLight(vec3 normal, vec3 worldPosition, vec3 cameraPosition, Light light);
@@ -60,12 +64,12 @@ void main() {
     for(int i = 0; i < u_lightCount; i++) {
         if(u_lights[i].type == 0) {
             finalColor.rgb += CalPointLight(normal, worldPosition, cameraPosition, u_lights[i]);
-        }
-        if(u_lights[i].type == 1) {
+        } else if(u_lights[i].type == 1) {
             finalColor.rgb += CalDirectionalLight(normal, worldPosition, cameraPosition, u_lights[i]);
-        }
-        if(u_lights[i].type == 2) {
+        } else if(u_lights[i].type == 2) {
             finalColor.rgb += CalSpotLight(normal, worldPosition, cameraPosition, u_lights[i]);
+        } else {
+            finalColor.rgb = u_material.diffuse;
         }
     }
 
@@ -97,27 +101,38 @@ vec3 CalPointLight(vec3 normal, vec3 worldPosition, vec3 cameraPosition, Light l
 
     float attenuation = 1.0 / (light.constant + light.linear * distance + light.quadratic * distance * distance);
 
-#ifdef USE_DIFFUSE_MAP
+    vec3 ambient = vec3(0.0);
+    vec3 diffuse = vec3(0.0);
+    vec3 specular = vec3(0.0);
 
-    vec3 diffuseColor = texture(u_material.diffuseMap, v_uv).rgb;
+    if(u_useDiffuseMap == 1) {
 
-    vec3 specularColor = texture(u_material.specularMap, v_uv).rgb;
+        vec3 diffuseColor = texture(u_material.diffuseMap, v_uv).rgb;
 
-    vec3 ambient = light.ambient * diffuseColor * attenuation;
+        ambient = light.ambient * diffuseColor * attenuation;
 
-    vec3 diffuse = light.diffuse * diff * diffuseColor * attenuation;
+        diffuse = light.diffuse * diff * diffuseColor * attenuation;
 
-    vec3 specular = (light.specular * spec) * specularColor * attenuation;
+    } else {
 
-#else
+        ambient = light.ambient * u_material.ambient;
 
-    vec3 ambient = light.ambient * u_material.ambient;
+        diffuse = (light.diffuse * diff) * u_material.diffuse;
 
-    vec3 diffuse = (light.diffuse * diff) * u_material.diffuse;
+    }
 
-    vec3 specular = (light.specular * spec) * u_material.specular;
+    if(u_useSpecularMap == 1) {
 
-#endif
+        vec3 specularColor = texture(u_material.specularMap, v_uv).rgb;
+
+        specular = (light.specular * spec) * specularColor * attenuation;
+
+    } else {
+
+        specular = (light.specular * spec) * u_material.specular * attenuation;
+
+    }
+
     f = ambient + diffuse + specular;
     return f;
 }
@@ -136,31 +151,40 @@ vec3 CalDirectionalLight(vec3 normal, vec3 worldPosition, vec3 cameraPosition, L
 
     float flag = step(0.0, dot(-lightDir, normal));  // 解决背面光照问题
 
-#ifdef USE_DIFFUSE_MAP
-
-    vec3 diffuseColor = texture(u_material.diffuseMap, v_uv).rgb;
-    vec3 specularColor = texture(u_material.specularMap, v_uv).rgb;
-
-    vec3 ambient = light.ambient * diffuseColor;
-
-    vec3 diffuse = light.diffuse * diff * diffuseColor;
-
+    vec3 ambient = vec3(0.0);
+    vec3 diffuse = vec3(0.0);
+    vec3 specular = vec3(0.0);
     float spec = pow(max(dot(normal, halfDir), 0.0), u_material.shininess) * flag;
 
-    vec3 specular = (light.specular * spec) * specularColor;
+    if(u_useDiffuseMap == 1) {
 
-#else
+        vec3 diffuseColor = texture(u_material.diffuseMap, v_uv).rgb;
 
-    vec3 ambient = light.ambient * u_material.ambient;
+        ambient = light.ambient * diffuseColor;
 
-    vec3 diffuse = (light.diffuse * diff) * u_material.diffuse;
+        diffuse = light.diffuse * diff * diffuseColor;
 
-    float spec = pow(max(dot(normal, halfDir), 0.0), u_material.shininess) * flag;
-    vec3 specular = (light.specular * spec) * u_material.specular;
+    } else {
 
-#endif  
+        ambient = light.ambient * u_material.ambient;
+
+        diffuse = (light.diffuse * diff) * u_material.diffuse;
+
+    }
+
+    if(u_useSpecularMap == 1) {
+
+        vec3 specularColor = texture(u_material.specularMap, v_uv).rgb;
+
+        specular = (light.specular * spec) * specularColor;
+
+    } else {
+
+        specular = (light.specular * spec) * u_material.specular;
+    }
 
     f = ambient + diffuse + specular;
+
     return f;
 }
 

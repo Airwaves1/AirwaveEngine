@@ -6,6 +6,7 @@
 #include <vector>
 #include <unordered_map>
 #include "utils/log.hpp"
+#include <typeindex>
 
 namespace Airwave
 {
@@ -47,18 +48,30 @@ class Scene : public std::enable_shared_from_this<Scene>
     // 获取根实体
     std::shared_ptr<AwEntity> getRootEntity() { return m_rootEntity; }
 
-    // 创建系统
-    std::shared_ptr<AwSystem> addSystem(std::shared_ptr<AwSystem> system, std::string name);
-
+    // 添加或移除系统
+    void addSystem(const std::shared_ptr<AwSystem> &system);
+    void removeSystem(const std::shared_ptr<AwSystem> &system);
+    void updateSystems(float deltaTime);
+    
+    // 查看是否有某个系统
+    template <typename T>
+    bool hasSystem() const
+    {
+        const std::type_index typeIndex = std::type_index(typeid(T));
+        return m_systems.find(typeIndex) != m_systems.end();
+    }
 
     // 获取系统
-    std::shared_ptr<AwSystem> getSystem(std::string name);
-
-    // 销毁系统
-    bool destroySystem(std::string name);
-
-    // 更新系统
-    bool updateSystems(float deltaTime);
+    template <typename T>
+    std::shared_ptr<T> getSystem()
+    {
+        const std::type_index typeIndex = std::type_index(typeid(T));
+        if (m_systems.find(typeIndex) != m_systems.end())
+        {
+            return std::static_pointer_cast<T>(m_systems[typeIndex]);
+        }
+        return nullptr;
+    }
 
     // 获取注册表
     std::shared_ptr<entt::registry> getRegistry() const { return m_registry; }
@@ -76,7 +89,7 @@ class Scene : public std::enable_shared_from_this<Scene>
     std::unordered_map<entt::entity, std::shared_ptr<AwEntity>> getEntities() { return m_entities; }
 
     // 获取所有系统
-    std::unordered_map<std::string, std::shared_ptr<AwSystem>> getSystems() { return m_systems; }
+    std::unordered_map<std::type_index, std::shared_ptr<AwSystem>> getSystems() { return m_systems; }
 
     // 获取所有实体数量
     size_t getEntityCount() { return m_entities.size(); }
@@ -89,7 +102,7 @@ class Scene : public std::enable_shared_from_this<Scene>
 
     std::shared_ptr<entt::registry> m_registry; // 实体注册表
 
-    std::unordered_map<std::string, std::shared_ptr<AwSystem>> m_systems; // 系统列表
+    std::unordered_map<std::type_index, std::shared_ptr<AwSystem>> m_systems; // 系统集合
 
     std::unordered_map<entt::entity, std::shared_ptr<AwEntity>> m_entities; // 实体列表
 

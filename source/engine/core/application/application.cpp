@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <glad/glad.h>
 
 namespace Airwave
 {
@@ -48,6 +49,8 @@ void Application::start(int argc, char **argv)
     }
 
     // 事件处理 TODO
+    m_eventObserver = std::make_shared<EventObserver>();
+    handleEvent();
 }
 
 void Application::quit()
@@ -101,6 +104,18 @@ void Application::mainLoop()
         // 交换缓冲区
         m_window->swapBuffers();
     }
+}
+
+void Application::handleEvent()
+{
+    m_eventObserver->onEvent<WindowResizeEvent>(
+        [this](const WindowResizeEvent &event)
+        {
+            m_config.width  = static_cast<uint32_t>(event.getWindowWidth());
+            m_config.height = static_cast<uint32_t>(event.getWindowHeight());
+
+            glViewport(0, 0, m_config.width, m_config.height);
+        });
 }
 
 void Application::parseArgs(int argc, char **argv) {}

@@ -4,3 +4,4 @@ project(sandbox)
 
 add_subdirectory(00_triangle)
 add_subdirectory(01_cube)
+add_subdirectory(02_model)

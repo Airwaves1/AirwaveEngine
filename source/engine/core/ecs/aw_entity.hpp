@@ -39,20 +39,25 @@ class AwEntity : public std::enable_shared_from_this<AwEntity>
     // 添加组件
     template <typename T, typename... Args> T &addComponent(Args &&...args)
     {
-        if (hasComponent<T>())
-        {
-            LOG_WARN("Entity already has component: {}", typeid(T).name());
-            return getComponent<T>().value(); // 确保值存在并返回
-        }
-
         return m_scene->getRegistry()->emplace<T>(m_entity, std::forward<Args>(args)...);
     }
 
-    // 获取组件
-    template <typename T> std::optional<T> getComponent()
+    // 添加组件
+    template <typename T> T &addComponent(const T &component)
     {
-        if (hasComponent<T>()) return m_scene->getRegistry()->get<T>(m_entity);
-        return std::nullopt;
+        return m_scene->getRegistry()->emplace_or_replace<T>(m_entity, component);
+    }
+
+    // 获取组件
+    template <typename T> T &getComponent()
+    {
+        if (hasComponent<T>())
+            return m_scene->getRegistry()->get<T>(m_entity);
+        else
+        {
+            LOG_ERROR("Entity does not have component: {0}", typeid(T).name());
+            throw std::runtime_error("Component not found");
+        }
     }
 
     // 移除组件
@@ -62,13 +67,25 @@ class AwEntity : public std::enable_shared_from_this<AwEntity>
     }
 
     // 判断是否包含某个组件
-    template <typename T> bool hasComponent() const { return m_scene->getRegistry()->any_of<T>(m_entity); }
+    template <typename T> bool hasComponent() const
+    {
+        if (m_scene == nullptr) return false;
+        auto registry = m_scene->getRegistry();
+        bool has      = registry->all_of<T>(m_entity);
+        return has;
+    }
 
     // 判断是否包含所有组件
-    template <typename... T> bool hasComponents() const { return m_scene->getRegistry()->all_of<T...>(m_entity); }
+    template <typename... T> bool hasComponents() const
+    {
+        return m_scene->getRegistry()->all_of<T...>(m_entity);
+    }
 
     // 判断是否包含任意组件
-    template <typename... T> bool hasAnyComponent() const { return m_scene->getRegistry()->any_of<T...>(m_entity); }
+    template <typename... T> bool hasAnyComponent() const
+    {
+        return m_scene->getRegistry()->any_of<T...>(m_entity);
+    }
 
     // 获取entt实体
     entt::entity getEntity() const { return m_entity; }
@@ -129,6 +146,8 @@ class AwEntity : public std::enable_shared_from_this<AwEntity>
     {
         return std::find(m_children.begin(), m_children.end(), child) != m_children.end();
     }
+
+    std::shared_ptr<Scene> getScene() const { return m_scene; }
 
   private:
     AwEntitySpecification m_specification;
