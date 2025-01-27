@@ -82,7 +82,9 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "expected": "cpp",
-        "typeindex": "cpp"
+        "typeindex": "cpp",
+        "codecvt": "cpp",
+        "xstddef": "cpp"
     },
     "C_Cpp.default.compilerPath": "cl.exe"
 }

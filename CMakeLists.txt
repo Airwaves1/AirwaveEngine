@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -45,7 +46,7 @@ endif()
 add_definitions(-DPROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 set(PROJECT_ROOT_DIR ${CMAKE_SOURCE_DIR})
 
-add_definitions(_DASSETS_DIR="${CMAKE_SOURCE_DIR}/assets/")
+add_definitions(-DASSETS_DIR="${CMAKE_SOURCE_DIR}/assets/")
 set(ASSETS_DIR ${CMAKE_SOURCE_DIR}/assets/)
 
 message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
@@ -54,6 +55,17 @@ message("ASSETS_DIR: ${ASSETS_DIR}")
 
 # 添加头文件搜索路径
 include_directories(${CMAKE_SOURCE_DIR}/engine/include)
+
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/glfw/include)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/glad/include)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/glm)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/spdlog)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/stb_image)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/imgui)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/nlohmann_json)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/tiny_gltf)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/tiny_obj)
+
 
 # 添加子目录
 add_subdirectory(engine)
