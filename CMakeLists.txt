@@ -10,6 +10,8 @@ set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
 
+add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # 设置可执行文件的输出目录
@@ -56,6 +58,7 @@ message("ASSETS_DIR: ${ASSETS_DIR}")
 # 添加头文件搜索路径
 include_directories(${CMAKE_SOURCE_DIR}/engine/include)
 
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/glfw/include)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/glad/include)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/glm)
@@ -66,6 +69,8 @@ include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/nlohmann_json)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/tiny_gltf)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/tiny_obj)
 
+include_directories(${CMAKE_SOURCE_DIR}/sandbox/editor/include)
+include_directories(${CMAKE_SOURCE_DIR}/sandbox/game/include)
 
 # 添加子目录
 add_subdirectory(engine)

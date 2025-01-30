@@ -2,13 +2,13 @@
 #include <iostream>
 #include "application.hpp"
 
-extern Airwave::Application* CreateWaveEngineApplication();
+extern Airwave::Application* CreateAirwaveEngineApplication();
 
 int main(int argc, char** argv)
 {
     std::cout << "Hello, WaveEngine! " << std::endl;
 
-    auto app = CreateWaveEngineApplication();
+    auto app = CreateAirwaveEngineApplication();
 
     app->start(argc, argv);
 

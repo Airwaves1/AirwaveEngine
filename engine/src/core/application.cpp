@@ -1,6 +1,11 @@
 #include "core/application.hpp"
 #include "core/log.hpp"
 
+#include "ecs/systems/transform_system.hpp"
+#include "ecs/systems/camera_system.hpp"
+#include "ecs/systems/render_system.hpp"
+#include "ecs/systems/input_system.hpp"
+
 namespace Airwave
 {
 Application::~Application() {}
@@ -18,19 +23,22 @@ void Application::start(int argc, char **argv)
     // 创建窗口
     m_window = std::make_unique<Window>(m_config.width, m_config.height, m_config.title);
 
+    // 创建渲染器
+    m_renderer = std::make_unique<Renderer>(this);
+
     // 创建场景
-    // m_scene = std::make_shared<Scene>();
+    m_scene = std::make_unique<AwScene>(this);
+    m_scene->addSystem<InputSystem>(0);
+    m_scene->addSystem<TransformSystem>(0);
+    m_scene->addSystem<CameraSystem>(0);
+    m_scene->addSystem<RenderSystem>(2);
 
-    // m_scene->addSystem(std::make_shared<InputSystem>(), 0);
-    // m_scene->addSystem(std::make_shared<TransformSystem>(), 0);
-    // m_scene->addSystem(std::make_shared<CameraSystem>(), 0);
-    // m_scene->addSystem(std::make_shared<ForwardRenderSystem>(), 1);
-    // m_scene->addSystem(std::make_shared<PostprocessorSystem>(), 2);
-
-    // 初始化管理员实体
-    // auto adminEntity = m_scene->getAdminEntity();
-    // adminEntity->addComponent<InputComponent>();
-
+    auto adminEntity = m_scene->getAdminEntity();
+    if (adminEntity)
+    {
+        adminEntity->addComponent<InputComponent>();
+    }
+    
     // 初始化
     onInit();
 }
@@ -59,8 +67,13 @@ void Airwave::Application::mainLoop()
         if (!b_pause)
         {
             onUpdate(deltaTime);
+
+            m_scene->update(deltaTime);
+
             onRender();
         }
+
+        onImGuiRender();
 
         m_window->swapBuffers();
     }
