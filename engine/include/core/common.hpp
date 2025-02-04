@@ -13,6 +13,13 @@ enum class MaterialType
     PBR
 };
 
+enum class LightType
+{
+    Directional,
+    Point,
+    Spot
+};
+
 struct AwVertex
 {
     glm::vec3 position;

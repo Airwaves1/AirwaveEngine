@@ -19,6 +19,8 @@ class Renderer
         GLenum clearMask     = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT;
     };
 
+    uint64_t drawCalls = 0;
+
     Renderer(Application *appContext);
     ~Renderer();
 

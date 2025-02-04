@@ -20,7 +20,11 @@ Renderer::Renderer(Application *appContext) : m_appContext(appContext)
     m_eventObserver = std::make_unique<EventObserver>();
     m_eventObserver->subscribe<WindowResizeEvent>(
         [this](const WindowResizeEvent &event)
-        { m_framebuffer->resize(event.getWidth(), event.getHeight()); });
+        {
+            LOG_DEBUG("resize{0}, {1}", event.getWidth(), event.getHeight());
+            glViewport(0, 0, event.getWidth(), event.getHeight());
+            m_framebuffer->resize(event.getWidth(), event.getHeight());
+        });
 }
 Renderer::~Renderer() {}
 

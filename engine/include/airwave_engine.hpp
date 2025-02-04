@@ -16,6 +16,7 @@
 #include "ecs/components/mesh_component.hpp"
 #include "ecs/components/material_component.hpp"
 #include "ecs/components/camera_component.hpp"
+#include "ecs/components/light_component.hpp"
 
 #include "ecs/components/singleton_components/input_component.hpp"
 

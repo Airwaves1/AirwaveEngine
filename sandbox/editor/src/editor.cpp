@@ -38,6 +38,7 @@ Editor::Editor(Application *context) : m_context(context)
     // 字体
     setFontStyle();
     io.FontGlobalScale = 1.8f;
+    // 加粗
 
     // 初始化平台后端
     ImGui_ImplGlfw_InitForOpenGL(m_context->getWindow()->getHandle(), true);
@@ -93,12 +94,27 @@ void Editor::setThemeStyle()
     colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
 }
 
-void Editor::setFontStyle() {
+void Editor::setFontStyle()
+{
     ImGuiIO &io = ImGui::GetIO();
     io.Fonts->Clear();
-    // const char* fontPath = PROJECT_ROOT_DIR "/assets/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf";
-    const char* fontPath = PROJECT_ROOT_DIR "/assets/fonts/Nunito_Sans/static/NunitoSans_10pt-Regular.ttf";
-    io.Fonts->AddFontFromFileTTF(fontPath, 16.0f);
+    // const char* fontPath = PROJECT_ROOT_DIR
+    // "/assets/fonts/Nunito_Sans/NunitoSans-VariableFont_YTLC,opsz,wdth,wght.ttf"; const char*
+    const char *fontPath = PROJECT_ROOT_DIR "/assets/fonts/Nunito_Sans/static/"
+                                            "NunitoSans_10pt-Regular.ttf";
+    // const char *fontPath = PROJECT_ROOT_DIR "/assets/fonts/Noto_Sans,Nunito_Sans/Noto_Sans/"
+    //                                         "static/NotoSans_ExtraCondensed-SemiBold.ttf";
+
+    ImFontConfig fontConfig;
+    // fontConfig.OversampleH = 4;
+    // fontConfig.OversampleV = 4;
+    fontConfig.PixelSnapH           = true;
+    fontConfig.FontDataOwnedByAtlas = true; // 让Atlas管理内存
+    // fontConfig.FontDataOwnedByAtlas = true;
+    // fontConfig.MergeMode   = true;
+
+    io.Fonts->AddFontFromFileTTF(fontPath, 16.0f, &fontConfig,
+                                 io.Fonts->GetGlyphRangesChineseFull()); // 支持中文);
     io.Fonts->Build();
 }
 

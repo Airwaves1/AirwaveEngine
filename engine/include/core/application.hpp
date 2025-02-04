@@ -32,10 +32,12 @@ class Application
 
     uint32_t getWindowWidth() const { return m_window->getWidth(); }
     uint32_t getWindowHeight() const { return m_window->getHeight(); }
+    uint32_t getFPS() const { return 1.0f / m_deltaTime; }
+
     Window *getWindow() const { return m_window.get(); }
     AwScene *getScene() const { return m_scene.get(); }
     Renderer *getRenderer() const { return m_renderer.get(); }
-    AwEntity* getAdminEntity() const { return m_scene->getAdminEntity(); }
+    AwEntity *getAdminEntity() const { return m_scene->getAdminEntity(); }
 
   protected:
     virtual void onConfigurate(ApplicationConfig &config) {}
@@ -52,6 +54,8 @@ class Application
     std::unique_ptr<Window> m_window;
     std::unique_ptr<AwScene> m_scene;
     std::unique_ptr<Renderer> m_renderer;
+
+    float m_deltaTime = 0.0f;
 
   private:
     ApplicationConfig m_config;

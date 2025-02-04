@@ -5,6 +5,7 @@
 #include "ecs/systems/camera_system.hpp"
 #include "ecs/systems/render_system.hpp"
 #include "ecs/systems/input_system.hpp"
+#include "ecs/systems/light_system.hpp"
 
 namespace Airwave
 {
@@ -31,16 +32,21 @@ void Application::start(int argc, char **argv)
     m_scene->addSystem<InputSystem>(0);
     m_scene->addSystem<TransformSystem>(0);
     m_scene->addSystem<CameraSystem>(0);
+    m_scene->addSystem<LightSystem>(0);
     m_scene->addSystem<RenderSystem>(2);
 
     auto adminEntity = m_scene->getAdminEntity();
     if (adminEntity)
     {
         adminEntity->addComponent<InputComponent>();
+        adminEntity->addComponent<LightsManagerComponent>();
     }
-    
+
     // 初始化
     onInit();
+
+    // 事件
+    // m_eventObserver = std::make_shared<EventObserver>();
 }
 
 void Airwave::Application::quit()
@@ -62,6 +68,7 @@ void Airwave::Application::mainLoop()
         float deltaTime      = std::chrono::duration<float>(now - m_lastFrameTimePoint).count();
         m_lastFrameTimePoint = now;
         m_frameIndex++;
+        m_deltaTime = deltaTime;
 
         // 更新和渲染
         if (!b_pause)

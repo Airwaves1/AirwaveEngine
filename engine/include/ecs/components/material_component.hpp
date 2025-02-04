@@ -13,12 +13,19 @@ class MaterialComponent : public AwComponent
   public:
     MaterialRenderParams materialRenderParams;
 
+    float roughness = 0.0f;
+    float metallic  = 0.0f;
+    float ao        = 1.0f;
+
     glm::vec3 color = glm::vec3(0.0);
 
     std::shared_ptr<Shader> shader{nullptr};
     std::shared_ptr<Texture> diffuseMap{nullptr};
+    std::shared_ptr<Texture> specularMap{nullptr};
 
     MaterialComponent(MaterialType type = MaterialType::Basic) { setMaterialType(type); }
+
+    MaterialType getMaterialType() const { return m_type; }
 
     void setMaterialType(MaterialType type)
     {
@@ -35,6 +42,9 @@ class MaterialComponent : public AwComponent
                 // setPhongMaterial();
                 break;
             case MaterialType::PBR:
+                shader =
+                    SHADER_LIB.load("pbr", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/physical.vert",
+                                    PROJECT_ROOT_DIR "/assets/shaders/shader_lib/physical.frag");
                 // setPBRMaterial();
                 break;
             default:
