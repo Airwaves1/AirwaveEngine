@@ -37,6 +37,11 @@ class AwEntity
 
     template <typename T> T &getComponent() { return m_scene->getRegistry().get<T>(m_entity); }
 
+    template <typename T> T *tryGetComponent()
+    {
+        return m_scene->getRegistry().try_get<T>(m_entity);
+    }
+
     template <typename T> void removeComponent()
     {
         if (hasComponent<T>())

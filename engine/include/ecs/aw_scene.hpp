@@ -26,6 +26,7 @@ class AwScene
                                                                                                "t");
 
     AwEntity *getEntity(entt::entity entity);
+    AwEntity *getEntity(const std::string &name);
 
     void traverseEntity(AwEntity *entity, std::function<void(AwEntity *)> callback);
 

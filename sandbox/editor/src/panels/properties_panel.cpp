@@ -450,6 +450,43 @@ void PropertiesPanel::drawMaterialComponent(MaterialComponent &materialComponent
             }
             case MaterialType::PBR:
             {
+                // Column 1: Roughness label
+                ImGui::TableNextColumn();
+                ImGui::Text("Roughness");
+
+                // Column 2: Roughness DragFloat (range: 0.0 - 1.0)
+                ImGui::TableNextColumn();
+                float roughness = materialComponent.roughness;
+                if (ImGui::DragFloat("##Roughness", &roughness, 0.01f, 0.0f, 1.0f, "%.2f"))
+                {
+                    materialComponent.roughness = glm::clamp(roughness, 0.0f, 1.0f);
+                }
+
+                // Column 1: Metallic label
+                ImGui::TableNextColumn();
+                ImGui::Text("Metallic");
+
+                // Column 2: Metallic DragFloat (range: 0.0 - 1.0)
+                ImGui::TableNextColumn();
+                float metallic = materialComponent.metallic;
+                if (ImGui::DragFloat("##Metallic", &metallic, 0.01f, 0.0f, 1.0f, "%.2f"))
+                {
+                    materialComponent.metallic = glm::clamp(metallic, 0.0f, 1.0f);
+                }
+
+                // Column 1: AO label
+                ImGui::TableNextColumn();
+                ImGui::Text("AO");
+
+                // Column 2: AO DragFloat (range: 0.0 - 1.0)
+                ImGui::TableNextColumn();
+                float ao = materialComponent.ao;
+                if (ImGui::DragFloat("##AO", &ao, 0.01f, 0.0f, 1.0f, "%.2f"))
+                {
+                    materialComponent.ao = glm::clamp(ao, 0.0f, 1.0f);
+                }
+
+                break;
             }
 
             case MaterialType::None:

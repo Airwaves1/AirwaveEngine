@@ -9,8 +9,8 @@ namespace Airwave
 {
 void Sandbox::onConfigurate(Airwave::ApplicationConfig &config)
 {
-    config.width  = 2100;
-    config.height = 1350;
+    config.width  = 1920;
+    config.height = 1080;
     config.title  = "Airwave Editor";
 }
 
@@ -26,7 +26,7 @@ void Sandbox::onInit()
     std::vector<AwVertex> sphereVertices;
     std::vector<uint32_t> sphereIndices;
     GeometryUtils::CreateCube(cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
-    GeometryUtils::CreateSphere(sphereVertices, sphereIndices, 1.0f, 36, 18);
+    GeometryUtils::CreateSphere(sphereVertices, sphereIndices, 1.0f, 36, 32);
 
     // entity
 
@@ -35,41 +35,46 @@ void Sandbox::onInit()
     main_camera_entity->addComponent<CameraComponent>();
     main_camera_entity->addComponent<TrackballController>();
     auto &camera_transform = main_camera_entity->getComponent<TransformComponent>();
-    camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 3.0f));
+    camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 30.0f));
 
-    // cube
-    auto cube_entity = m_scene->createDefaultEntity("cube");
-    auto &cubeMesh   = cube_entity->addComponent<MeshComponent>();
-    auto &cubeMat    = cube_entity->addComponent<MaterialComponent>(MaterialType::PBR);
-    // cubeMat.setMaterialType(MaterialType::PBR);
-    cubeMesh.setData(cubeVertices, cubeIndices);
-    auto &cubeTransform = cube_entity->getComponent<TransformComponent>();
-    cubeTransform.setPosition(glm::vec3(2.0f, 0.0f, 0.0f));
-    cubeMat.color = glm::vec3(0.3, 0.5, 0.8);
+    // // lights
+    for (int i = 0; i < 2; i++)
+    {
+        for (int j = 0; j < 2; j++)
+        {
+            auto light_entity    = m_scene->createDefaultEntity("light_" + std::to_string(i) +
+            "_" +
+                                                                std::to_string(j));
+            auto &light_comp     = light_entity->addComponent<LightComponent>();
+            // light_comp.intensity = 300.0f;
+            light_comp.color = glm::vec3(300.0f);
+            auto &light_transform = light_entity->getComponent<TransformComponent>();
+            light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
+        }
+    }
 
-    // sphere
-    auto sphere_entity  = m_scene->createDefaultEntity("sphere");
-    auto &sphereMesh    = sphere_entity->addComponent<MeshComponent>();
-    auto &sphereMat     = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
-    sphereMat.color     = glm::vec3(0.6, 0.4, 0.2);
-    sphereMat.roughness = 0.3;
-    sphereMat.metallic  = 0.7;
-     // sphereMat.setMaterialType(MaterialType::PBR);
-    sphereMesh.setData(sphereVertices, sphereIndices);
-    auto &sphereTransform = sphere_entity->getComponent<TransformComponent>();
-    sphereTransform.setPosition(glm::vec3(-2.0f, 0.0f, 0.0f));
+    // sphere container
+    auto sphere_container_entity = m_scene->createDefaultEntity("sphere_container");
 
-    // light
-    auto light_entity    = m_scene->createDefaultEntity("direction light");
-    auto &light          = light_entity->addComponent<LightComponent>();
-    auto &lightTransform = light_entity->getComponent<TransformComponent>();
-    light.color          = glm::vec3(0.8);
-    lightTransform.setPosition(glm::vec3(2.0, 2.0, 2.0));
+    // spheres 7 x 7
+    for (int i = 0; i < 7; i++)
+    {
+        for (int j = 0; j < 7; j++)
+        {
+            auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" +
+                                                              std::to_string(j));
+            sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
+            auto &mat     = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
+            mat.color     = glm::vec3(0.5f, 0.0f, 0.0f);
+            mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
+            mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
+            mat.ao        = 1.0f;
 
-    // m_scene->setEntityParent(sphere_entity, cube_entity);
-    // TextureSpecification textureSpec;
-    // cubeMat.diffuseMap =
-    //     TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/R-C.jpeg", textureSpec);
+            auto &sphere_transform = sphere_entity->getComponent<TransformComponent>();
+            sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
+            m_scene->setEntityParent(sphere_entity, sphere_container_entity);
+        }
+    }
 }
 
 void Sandbox::onDestory() {}

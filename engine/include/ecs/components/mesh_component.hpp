@@ -67,12 +67,9 @@ class MeshComponent : public AwComponent
 
     std::shared_ptr<VertexArray> getVertexArray() const { return m_vertexArray; }
 
-    void setVertexArray(std::shared_ptr<VertexArray> vertexArray)
-    {
-        m_vertexArray = vertexArray;
-    }
+    void setVertexArray(std::shared_ptr<VertexArray> vertexArray) { m_vertexArray = vertexArray; }
 
-    void draw() const
+    void draw()
     {
         if (!m_vertexArray)
         {

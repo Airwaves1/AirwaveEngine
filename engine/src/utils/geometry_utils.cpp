@@ -148,22 +148,20 @@ void GeometryUtils::CreateSphere(std::vector<AwVertex> &vertices, std::vector<ui
 {
     for (int y = 0; y <= heightSegments; ++y)
     {
-        float v        = y / static_cast<float>(heightSegments);
+        float v        = float(y) / heightSegments;
         float theta    = thetaStart + v * thetaLength;
         float sinTheta = sin(theta);
         float cosTheta = cos(theta);
 
         for (int x = 0; x <= widthSegments; ++x)
         {
-            float u      = x / static_cast<float>(widthSegments);
+            float u      = float(x) / widthSegments;
             float phi    = phiStart + u * phiLength;
             float sinPhi = sin(phi);
             float cosPhi = cos(phi);
 
             AwVertex vertex;
-            vertex.position = glm::vec3(radius * cosPhi * sinTheta, radius * cosTheta,
-                                        radius * sinPhi * sinTheta);
-
+            vertex.position = glm::vec3(radius * cosPhi * sinTheta, radius * cosTheta, radius * sinPhi * sinTheta);
             vertex.texCoord = glm::vec2(u, v);
             vertex.normal   = glm::normalize(vertex.position);
 
@@ -180,6 +178,7 @@ void GeometryUtils::CreateSphere(std::vector<AwVertex> &vertices, std::vector<ui
             int i2 = i0 + (widthSegments + 1);
             int i3 = i2 + 1;
 
+            // 确保逆时针顺序
             indices.push_back(i0);
             indices.push_back(i2);
             indices.push_back(i1);
@@ -190,6 +189,7 @@ void GeometryUtils::CreateSphere(std::vector<AwVertex> &vertices, std::vector<ui
         }
     }
 }
+
 void GeometryUtils::CreateCylinder(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
                                    float radiusTop, float radiusBottom, float height,
                                    int radialSegments, int heightSegments, bool openEnded,

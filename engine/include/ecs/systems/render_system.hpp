@@ -28,6 +28,7 @@ class RenderSystem : public AwSystem
         for (auto entity : cameraView)
         {
             auto &camera = cameraView.get<CameraComponent>(entity);
+            // auto camera_entity = m_scene->getEntity(entity);
             if (!camera.enable)
             {
                 continue;
@@ -69,86 +70,60 @@ class RenderSystem : public AwSystem
             shader->bind();
 
             shader->setUniformMat4("u_worldMatrix", transform.getWorldMatrix());
-            shader->setUniformMat4("u_cameraWorldInverse", camera.getWorldInverseMatrix());
+            shader->setUniformMat4("u_viewMatrix", camera.getWorldInverseMatrix());
             shader->setUniformMat4("u_projectionMatrix", camera.getProjectionMatrix());
+            shader->setUniformMat3("u_normalMatrix", glm::transpose(glm::inverse(
+                                                       glm::mat3(transform.getWorldMatrix()))));
             shader->setUniformFloat3("u_cameraPosition", camera.getCameraPosition());
 
-            // 深度测试
-            if (material.materialRenderParams.depthTest)
+            shader->setUniformFloat3("u_material.albedo", material.color);
+            shader->setUniformFloat("u_material.roughness", material.roughness);
+            shader->setUniformFloat("u_material.metallic", material.metallic);
+            shader->setUniformFloat("u_material.ao", material.ao);
+
+            auto &lightsManagerComp = adminEntity->getComponent<LightsManagerComponent>();
+            for (int i = 0; i < lightsManagerComp.lights.size(); i++)
             {
-                renderer->enable(GL_DEPTH_TEST);
-                renderer->setDepthFunc(material.materialRenderParams.depthFunc);
-            }
-            else
-            {
-                renderer->disable(GL_DEPTH_TEST);
-            }
+                auto &lightComp = lightsManagerComp.lights[i]->getComponent<LightComponent>();
+                auto &lightTransform =
+                    lightsManagerComp.lights[i]->getComponent<TransformComponent>();
 
-            // 深度写入
-            renderer->setDepthMask(material.materialRenderParams.depthWrite);
+                shader->setUniformFloat3("lightPositions[" + std::to_string(i) + "]",
+                                         lightTransform.getPosition());
 
-            // 面剔除
-            renderer->setCullFace(material.materialRenderParams.cullFace);
-
-            // glEnable(GL_DEPTH_TEST);
-
-            int slot = 0;
-            shader->setUniformFloat3("u_color", material.color);
-            if (material.diffuseMap)
-            {
-                material.diffuseMap->bind(slot);
-                shader->setUniformInt("u_diffuseMap", slot);
-                slot++;
-            }
-            switch (material.m_type)
-            {
-                case MaterialType::Basic:
-
-                    break;
-                case MaterialType::Phong:
-                    break;
-                case MaterialType::PBR:
-                    // material
-                    shader->setUniformFloat("u_material.roughness", material.roughness);
-                    shader->setUniformFloat("u_material.metallic", material.metallic);
-
-                    // light
-                    if (adminEntity && adminEntity->hasComponent<LightsManagerComponent>())
-                    {
-                        auto &lightsManager = adminEntity->getComponent<LightsManagerComponent>();
-                        shader->setUniformInt("u_lightCount", lightsManager.lights.size());
-                        for (int i = 0; i < lightsManager.lights.size(); i++)
-                        {
-                            auto &lightComp =
-                                lightsManager.lights[i]->getComponent<LightComponent>();
-                            shader->setUniformInt("u_lights[" + std::to_string(i) + "].type",
-                                                  static_cast<int>(lightComp.type));
-                            shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].position",
-                                                     lightsManager.lights[i]
-                                                         ->getComponent<TransformComponent>()
-                                                         .getPosition());
-                            shader->setUniformFloat("u_lights[" + std::to_string(i) + "].intensity",
-                                                    lightComp.intensity);
-                            shader->setUniformFloat3("u_lights[" + std::to_string(i) +
-                                                         "].color",
-                                                     lightComp.color);
-                        }
-                    }
-                    break;
-                default:
-                    break;
+                shader->setUniformFloat3("lightColors[" + std::to_string(i) + "]", lightComp.color);
             }
 
             mesh.draw();
             drawCalls++;
-
-            if (material.diffuseMap)
-            {
-                material.diffuseMap->unbind();
-            }
+            // shader->unbind();
         }
 
         renderer->getFramebuffer()->unbind();
     }
 };
 } // namespace Airwave
+
+// if (adminEntity && adminEntity->hasComponent<LightsManagerComponent>())
+// {
+//     auto &lightsManager =
+//     adminEntity->getComponent<LightsManagerComponent>();
+//     shader->setUniformInt("u_lightCount", lightsManager.lights.size());
+//     for (int i = 0; i < lightsManager.lights.size(); i++)
+//     {
+//         auto &lightComp =
+//             lightsManager.lights[i]->getComponent<LightComponent>();
+//         shader->setUniformInt("u_lights[" + std::to_string(i) + "].type",
+//                               static_cast<int>(lightComp.type));
+//         shader->setUniformFloat3("u_lights[" + std::to_string(i) +
+//         "].position",
+//                                  lightsManager.lights[i]
+//                                      ->getComponent<TransformComponent>()
+//                                      .getPosition());
+//         shader->setUniformFloat("u_lights[" + std::to_string(i) +
+//         "].intensity",
+//                                 lightComp.intensity);
+//         shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].color",
+//                                  lightComp.color);
+//     }
+// }

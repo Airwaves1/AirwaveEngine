@@ -24,6 +24,10 @@ AwEntity *AwScene::createEntity(const std::string &name)
     m_entities[entity] = std::make_unique<AwEntity>(this, entity, name);
     return m_entities[entity].get();
 }
+
+/**
+ * @brief 创建一个默认的实体，包含TagComponent, TransformComponent, HierarchyComponent
+ */
 AwEntity *AwScene::createDefaultEntity(const std::string &name, const std::string &tag)
 {
     auto entity = createEntity(name);
@@ -43,6 +47,17 @@ AwEntity *AwScene::getEntity(entt::entity entity)
     return nullptr;
 }
 
+AwEntity *AwScene::getEntity(const std::string &name)
+{
+    for (auto &entity : m_entities)
+    {
+        if (entity.second->tryGetComponent<TagComponent>()->name == name)
+        {
+            return entity.second.get();
+        }
+    }
+    return nullptr;
+}
 void AwScene::traverseEntity(AwEntity *entity, std::function<void(AwEntity *)> callback)
 {
     callback(entity);
