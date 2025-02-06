@@ -73,28 +73,74 @@ class RenderSystem : public AwSystem
             shader->setUniformMat4("u_viewMatrix", camera.getWorldInverseMatrix());
             shader->setUniformMat4("u_projectionMatrix", camera.getProjectionMatrix());
             shader->setUniformMat3("u_normalMatrix", glm::transpose(glm::inverse(
-                                                       glm::mat3(transform.getWorldMatrix()))));
+                                                         glm::mat3(transform.getWorldMatrix()))));
             shader->setUniformFloat3("u_cameraPosition", camera.getCameraPosition());
 
-            shader->setUniformFloat3("u_material.albedo", material.color);
-            shader->setUniformFloat("u_material.roughness", material.roughness);
-            shader->setUniformFloat("u_material.metallic", material.metallic);
-            shader->setUniformFloat("u_material.ao", material.ao);
-
             auto &lightsManagerComp = adminEntity->getComponent<LightsManagerComponent>();
+            shader->setUniformInt("u_lightCount", lightsManagerComp.lights.size());
             for (int i = 0; i < lightsManagerComp.lights.size(); i++)
             {
                 auto &lightComp = lightsManagerComp.lights[i]->getComponent<LightComponent>();
                 auto &lightTransform =
                     lightsManagerComp.lights[i]->getComponent<TransformComponent>();
 
-                shader->setUniformFloat3("lightPositions[" + std::to_string(i) + "]",
+                shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].position",
                                          lightTransform.getPosition());
+                shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].color",
+                                         lightComp.color);
+                shader->setUniformFloat("u_lights[" + std::to_string(i) + "].intensity",
+                                        lightComp.intensity);
+            }
 
-                shader->setUniformFloat3("lightColors[" + std::to_string(i) + "]", lightComp.color);
+            shader->setUniformFloat3("u_material.albedo", material.color);
+            shader->setUniformFloat("u_material.roughness", material.roughness);
+            shader->setUniformFloat("u_material.metallic", material.metallic);
+            shader->setUniformFloat("u_material.ao", material.ao);
+
+            int slots = 0;
+            if (material.albedoMap)
+            {
+                material.albedoMap->bind(slots);
+                shader->setUniformInt("u_material.albedoMap", slots);
+                slots++;
+            }
+
+            if (material.normalMap)
+            {
+                material.normalMap->bind(slots);
+                shader->setUniformInt("u_material.normalMap", slots);
+                slots++;
+            }
+
+            if (material.metallicMap)
+            {
+                material.metallicMap->bind(slots);
+                shader->setUniformInt("u_material.metallicMap", slots);
+                slots++;
+            }
+
+            if (material.roughnessMap)
+            {
+                material.roughnessMap->bind(slots);
+                shader->setUniformInt("u_material.roughnessMap", slots);
+                slots++;
+            }
+
+            if (material.aoMap)
+            {
+                material.aoMap->bind(slots);
+                shader->setUniformInt("u_material.aoMap", slots);
+                slots++;
             }
 
             mesh.draw();
+
+            for (int i = 0; i < slots; i++)
+            {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, 0);
+            }
+
             drawCalls++;
             // shader->unbind();
         }

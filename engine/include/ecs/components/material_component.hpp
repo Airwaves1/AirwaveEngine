@@ -13,15 +13,18 @@ class MaterialComponent : public AwComponent
   public:
     MaterialRenderParams materialRenderParams;
 
-    float roughness = 0.0f;
-    float metallic  = 0.0f;
+    float roughness = 1.0f;
+    float metallic  = 1.0f;
     float ao        = 1.0f;
 
     glm::vec3 color = glm::vec3(0.0);
 
     std::shared_ptr<Shader> shader{nullptr};
-    std::shared_ptr<Texture> diffuseMap{nullptr};
-    std::shared_ptr<Texture> specularMap{nullptr};
+    std::shared_ptr<Texture> albedoMap{nullptr};
+    std::shared_ptr<Texture> normalMap{nullptr};
+    std::shared_ptr<Texture> metallicMap{nullptr};
+    std::shared_ptr<Texture> roughnessMap{nullptr};
+    std::shared_ptr<Texture> aoMap{nullptr};
 
     MaterialComponent(MaterialType type = MaterialType::Basic) { setMaterialType(type); }
 

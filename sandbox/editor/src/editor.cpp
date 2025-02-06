@@ -37,7 +37,7 @@ Editor::Editor(Application *context) : m_context(context)
 
     // 字体
     setFontStyle();
-    io.FontGlobalScale = 1.8f;
+    io.FontGlobalScale = 1.5f;
     // 加粗
 
     // 初始化平台后端

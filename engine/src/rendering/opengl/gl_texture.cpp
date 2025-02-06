@@ -30,6 +30,11 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec)
             m_spec.sRGB ? TextureInternalFormat::SRGB : TextureInternalFormat::RGB;
         m_spec.format = TextureFormat::RGB;
     }
+    else if (channels == 1)
+    {
+        m_spec.internalFormat = TextureInternalFormat::RED;
+        m_spec.format         = TextureFormat::RED;
+    }
     else if (channels == 4)
     {
         m_spec.internalFormat = m_spec.sRGB ? static_cast<TextureInternalFormat>(GL_SRGB_ALPHA)

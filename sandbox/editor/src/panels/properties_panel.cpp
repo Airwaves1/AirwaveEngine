@@ -185,7 +185,7 @@ void PropertiesPanel::drawTransformComponent(const char *label,
     if (ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(),
                           ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
     {
-        float colWidth = 180.0f;
+        float colWidth = 150.0f;
 
         auto position = transformComponent.getPosition();
         DrawVec3Control("Position", position, 0.0, colWidth);
@@ -685,7 +685,7 @@ void PropertiesPanel::DrawVec3Control(const std::string &label, glm::vec3 &value
     // 设置一行两列
     ImGui::Columns(2);
     // 第一列
-    ImGui::SetColumnWidth(0, columnWidth); // 设置第1列宽100
+    ImGui::SetColumnWidth(0, columnWidth);
     ImGui::Text("%s", label.c_str());
     ImGui::NextColumn();
 
@@ -694,8 +694,8 @@ void PropertiesPanel::DrawVec3Control(const std::string &label, glm::vec3 &value
     ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
 
-    float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 6.5f; // 设置行高
-    ImVec2 buttonSize = {lineHeight + 5.0f, lineHeight};                             // 按钮大小
+    float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 4.5f; // 设置行高
+    ImVec2 buttonSize = {lineHeight, lineHeight};                             // 按钮大小
 
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});

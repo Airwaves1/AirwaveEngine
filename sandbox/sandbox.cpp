@@ -42,12 +42,11 @@ void Sandbox::onInit()
     {
         for (int j = 0; j < 2; j++)
         {
-            auto light_entity    = m_scene->createDefaultEntity("light_" + std::to_string(i) +
-            "_" +
-                                                                std::to_string(j));
-            auto &light_comp     = light_entity->addComponent<LightComponent>();
+            auto light_entity = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" +
+                                                             std::to_string(j));
+            auto &light_comp  = light_entity->addComponent<LightComponent>();
             // light_comp.intensity = 300.0f;
-            light_comp.color = glm::vec3(300.0f);
+            light_comp.color      = glm::vec3(300.0f);
             auto &light_transform = light_entity->getComponent<TransformComponent>();
             light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
         }
@@ -57,6 +56,23 @@ void Sandbox::onInit()
     auto sphere_container_entity = m_scene->createDefaultEntity("sphere_container");
 
     // spheres 7 x 7
+    TextureSpecification spec;
+    auto albedoMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+                                                             "rustediron1-alt2-Unreal-Engine/"
+                                                             "rustediron2_basecolor.png",
+                                         spec);
+    auto normalMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+                                                             "rustediron1-alt2-Unreal-Engine/"
+                                                             "rustediron2_normal.png",
+                                         spec);
+    auto metallicMap  = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+                                                           "rustediron1-alt2-Unreal-Engine/"
+                                                           "rustediron2_metallic.png",
+                                         spec);
+    auto roughnessMap = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+                                                          "rustediron1-alt2-Unreal-Engine/"
+                                                          "rustediron2_roughness.png",
+                                         spec);
     for (int i = 0; i < 7; i++)
     {
         for (int j = 0; j < 7; j++)
@@ -65,10 +81,15 @@ void Sandbox::onInit()
                                                               std::to_string(j));
             sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
             auto &mat     = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
-            mat.color     = glm::vec3(0.5f, 0.0f, 0.0f);
+            mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
             mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
             mat.ao        = 1.0f;
+
+            mat.albedoMap    = albedoMap;
+            mat.normalMap    = normalMap;
+            mat.metallicMap  = metallicMap;
+            mat.roughnessMap = roughnessMap;
 
             auto &sphere_transform = sphere_entity->getComponent<TransformComponent>();
             sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
