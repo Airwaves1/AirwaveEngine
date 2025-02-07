@@ -57,22 +57,56 @@ void Sandbox::onInit()
 
     // spheres 7 x 7
     TextureSpecification spec;
-    auto albedoMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-                                                             "rustediron1-alt2-Unreal-Engine/"
-                                                             "rustediron2_basecolor.png",
-                                         spec);
-    auto normalMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-                                                             "rustediron1-alt2-Unreal-Engine/"
-                                                             "rustediron2_normal.png",
-                                         spec);
-    auto metallicMap  = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-                                                           "rustediron1-alt2-Unreal-Engine/"
-                                                           "rustediron2_metallic.png",
-                                         spec);
-    auto roughnessMap = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-                                                          "rustediron1-alt2-Unreal-Engine/"
-                                                          "rustediron2_roughness.png",
-                                         spec);
+    // auto albedoMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+    //                                                          "rustediron1-alt2-Unreal-Engine/"
+    //                                                          "rustediron2_basecolor.png",
+    //                                      spec);
+    // auto normalMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+    //                                                          "rustediron1-alt2-Unreal-Engine/"
+    //                                                          "rustediron2_normal.png",
+    //                                      spec);
+    // auto metallicMap  = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+    //                                                        "rustediron1-alt2-Unreal-Engine/"
+    //                                                        "rustediron2_metallic.png",
+    //                                      spec);
+    // auto roughnessMap = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
+    //                                                       "rustediron1-alt2-Unreal-Engine/"
+    //                                                       "rustediron2_roughness.png",
+    //                                      spec);
+
+    auto albedoMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
+                                                                                 "rustediron1-alt2-"
+                                                                                 "Unreal-Engine/"
+                                                                                 "rustediron2_"
+                                                                                 "basecolor.png",
+                                                                spec);
+
+    auto normalMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
+                                                                                 "rustediron1-alt2-"
+                                                                                 "Unreal-Engine/"
+                                                                                 "rustediron2_"
+                                                                                 "normal.png",
+
+                                                                spec);
+
+    auto metallicMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/"
+                                                                                   "textures/"
+                                                                                   "rustediron1-"
+                                                                                   "alt2-"
+                                                                                   "Unreal-Engine/"
+                                                                                   "rustediron2_"
+                                                                                   "metallic.png",
+                                                                  spec);
+
+    auto roughnessMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/"
+                                                                                    "textures/"
+                                                                                    "rustediron1-"
+                                                                                    "alt2-"
+                                                                                    "Unreal-Engine/"
+                                                                                    "rustediron2_"
+                                                                                    "roughness.png",
+                                                                   spec);
+
     for (int i = 0; i < 7; i++)
     {
         for (int j = 0; j < 7; j++)

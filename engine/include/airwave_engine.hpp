@@ -35,3 +35,5 @@
 
 #include "utils/geometry_utils.hpp"
 #include "utils/shapes_vao.hpp"
+
+#include "resource/resource_manager.hpp"

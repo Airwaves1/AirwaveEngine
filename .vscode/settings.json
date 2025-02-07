@@ -84,7 +84,11 @@
         "expected": "cpp",
         "typeindex": "cpp",
         "codecvt": "cpp",
-        "xstddef": "cpp"
+        "xstddef": "cpp",
+        "coroutine": "cpp",
+        "resumable": "cpp",
+        "future": "cpp",
+        "queue": "cpp"
     },
     "C_Cpp.default.compilerPath": "cl.exe"
 }

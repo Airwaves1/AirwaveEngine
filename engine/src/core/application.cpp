@@ -7,6 +7,8 @@
 #include "ecs/systems/input_system.hpp"
 #include "ecs/systems/light_system.hpp"
 
+#include "resource/resource_manager.hpp"
+
 namespace Airwave
 {
 Application::~Application() {}
