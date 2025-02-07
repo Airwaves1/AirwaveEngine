@@ -191,7 +191,19 @@ void Framebuffer::resize(uint32_t width, uint32_t height)
     invalidate(); // 重新创建帧缓冲
 }
 
-void Framebuffer::attachColorTexture(uint32_t index, std::shared_ptr<Texture> texture) {}
+void Framebuffer::attachColorTexture(uint32_t index, std::shared_ptr<Texture> texture) {
+    if (index >= m_colorAttachments.size())
+    {
+        LOG_WARN("Color attachment index out of range");
+        return;
+    }
+
+    m_colorAttachments[index] = texture;
+    glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
+    auto spec = texture->getSpecification();
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, GL_TEXTURE_2D, texture->getHandle(), 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 void Framebuffer::attachDepthTexture(std::shared_ptr<Texture> texture) {}
 

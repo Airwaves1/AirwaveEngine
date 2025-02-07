@@ -16,9 +16,7 @@ class ViewportPanel : public Panel
     ViewportPanel(Editor *editor, const std::string &title, bool startOpened = true)
         : Panel(editor, title, startOpened)
     {
-        TextureSpecification spec;
 
-        m_texture = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/R-C.jpeg", spec);
     }
 
     void onImGuiRender() override

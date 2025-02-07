@@ -6,8 +6,8 @@
 #include "ecs/systems/render_system.hpp"
 #include "ecs/systems/input_system.hpp"
 #include "ecs/systems/light_system.hpp"
-
 #include "resource/resource_manager.hpp"
+
 
 namespace Airwave
 {
@@ -40,6 +40,7 @@ void Application::start(int argc, char **argv)
     auto adminEntity = m_scene->getAdminEntity();
     if (adminEntity)
     {
+        adminEntity->addComponent<RendererComponent>();
         adminEntity->addComponent<InputComponent>();
         adminEntity->addComponent<LightsManagerComponent>();
     }

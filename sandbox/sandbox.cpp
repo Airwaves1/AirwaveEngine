@@ -42,11 +42,11 @@ void Sandbox::onInit()
     {
         for (int j = 0; j < 2; j++)
         {
-            auto light_entity = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" +
-                                                             std::to_string(j));
-            auto &light_comp  = light_entity->addComponent<LightComponent>();
-            // light_comp.intensity = 300.0f;
-            light_comp.color      = glm::vec3(300.0f);
+            auto light_entity    = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" +
+                                                                std::to_string(j));
+            auto &light_comp     = light_entity->addComponent<LightComponent>();
+            light_comp.intensity = 300.0f;
+            light_comp.color     = glm::vec3(1.0f);
             auto &light_transform = light_entity->getComponent<TransformComponent>();
             light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
         }
@@ -57,23 +57,7 @@ void Sandbox::onInit()
 
     // spheres 7 x 7
     TextureSpecification spec;
-    // auto albedoMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-    //                                                          "rustediron1-alt2-Unreal-Engine/"
-    //                                                          "rustediron2_basecolor.png",
-    //                                      spec);
-    // auto normalMap    = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-    //                                                          "rustediron1-alt2-Unreal-Engine/"
-    //                                                          "rustediron2_normal.png",
-    //                                      spec);
-    // auto metallicMap  = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-    //                                                        "rustediron1-alt2-Unreal-Engine/"
-    //                                                        "rustediron2_metallic.png",
-    //                                      spec);
-    // auto roughnessMap = TEXTURE_LIB.load(PROJECT_ROOT_DIR "/assets/textures/"
-    //                                                       "rustediron1-alt2-Unreal-Engine/"
-    //                                                       "rustediron2_roughness.png",
-    //                                      spec);
-
+    spec.internalFormat = TextureInternalFormat::SRGB;
     auto albedoMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
                                                                                  "rustediron1-alt2-"
                                                                                  "Unreal-Engine/"
@@ -81,6 +65,7 @@ void Sandbox::onInit()
                                                                                  "basecolor.png",
                                                                 spec);
 
+    spec.internalFormat = TextureInternalFormat::RGB;
     auto normalMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
                                                                                  "rustediron1-alt2-"
                                                                                  "Unreal-Engine/"
@@ -106,6 +91,35 @@ void Sandbox::onInit()
                                                                                     "rustediron2_"
                                                                                     "roughness.png",
                                                                    spec);
+
+    spec.isHDR  = true;
+    auto envMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
+                                                                              "hdr/"
+                                                                              "newport_loft.hdr",
+                                                             spec);
+
+    // HDR to Cubemap
+    // auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 512, true);
+    TextureSpecification cubeMapSpec;
+    cubeMapSpec.textureType        = TextureType::TEXTURE_CUBE_MAP;
+    cubeMapSpec.internalFormat     = TextureInternalFormat::SRGB;
+    cubeMapSpec.format             = TextureFormat::RGB;
+    cubeMapSpec.textureDataType    = TextureDataType::UINT8;
+    cubeMapSpec.flip = false;
+    std::vector<std::string> faces = {
+        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/posx.jpg",
+        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/negx.jpg",
+        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/posy.jpg",
+        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/negy.jpg",
+        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/posz.jpg",
+        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/negz.jpg",
+    };
+    auto cubemap = std::make_shared<Texture>(faces, cubeMapSpec);
+
+    auto adminEntity            = m_scene->getAdminEntity();
+    auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
+    renderer_comp.backgroundMap = cubemap;
+    renderer_comp.envMap        = cubemap;
 
     for (int i = 0; i < 7; i++)
     {

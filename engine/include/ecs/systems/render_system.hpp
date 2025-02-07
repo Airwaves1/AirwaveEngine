@@ -9,6 +9,7 @@
 #include "ecs/components/mesh_component.hpp"
 #include "ecs/components/material_component.hpp"
 #include "ecs/components/singleton_components/lights_manager_component.hpp"
+#include "ecs/components/singleton_components/renderer_component.hpp"
 
 namespace Airwave
 {
@@ -35,6 +36,7 @@ class RenderSystem : public AwSystem
             }
             renderScene(camera);
         }
+
         auto renderer       = m_scene->getApplication()->getRenderer();
         renderer->drawCalls = drawCalls;
     }
@@ -42,12 +44,28 @@ class RenderSystem : public AwSystem
   private:
     uint64_t drawCalls = 0;
 
+    void renderBackground(CameraComponent &camera)
+    {
+        auto renderer = m_scene->getApplication()->getRenderer();
+        auto adminEntity = m_scene->getAdminEntity();
+        auto& renderer_comp = adminEntity->getComponent<RendererComponent>();
+        if(renderer_comp.backgroundMap){
+            glDepthFunc(GL_LEQUAL);
+            auto shader = renderer_comp.backgroundShader;
+            shader->bind();
+            shader->setUniformInt("u_backgroundMap", 0);
+            shader->setUniformMat4("u_viewMatrix", camera.getWorldInverseMatrix());
+            shader->setUniformMat4("u_projectionMatrix", camera.getProjectionMatrix());
+            renderer_comp.backgroundMap->bind();
+            renderer_comp.meshComp->draw();
+        }
+    }
+
     void renderScene(CameraComponent &camera)
     {
         auto renderer = m_scene->getApplication()->getRenderer();
 
         renderer->getFramebuffer()->bind();
-        // renderer->setClearColor(glm::vec3(0.2f, 0.8f, 0.3f));
         renderer->clear();
         renderer->enable(GL_DEPTH_TEST);
 
@@ -144,32 +162,9 @@ class RenderSystem : public AwSystem
             drawCalls++;
             // shader->unbind();
         }
-
+        
+        renderBackground(camera);
         renderer->getFramebuffer()->unbind();
     }
 };
 } // namespace Airwave
-
-// if (adminEntity && adminEntity->hasComponent<LightsManagerComponent>())
-// {
-//     auto &lightsManager =
-//     adminEntity->getComponent<LightsManagerComponent>();
-//     shader->setUniformInt("u_lightCount", lightsManager.lights.size());
-//     for (int i = 0; i < lightsManager.lights.size(); i++)
-//     {
-//         auto &lightComp =
-//             lightsManager.lights[i]->getComponent<LightComponent>();
-//         shader->setUniformInt("u_lights[" + std::to_string(i) + "].type",
-//                               static_cast<int>(lightComp.type));
-//         shader->setUniformFloat3("u_lights[" + std::to_string(i) +
-//         "].position",
-//                                  lightsManager.lights[i]
-//                                      ->getComponent<TransformComponent>()
-//                                      .getPosition());
-//         shader->setUniformFloat("u_lights[" + std::to_string(i) +
-//         "].intensity",
-//                                 lightComp.intensity);
-//         shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].color",
-//                                  lightComp.color);
-//     }
-// }

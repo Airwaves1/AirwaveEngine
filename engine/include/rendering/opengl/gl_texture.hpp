@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <string>
+#include <vector>
 
 #include "core/common.hpp"
 
@@ -10,47 +11,49 @@ namespace Airwave
 // 纹理规格
 struct TextureSpecification
 {
-    // 纹理映射
+    TextureType textureType = TextureType::TEXTURE_2D;
+
     TextureWrap wrapS = TextureWrap::REPEAT;
     TextureWrap wrapT = TextureWrap::REPEAT;
+    TextureWrap wrapR = TextureWrap::REPEAT;
 
-    // 纹理过滤
-    TextureFilter minFilter = TextureFilter::LINEAR; // 缩小的过滤器
-    TextureFilter magFilter = TextureFilter::LINEAR; // 放大的过滤器
+    TextureFilter minFilter = TextureFilter::LINEAR;
+    TextureFilter magFilter = TextureFilter::LINEAR;
 
-    // 纹理格式
-    TextureInternalFormat internalFormat = TextureInternalFormat::RGBA8; // 纹理内部格式
-    TextureFormat format                 = TextureFormat::RGBA;          // 纹理格式
+    TextureInternalFormat internalFormat = TextureInternalFormat::RGBA8;
+    TextureFormat format                 = TextureFormat::RGBA;
+    TextureDataType textureDataType                 = TextureDataType::UINT8;
 
-    // 纹理类型
-    TextureDataType type= TextureDataType::UINT8;
-
-    // 是否生成mipmap
     bool generateMipmap = true;
-
-    // 多重采样
-    uint32_t samples = 1;
-
-    // 是否翻转
-    bool flip = true;
-
-    // 是否使用sRGB
-    bool sRGB = false;
-
-    bool enableMSAA = false;
+    bool flip           = true;
+    bool sRGB           = false;
+    bool isHDR          = false;
+    uint32_t samples    = 1;
+    bool enableMSAA     = false;
 };
 
 class Texture
 {
   public:
+    // 从文件加载 2D 纹理或 HDR 纹理
     Texture(const std::string &path, const TextureSpecification &spec = TextureSpecification());
-    Texture(uint32_t width, uint32_t height, const TextureSpecification &spec = TextureSpecification());
+
+    // 从 6 张面图加载立方体贴图
+    Texture(const std::vector<std::string> &faces,
+            const TextureSpecification &spec = TextureSpecification());
+
+    // 创建空 2D 纹理或立方体贴图
+    Texture(uint32_t width, uint32_t height,
+            const TextureSpecification &spec = TextureSpecification());
+
     ~Texture();
 
     void bind(uint32_t slot = 0) const;
     void unbind() const;
-
     uint32_t getHandle() const { return m_handle; }
+    TextureType getType() const { return m_spec.textureType; }
+
+    TextureSpecification getSpecification() const { return m_spec; }
 
   private:
     uint32_t m_width, m_height;
@@ -58,4 +61,5 @@ class Texture
     TextureSpecification m_spec;
     std::string m_path;
 };
+
 } // namespace Airwave

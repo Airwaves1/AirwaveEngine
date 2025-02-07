@@ -19,6 +19,8 @@
 #include "ecs/components/light_component.hpp"
 
 #include "ecs/components/singleton_components/input_component.hpp"
+#include "ecs/components/singleton_components/lights_manager_component.hpp"
+#include "ecs/components/singleton_components/renderer_component.hpp"
 
 #include "ecs/systems/transform_system.hpp"
 #include "ecs/systems/camera_system.hpp"
@@ -35,5 +37,7 @@
 
 #include "utils/geometry_utils.hpp"
 #include "utils/shapes_vao.hpp"
+#include "utils/texture_utils.hpp"
 
 #include "resource/resource_manager.hpp"
+

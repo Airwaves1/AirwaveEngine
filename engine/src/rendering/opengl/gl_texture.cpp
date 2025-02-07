@@ -6,14 +6,14 @@
 
 namespace Airwave
 {
-Texture::Texture(const std::string &path, const TextureSpecification &spec)
-{
 
-    m_spec = spec;
+Texture::Texture(const std::string &path, const TextureSpecification &spec) : m_spec(spec)
+{
     int width, height, channels;
     stbi_set_flip_vertically_on_load(m_spec.flip);
 
-    uint8_t *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    void *data = m_spec.isHDR ? (void *)stbi_loadf(path.c_str(), &width, &height, &channels, 0)
+                              : (void *)stbi_load(path.c_str(), &width, &height, &channels, 0);
 
     if (data == nullptr)
     {
@@ -24,52 +24,88 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec)
     m_width  = width;
     m_height = height;
 
-    if (channels == 3)
+    if (m_spec.isHDR)
     {
-        m_spec.internalFormat =
-            m_spec.sRGB ? TextureInternalFormat::SRGB : TextureInternalFormat::RGB;
-        m_spec.format = TextureFormat::RGB;
+        m_spec.internalFormat  = TextureInternalFormat::RGB16F;
+        m_spec.format          = TextureFormat::RGB;
+        m_spec.textureDataType = TextureDataType::FLOAT;
     }
-    else if (channels == 1)
+    else
     {
-        m_spec.internalFormat = TextureInternalFormat::RED;
-        m_spec.format         = TextureFormat::RED;
-    }
-    else if (channels == 4)
-    {
-        m_spec.internalFormat = m_spec.sRGB ? static_cast<TextureInternalFormat>(GL_SRGB_ALPHA)
-                                            : static_cast<TextureInternalFormat>(GL_RGBA);
-        m_spec.format         = TextureFormat::RGBA;
+        if (channels == 3)
+        {
+            m_spec.internalFormat =
+                m_spec.sRGB ? TextureInternalFormat::SRGB : TextureInternalFormat::RGB;
+            m_spec.format = TextureFormat::RGB;
+        }
+        else if (channels == 1)
+        {
+            m_spec.internalFormat = TextureInternalFormat::RED;
+            m_spec.format         = TextureFormat::RED;
+        }
+        else if (channels == 4)
+        {
+            m_spec.internalFormat = m_spec.sRGB ? static_cast<TextureInternalFormat>(GL_SRGB_ALPHA)
+                                                : static_cast<TextureInternalFormat>(GL_RGBA);
+            m_spec.format         = TextureFormat::RGBA;
+        }
     }
 
-    // 开辟纹理单元
     glGenTextures(1, &m_handle);
     glBindTexture(GL_TEXTURE_2D, m_handle);
 
-    // 设置纹理映射
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(m_spec.wrapS));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(m_spec.wrapT));
-
-    // 设置纹理过滤
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(m_spec.minFilter));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(m_spec.magFilter));
 
-    // 生成纹理
     glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
-                 static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.type), data);
+                 static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
 
-    // 创建mipmap
     if (m_spec.generateMipmap) glGenerateMipmap(GL_TEXTURE_2D);
 
-    // 释放资源
-    stbi_image_free(data);
+    if (m_spec.isHDR)
+        stbi_image_free((float *)data);
+    else
+        stbi_image_free((uint8_t *)data);
 
     glBindTexture(GL_TEXTURE_2D, 0);
+}
 
-    if (m_handle == 0)
+Texture::Texture(const std::vector<std::string> &faces, const TextureSpecification &spec)
+    : m_spec(spec)
+{
+    m_spec.textureType = TextureType::TEXTURE_CUBE_MAP;
+
+    glGenTextures(1, &m_handle);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
+
+    stbi_set_flip_vertically_on_load(m_spec.flip);
+
+    for (size_t i = 0; i < faces.size(); i++)
     {
-        LOG_ERROR("Failed to create texture: {0}", path);
+        int width, height, channels;
+        uint8_t *data = stbi_load(faces[i].c_str(), &width, &height, &channels, 0);
+
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+                         static_cast<GLint>(m_spec.internalFormat), width, height, 0,
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType),
+                         data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            LOG_ERROR("Failed to load cubemap face: {0}", faces[i]);
+        }
     }
+
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 Texture::Texture(uint32_t width, uint32_t height, const TextureSpecification &spec)
@@ -78,31 +114,41 @@ Texture::Texture(uint32_t width, uint32_t height, const TextureSpecification &sp
     m_height = height;
     m_spec   = spec;
 
-    // 开辟纹理单元
     glGenTextures(1, &m_handle);
-    glBindTexture(GL_TEXTURE_2D, m_handle);
+    glBindTexture(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
+                  m_handle);
 
-    // 设置纹理映射
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(m_spec.wrapS));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(m_spec.wrapT));
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_S, static_cast<GLint>(m_spec.wrapS));
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
+                    GL_TEXTURE_WRAP_T, static_cast<GLint>(m_spec.wrapT));
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
+                    GL_TEXTURE_MIN_FILTER, static_cast<GLint>(m_spec.minFilter));
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, static_cast<GLint>(m_spec.magFilter));
 
-    // 设置纹理过滤
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(m_spec.minFilter));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(m_spec.magFilter));
-
-    // 生成纹理
-    glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
-                 static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.type), nullptr);
-
-    // 创建mipmap
-    if (m_spec.generateMipmap) glGenerateMipmap(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    if (m_handle == 0)
+    if (spec.textureType == TextureType::TEXTURE_CUBE_MAP)
     {
-        LOG_ERROR("Failed to create texture");
+        for (size_t i = 0; i < 6; i++)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
+                         static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType),
+                         nullptr);
+        }
     }
+    else
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height,
+                     0, static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType),
+                     nullptr);
+    }
+
+    if (m_spec.generateMipmap)
+        glGenerateMipmap(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
+                                                                 : GL_TEXTURE_2D);
+
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
 }
 
 Texture::~Texture()
@@ -116,9 +162,13 @@ Texture::~Texture()
 void Texture::bind(uint32_t slot) const
 {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(GL_TEXTURE_2D, m_handle);
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
+                  m_handle);
 }
 
-void Texture::unbind() const { glBindTexture(GL_TEXTURE_2D, 0); }
+void Texture::unbind() const
+{
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
+}
 
 } // namespace Airwave

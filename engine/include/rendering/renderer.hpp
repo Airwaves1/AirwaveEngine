@@ -40,6 +40,8 @@ class Renderer
 
     Framebuffer *getFramebuffer() { return m_framebuffer.get(); }
 
+    Application *getApplication() { return m_appContext; }
+
   private:
     RendererParams m_rendererParams;
 
