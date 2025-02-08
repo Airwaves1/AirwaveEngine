@@ -16,7 +16,7 @@ void Sandbox::onConfigurate(Airwave::ApplicationConfig &config)
 
 void Sandbox::onInit()
 {
-    m_editor = std::make_unique<Airwave::Editor>(this);
+    m_editor         = std::make_unique<Airwave::Editor>(this);
 
     m_scene->addSystem<TrackballCameraSystem>();
 
@@ -92,29 +92,15 @@ void Sandbox::onInit()
                                                                                     "roughness.png",
                                                                    spec);
 
-    spec.isHDR  = true;
+    spec.isHDR          = true;
+    spec.generateMipmap = false;
     auto envMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
                                                                               "hdr/"
                                                                               "newport_loft.hdr",
                                                              spec);
 
     // HDR to Cubemap
-    // auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 512, true);
-    TextureSpecification cubeMapSpec;
-    cubeMapSpec.textureType        = TextureType::TEXTURE_CUBE_MAP;
-    cubeMapSpec.internalFormat     = TextureInternalFormat::SRGB;
-    cubeMapSpec.format             = TextureFormat::RGB;
-    cubeMapSpec.textureDataType    = TextureDataType::UINT8;
-    cubeMapSpec.flip = false;
-    std::vector<std::string> faces = {
-        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/posx.jpg",
-        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/negx.jpg",
-        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/posy.jpg",
-        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/negy.jpg",
-        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/posz.jpg",
-        PROJECT_ROOT_DIR "/assets/textures/cube_textures/bridge2/negz.jpg",
-    };
-    auto cubemap = std::make_shared<Texture>(faces, cubeMapSpec);
+    auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
 
     auto adminEntity            = m_scene->getAdminEntity();
     auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
@@ -128,16 +114,17 @@ void Sandbox::onInit()
             auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" +
                                                               std::to_string(j));
             sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
-            auto &mat     = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
-            mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            auto &mat = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
+            // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
             mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
             mat.ao        = 1.0f;
 
-            mat.albedoMap    = albedoMap;
-            mat.normalMap    = normalMap;
-            mat.metallicMap  = metallicMap;
-            mat.roughnessMap = roughnessMap;
+            // mat.albedoMap    = albedoMap;
+            // mat.normalMap    = normalMap;
+            // mat.metallicMap  = metallicMap;
+            // mat.roughnessMap = roughnessMap;
 
             auto &sphere_transform = sphere_entity->getComponent<TransformComponent>();
             sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));

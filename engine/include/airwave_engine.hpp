@@ -38,6 +38,8 @@
 #include "utils/geometry_utils.hpp"
 #include "utils/shapes_vao.hpp"
 #include "utils/texture_utils.hpp"
+#include "utils/file_utils.hpp"
+#include "utils/shader_utils.hpp"
 
 #include "resource/resource_manager.hpp"
 

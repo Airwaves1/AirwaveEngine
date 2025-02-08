@@ -2,12 +2,12 @@
 
 out vec4 FragColor;
 
-const float PI = 3.14159265359;
-const int MAX_LIGHT_COUNT = 16;
-
 in vec2 v_uv;
 in vec3 v_fragPos;
 in vec3 v_normal;
+
+#include "shader_chunk/common.glsl"
+const int MAX_LIGHT_COUNT = 16;
 
 struct PBRMaterial {
     vec3 albedo;

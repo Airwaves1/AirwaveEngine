@@ -22,7 +22,7 @@ struct TextureSpecification
 
     TextureInternalFormat internalFormat = TextureInternalFormat::RGBA8;
     TextureFormat format                 = TextureFormat::RGBA;
-    TextureDataType textureDataType                 = TextureDataType::UINT8;
+    TextureDataType textureDataType      = TextureDataType::UINT8;
 
     bool generateMipmap = true;
     bool flip           = true;
@@ -44,13 +44,14 @@ class Texture
 
     // 创建空 2D 纹理或立方体贴图
     Texture(uint32_t width, uint32_t height,
-            const TextureSpecification &spec = TextureSpecification());
+            const TextureSpecification &spec = TextureSpecification(), void *data = nullptr);
 
     ~Texture();
 
     void bind(uint32_t slot = 0) const;
     void unbind() const;
     uint32_t getHandle() const { return m_handle; }
+    void setHandle(uint32_t handle) { m_handle = handle; }
     TextureType getType() const { return m_spec.textureType; }
 
     TextureSpecification getSpecification() const { return m_spec; }

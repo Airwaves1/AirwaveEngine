@@ -88,7 +88,8 @@
         "coroutine": "cpp",
         "resumable": "cpp",
         "future": "cpp",
-        "queue": "cpp"
+        "queue": "cpp",
+        "regex": "cpp"
     },
     "C_Cpp.default.compilerPath": "cl.exe"
 }

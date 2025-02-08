@@ -2,11 +2,10 @@
 
 #include "rendering/opengl/gl_shader.hpp"
 #include "rendering/opengl/gl_texture.hpp"
-
+#include "utils/file_utils.hpp"
 namespace Airwave
 {
 // ==================== Shader 加载 ====================
-
 std::shared_ptr<Shader> ResourceManager::loadShader(const std::string &name,
                                                     const std::string &vertexPath,
                                                     const std::string &fragmentPath)
@@ -83,6 +82,12 @@ std::shared_ptr<Texture> ResourceManager::loadTexture(const std::string &path,
     return texture;
 }
 
+std::string ResourceManager::loadFile(const std::string &path){
+    const std::string& content = FileUtils::ReadFile(path);
+    m_fileCache[path] = content;
+    return content;
+}
+
 void ResourceManager::loadTextureAsync(const std::string &path, TextureSpecification &spec,
                                        LoadCallback callback)
 {
@@ -111,6 +116,17 @@ void ResourceManager::loadTextureAsync(const std::string &path, TextureSpecifica
 
                                        callback(texture);
                                    }));
+}
+
+void ResourceManager::addShader(const std::string &name, std::shared_ptr<Shader> shader)
+{
+    std::lock_guard<std::mutex> lock(m_shaderMutex);
+    m_shaderCache[name] = shader;
+}
+void ResourceManager::addTexture(const std::string &path, std::shared_ptr<Texture> texture)
+{
+    std::lock_guard<std::mutex> lock(m_textureMutex);
+    m_textureCache[path] = texture;
 }
 
 } // namespace Airwave

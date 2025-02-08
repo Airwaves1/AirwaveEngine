@@ -46,18 +46,20 @@ class RenderSystem : public AwSystem
 
     void renderBackground(CameraComponent &camera)
     {
-        auto renderer = m_scene->getApplication()->getRenderer();
-        auto adminEntity = m_scene->getAdminEntity();
-        auto& renderer_comp = adminEntity->getComponent<RendererComponent>();
-        if(renderer_comp.backgroundMap){
+        auto renderer       = m_scene->getApplication()->getRenderer();
+        auto adminEntity    = m_scene->getAdminEntity();
+        auto &renderer_comp = adminEntity->getComponent<RendererComponent>();
+        if (renderer_comp.backgroundMap)
+        {
             glDepthFunc(GL_LEQUAL);
             auto shader = renderer_comp.backgroundShader;
             shader->bind();
+            renderer_comp.backgroundMap->bind();
             shader->setUniformInt("u_backgroundMap", 0);
             shader->setUniformMat4("u_viewMatrix", camera.getWorldInverseMatrix());
             shader->setUniformMat4("u_projectionMatrix", camera.getProjectionMatrix());
-            renderer_comp.backgroundMap->bind();
             renderer_comp.meshComp->draw();
+            renderer_comp.backgroundMap->unbind();
         }
     }
 
@@ -116,39 +118,46 @@ class RenderSystem : public AwSystem
             shader->setUniformFloat("u_material.ao", material.ao);
 
             int slots = 0;
+
+            // bind textures
             if (material.albedoMap)
-            {
                 material.albedoMap->bind(slots);
-                shader->setUniformInt("u_material.albedoMap", slots);
-                slots++;
-            }
+            else
+                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
+            shader->setUniformInt("u_material.albedoMap", slots);
+            slots++;
 
             if (material.normalMap)
-            {
                 material.normalMap->bind(slots);
-                shader->setUniformInt("u_material.normalMap", slots);
-                slots++;
-            }
+            else
+                ResourceManager::GetInstance().getTexture("defaultNormal")->bind(slots);
+            shader->setUniformInt("u_material.normalMap", slots);
+            slots++;
 
             if (material.metallicMap)
-            {
                 material.metallicMap->bind(slots);
-                shader->setUniformInt("u_material.metallicMap", slots);
-                slots++;
-            }
+            else
+                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
+            shader->setUniformInt("u_material.metallicMap", slots);
+            slots++;
 
             if (material.roughnessMap)
-            {
                 material.roughnessMap->bind(slots);
-                shader->setUniformInt("u_material.roughnessMap", slots);
-                slots++;
-            }
+            else
+                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
+            shader->setUniformInt("u_material.roughnessMap", slots);
+            slots++;
 
             if (material.aoMap)
-            {
                 material.aoMap->bind(slots);
-                shader->setUniformInt("u_material.aoMap", slots);
-                slots++;
+            else
+                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
+            shader->setUniformInt("u_material.aoMap", slots);
+            slots++;
+
+            if (slots == 0)
+            {
+                ResourceManager::GetInstance().getTexture("empty")->bind(0);
             }
 
             mesh.draw();
@@ -160,9 +169,8 @@ class RenderSystem : public AwSystem
             }
 
             drawCalls++;
-            // shader->unbind();
         }
-        
+
         renderBackground(camera);
         renderer->getFramebuffer()->unbind();
     }

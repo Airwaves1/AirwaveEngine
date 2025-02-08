@@ -1,20 +1,25 @@
 #include "rendering/opengl/gl_shader.hpp"
 #include "utils/file_utils.hpp"
 #include "core/log.hpp"
+#include "utils/shader_utils.hpp"
+
 namespace Airwave
 {
 Shader::Shader(const std::string &vertexSrc, const std::string &fragmentSrc, bool fromFile)
 {
-    if (fromFile)
-    {
-        m_vertexShaderSource   = FileUtils::ReadFile(vertexSrc);
-        m_fragmentShaderSource = FileUtils::ReadFile(fragmentSrc);
-    }
-    else
-    {
-        m_vertexShaderSource   = vertexSrc;
-        m_fragmentShaderSource = fragmentSrc;
-    }
+    // if (fromFile)
+    // {
+    //     m_vertexShaderSource   = FileUtils::ReadFile(vertexSrc);
+    //     m_fragmentShaderSource = FileUtils::ReadFile(fragmentSrc);
+    // }
+    // else
+    // {
+    //     m_vertexShaderSource   = vertexSrc;
+    //     m_fragmentShaderSource = fragmentSrc;
+    // }
+
+    m_vertexShaderSource = ShaderUtils::GetInstance().process(vertexSrc);
+    m_fragmentShaderSource = ShaderUtils::GetInstance().process(fragmentSrc);
 
     uint32_t vertexShader   = compile(m_vertexShaderSource, GL_VERTEX_SHADER);
     uint32_t fragmentShader = compile(m_fragmentShaderSource, GL_FRAGMENT_SHADER);
@@ -74,6 +79,12 @@ uint32_t Shader::link(const uint32_t &vertexShader, const uint32_t &fragmentShad
 
     return program;
 }
+
+void Shader::addDefine(const std::string &name, const std::string &value) {
+
+}
+void Shader::setDefineValue(const std::string &name, const std::string &value) {}
+void Shader::removeDefine(const std::string &name) {}
 
 uint32_t Shader::getUniformLocation(const std::string &name)
 {

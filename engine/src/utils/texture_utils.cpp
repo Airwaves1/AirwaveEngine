@@ -33,9 +33,6 @@ TextureUtils::equirectangularToCubemap(Renderer *renderer, std::shared_ptr<Textu
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f),
                        glm::vec3(0.0f, -1.0f, 0.0f))};
 
-    // std::vector<AwVertex> cubeVertices;
-    // std::vector<uint32_t> cubeIndices;
-    // GeometryUtils::CreateCube(cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
     auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
     auto shader = ResourceManager::GetInstance().loadShader("equirect",
@@ -46,9 +43,13 @@ TextureUtils::equirectangularToCubemap(Renderer *renderer, std::shared_ptr<Textu
                                                                              "shader_lib/"
                                                                              "equirect.frag");
 
-    TextureSpecification envMap_spec;
-    envMap_spec.isHDR = isHDR;
-    auto envMap       = std::make_shared<Texture>(resolution, resolution, envMap_spec);
+    TextureSpecification cube_map_spec;
+    cube_map_spec.isHDR       = isHDR;
+    cube_map_spec.textureType = TextureType::TEXTURE_CUBE_MAP;
+    cube_map_spec.wrapS       = TextureWrap::CLAMP_TO_EDGE;
+    cube_map_spec.wrapT       = TextureWrap::CLAMP_TO_EDGE;
+    cube_map_spec.wrapR       = TextureWrap::CLAMP_TO_EDGE;
+    auto cube_map             = std::make_shared<Texture>(resolution, resolution, cube_map_spec);
 
     shader->bind();
     shader->setUniformInt("u_equirectangularMap", 0);
@@ -56,21 +57,18 @@ TextureUtils::equirectangularToCubemap(Renderer *renderer, std::shared_ptr<Textu
 
     equirectangular->bind(0);
 
-    FramebufferSpecification fob_spec;
-    fob_spec.colorInternalFormat = TextureInternalFormat::RGB16F;
-    fob_spec.colorFormat         = TextureFormat::RGB;
-    auto fbo                     = std::make_shared<Framebuffer>(resolution, resolution, fob_spec);
+    uint32_t fbo;
+    glGenFramebuffers(1, &fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
 
     glViewport(0, 0, resolution, resolution);
 
-    uint32_t handle = fbo->getHandle();
-    glBindFramebuffer(GL_FRAMEBUFFER, handle);
     for (uint32_t i = 0; i < 6; i++)
     {
         shader->setUniformMat4("u_viewMatrix", captureViews[i]);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                               GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, envMap->getHandle(), 0);
+                               GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cube_map->getHandle(), 0);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -80,14 +78,12 @@ TextureUtils::equirectangularToCubemap(Renderer *renderer, std::shared_ptr<Textu
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
-    auto app = renderer->getApplication();
-    uint32_t width = app->getWindowWidth();
+    auto app        = renderer->getApplication();
+    uint32_t width  = app->getWindowWidth();
     uint32_t height = app->getWindowHeight();
 
     glViewport(0, 0, width, height);
 
-    return envMap;
+    return cube_map;
 }
-
 } // namespace Airwave

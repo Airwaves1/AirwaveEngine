@@ -42,4 +42,18 @@ size_t FileUtils::GetFileSize(const std::string &filepath)
     return size;
 }
 
+// 判断文件是否存在
+bool FileUtils::Exists(const std::string &filepath)
+{
+    std::ifstream in(filepath);
+    return in.good();
+}
+
+// 获取文件所在目录
+std::string FileUtils::GetDirectory(const std::string &filepath)
+{
+    size_t found = filepath.find_last_of("/\\");
+    return filepath.substr(0, found);
+}
+
 } // namespace Airwave

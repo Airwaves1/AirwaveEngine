@@ -32,8 +32,14 @@ class Shader
     void setUniformMat3(const std::string &name, const glm::mat3 &value);
     void setUniformMat4(const std::string &name, const glm::mat4 &value);
 
+    void addDefine(const std::string &name, const std::string &value = "");
+    void setDefineValue(const std::string &name, const std::string &value);
+    void removeDefine(const std::string &name);
+
   private:
     uint32_t m_handle;
+
+    std::unordered_map<std::string, std::string> m_defines;
 
     std::string m_vertexShaderSource;
     std::string m_fragmentShaderSource;

@@ -8,7 +8,6 @@
 #include "ecs/systems/light_system.hpp"
 #include "resource/resource_manager.hpp"
 
-
 namespace Airwave
 {
 Application::~Application() {}
@@ -48,17 +47,38 @@ void Application::start(int argc, char **argv)
     // 初始化
     onInit();
 
+    // 预加载
+    preLoad();
+
     // 事件
     // m_eventObserver = std::make_shared<EventObserver>();
 }
 
-void Airwave::Application::quit()
+void Application::quit()
 {
     // 销毁
     onDestory();
 }
 
-void Airwave::Application::mainLoop()
+void Application::preLoad()
+{
+    // 加载资源
+    onPreLoad();
+
+    // 空白纹理
+    TextureSpecification spec;
+    spec.internalFormat = TextureInternalFormat::RGBA;
+    uint8_t data[]      = {255, 255, 255, 255};
+    uint8_t data2[]     = {128, 128, 255, 255};
+    auto emptyTexture   = std::make_shared<Texture>(1, 1, spec, data);
+    auto defaultNormal  = std::make_shared<Texture>(1, 1, spec, data2);    
+
+    ResourceManager::GetInstance().addTexture("empty", emptyTexture);
+    ResourceManager::GetInstance().addTexture("defaultNormal", defaultNormal);
+
+}
+
+void Application::mainLoop()
 {
 
     while (!m_window->shouldClose())

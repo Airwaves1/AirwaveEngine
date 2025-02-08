@@ -46,6 +46,7 @@ class Application
     virtual void onUpdate(float deltaTime) {}
     virtual void onRender() {}
     virtual void onImGuiRender() {}
+    virtual void onPreLoad() {}
 
     std::chrono::steady_clock::time_point m_lastFrameTimePoint;
     std::chrono::steady_clock::time_point m_startTimePoint;
@@ -58,6 +59,9 @@ class Application
     float m_deltaTime = 0.0f;
 
   private:
+    void preLoad();
+
+
     ApplicationConfig m_config;
 
     bool b_pause = false;
