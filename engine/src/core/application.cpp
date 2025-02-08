@@ -1,6 +1,8 @@
 #include "core/application.hpp"
 #include "core/log.hpp"
 
+#include "utils/texture_utils.hpp"
+
 #include "ecs/systems/transform_system.hpp"
 #include "ecs/systems/camera_system.hpp"
 #include "ecs/systems/render_system.hpp"
@@ -44,11 +46,11 @@ void Application::start(int argc, char **argv)
         adminEntity->addComponent<LightsManagerComponent>();
     }
 
-    // 初始化
-    onInit();
-
     // 预加载
     preLoad();
+
+    // 初始化
+    onInit();
 
     // 事件
     // m_eventObserver = std::make_shared<EventObserver>();
@@ -65,17 +67,20 @@ void Application::preLoad()
     // 加载资源
     onPreLoad();
 
-    // 空白纹理
+    // 空白纹理和默认法线贴图
     TextureSpecification spec;
     spec.internalFormat = TextureInternalFormat::RGBA;
     uint8_t data[]      = {255, 255, 255, 255};
     uint8_t data2[]     = {128, 128, 255, 255};
     auto emptyTexture   = std::make_shared<Texture>(1, 1, spec, data);
-    auto defaultNormal  = std::make_shared<Texture>(1, 1, spec, data2);    
+    auto defaultNormal  = std::make_shared<Texture>(1, 1, spec, data2);
+
+    // 生成BRDF LUT
+    auto brdfLUT = TextureUtils::generateBRDFLUT(m_renderer.get());
 
     ResourceManager::GetInstance().addTexture("empty", emptyTexture);
     ResourceManager::GetInstance().addTexture("defaultNormal", defaultNormal);
-
+    ResourceManager::GetInstance().addTexture("brdfLUT", brdfLUT);
 }
 
 void Application::mainLoop()

@@ -42,8 +42,7 @@ void Sandbox::onInit()
     {
         for (int j = 0; j < 2; j++)
         {
-            auto light_entity    = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" +
-                                                                std::to_string(j));
+            auto light_entity    = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
             auto &light_comp     = light_entity->addComponent<LightComponent>();
             light_comp.intensity = 300.0f;
             light_comp.color     = glm::vec3(1.0f);
@@ -58,21 +57,21 @@ void Sandbox::onInit()
     // spheres 7 x 7
     TextureSpecification spec;
     spec.internalFormat = TextureInternalFormat::SRGB;
-    auto albedoMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
-                                                                                 "rustediron1-alt2-"
-                                                                                 "Unreal-Engine/"
-                                                                                 "rustediron2_"
-                                                                                 "basecolor.png",
-                                                                spec);
+    auto albedoMap      = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
+                                                                                           "rustediron1-alt2-"
+                                                                                           "Unreal-Engine/"
+                                                                                           "rustediron2_"
+                                                                                           "basecolor.png",
+                                                                     spec);
 
     spec.internalFormat = TextureInternalFormat::RGB;
-    auto normalMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
-                                                                                 "rustediron1-alt2-"
-                                                                                 "Unreal-Engine/"
-                                                                                 "rustediron2_"
-                                                                                 "normal.png",
+    auto normalMap      = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
+                                                                                           "rustediron1-alt2-"
+                                                                                           "Unreal-Engine/"
+                                                                                           "rustediron2_"
+                                                                                           "normal.png",
 
-                                                                spec);
+                                                                     spec);
 
     auto metallicMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/"
                                                                                    "textures/"
@@ -94,39 +93,42 @@ void Sandbox::onInit()
 
     spec.isHDR          = true;
     spec.generateMipmap = false;
-    auto envMap = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
-                                                                              "hdr/"
-                                                                              "newport_loft.hdr",
-                                                             spec);
+    auto envMap         = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
+                                                                                              "hdr/"
+                                                                                              "newport_loft.hdr",
+                                                                     spec);
 
     // HDR to Cubemap
-    auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
+    auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 512, true);
+    // 获取辐照度贴图
     auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cubemap, 32);
+    // 获取预过滤贴图
+    auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cubemap, 128, 5);
 
     auto adminEntity            = m_scene->getAdminEntity();
     auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
-    renderer_comp.backgroundMap = irradiance_map;
-    renderer_comp.envMap        = irradiance_map;
+    renderer_comp.backgroundMap = cubemap;
+    renderer_comp.envMap        = cubemap;
 
     for (int i = 0; i < 7; i++)
     {
         for (int j = 0; j < 7; j++)
         {
-            auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" +
-                                                              std::to_string(j));
+            auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
             sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
             auto &mat = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
-            // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
-            mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
+            mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            // mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
             mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
             mat.ao        = 1.0f;
 
-            // mat.albedoMap    = albedoMap;
-            // mat.normalMap    = normalMap;
-            // mat.metallicMap  = metallicMap;
-            // mat.roughnessMap = roughnessMap;
+            mat.albedoMap    = albedoMap;
+            mat.normalMap    = normalMap;
+            mat.metallicMap  = metallicMap;
+            mat.roughnessMap = roughnessMap;
             mat.irradianceMap = irradiance_map;
+            mat.prefilterMap  = prefilter_map;
 
             auto &sphere_transform = sphere_entity->getComponent<TransformComponent>();
             sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));

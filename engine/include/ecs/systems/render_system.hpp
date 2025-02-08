@@ -164,6 +164,22 @@ class RenderSystem : public AwSystem
                 slots++;
             }
 
+            // 预过滤贴图
+            if (material.prefilterMap)
+            {
+                material.prefilterMap->bind(slots);
+                shader->setUniformInt("u_material.prefilterMap", slots);
+                slots++;
+            }
+
+            // BRDF积分贴图
+            if (material.brdfLUT)
+            {
+                material.brdfLUT->bind(slots);
+                shader->setUniformInt("u_material.brdfLUT", slots);
+                slots++;
+            }
+
             mesh.draw();
 
             for (int i = 0; i < slots; i++)

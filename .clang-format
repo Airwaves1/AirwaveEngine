@@ -18,7 +18,7 @@ BreakBeforeBraces:    Allman
 SpaceBeforeParens:    ControlStatements
 
 # 列宽和换行设置
-ColumnLimit:         100     # 每行最大字符数
+ColumnLimit:         120     # 每行最大字符数
 PenaltyBreakComment: 10
 PenaltyBreakString:  5
 

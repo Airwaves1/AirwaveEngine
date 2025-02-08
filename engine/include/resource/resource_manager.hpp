@@ -46,10 +46,9 @@ class ResourceManager
     std::string loadFile(const std::string &path);
 
     // 异步加载
-    void loadShaderAsync(const std::string &name, const std::string &vertexPath,
-                         const std::string &fragmentPath, LoadCallback callback);
-    void loadTextureAsync(const std::string &path, TextureSpecification &spec,
-                          LoadCallback callback);
+    void loadShaderAsync(const std::string &name, const std::string &vertexPath, const std::string &fragmentPath,
+                         LoadCallback callback);
+    void loadTextureAsync(const std::string &path, TextureSpecification &spec, LoadCallback callback);
 
     // 添加资源
     void addShader(const std::string &name, std::shared_ptr<Shader> shader);
@@ -74,6 +73,10 @@ class ResourceManager
         if (it != m_textureCache.end())
         {
             return it->second;
+        }
+        else
+        {
+            LOG_ERROR("Texture not found: {}", path);
         }
         return nullptr;
     }

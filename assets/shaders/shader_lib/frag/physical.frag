@@ -22,6 +22,8 @@ struct PBRMaterial {
     sampler2D aoMap;
 
     samplerCube irradianceMap;
+    samplerCube prefilterMap;
+    sampler2D brdfLUT;
 };
 
 struct Light {
@@ -144,14 +146,21 @@ void main() {
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
-    vec3 KS = fresnelSchlick(max(dot(N, V), 0.0), F0);
-    vec3 KD = 1.0 - KS;
-    KD *= 1.0 - metallic;
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;     
+
     vec3 irradiance = texture(u_material.irradianceMap, N).rgb;
     vec3 diffuse = irradiance * albedo;
-    vec3 ambient = (KD * diffuse) * ao;
 
-    // vec3 ambient = vec3(0.03) * albedo * ao;
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 prefilteredColor = textureLod(u_material.prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 envBRDF = texture(u_material.brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
+
+    vec3 ambient = (kD * diffuse + specular) * ao;
 
     vec3 color = ambient + Lo;
 
