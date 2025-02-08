@@ -26,7 +26,7 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec) : m_
 
     if (m_spec.isHDR)
     {
-        m_spec.internalFormat  = TextureInternalFormat::RGB16F;
+        m_spec.internalFormat  = TextureInternalFormat::RGB32F;
         m_spec.format          = TextureFormat::RGB;
         m_spec.textureDataType = TextureDataType::FLOAT;
     }

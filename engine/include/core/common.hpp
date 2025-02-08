@@ -20,11 +20,17 @@ enum class LightType
     Spot
 };
 
+const int MAX_BONE_COUNT = 100;
+
 struct AwVertex
 {
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoord;
+    glm::vec3 tangent;
+
+    int boneIds[MAX_BONE_COUNT]       = {0};
+    float boneWeights[MAX_BONE_COUNT] = {0.0f};
 };
 
 enum class RenderSide

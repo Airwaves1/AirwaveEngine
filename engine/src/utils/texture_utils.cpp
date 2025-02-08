@@ -51,7 +51,10 @@ std::shared_ptr<Texture> TextureUtils::equirectangularToCubemap(Renderer *render
     cube_map_spec.wrapS       = TextureWrap::CLAMP_TO_EDGE;
     cube_map_spec.wrapT       = TextureWrap::CLAMP_TO_EDGE;
     cube_map_spec.wrapR       = TextureWrap::CLAMP_TO_EDGE;
-    auto cube_map             = std::make_shared<Texture>(resolution, resolution, cube_map_spec);
+    cube_map_spec.minFilter   = TextureFilter::LINEAR_MIPMAP_LINEAR; // enable pre-filter mipmap sampling (combatting
+                                                                     // visible dots artifact)
+    cube_map_spec.magFilter = TextureFilter::LINEAR;
+    auto cube_map           = std::make_shared<Texture>(resolution, resolution, cube_map_spec);
 
     shader->bind();
     shader->setUniformInt("u_equirectangularMap", 0);
@@ -85,6 +88,10 @@ std::shared_ptr<Texture> TextureUtils::equirectangularToCubemap(Renderer *render
     uint32_t height = app->getWindowHeight();
 
     glViewport(0, 0, width, height);
+
+    // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
+    cube_map->bind();
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
     return cube_map;
 }
@@ -207,6 +214,7 @@ std::shared_ptr<Texture> TextureUtils::prefilterEnvMap(Renderer *renderer, std::
     shader->bind();
     shader->setUniformInt("u_environmentMap", 0);
     shader->setUniformMat4("u_projectionMatrix", captureProjection);
+    shader->setUniformFloat("u_envMap_resolution", static_cast<float>(envMap->getWidth()));
 
     envMap->bind(0);
 

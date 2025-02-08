@@ -193,6 +193,7 @@ class RenderSystem : public AwSystem
 
         renderBackground(camera);
         renderer->getFramebuffer()->unbind();
+
     }
 };
 } // namespace Airwave

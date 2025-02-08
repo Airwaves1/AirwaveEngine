@@ -5,12 +5,15 @@ in vec3 v_localPosition;
 
 uniform samplerCube u_backgroundMap;
 
+#include "shader_chunk/tone_mapping.glsl"
+
 void main(){
-    // vec3 env_color = texture(u_backgroundMap, normalize(v_localPosition)).rgb;
-    vec3 env_color = textureLod(u_backgroundMap, normalize(v_localPosition), 1.0).rgb;
+    vec3 env_color = texture(u_backgroundMap, normalize(v_localPosition)).rgb;
 
     env_color = env_color / (env_color + vec3(1.0));
-    env_color = pow(env_color, vec3(1.0/2.2));
+    env_color = pow(env_color, vec3(1.0/2.8));
 
     fragColor = vec4(env_color, 1.0);
+
+    
 }
