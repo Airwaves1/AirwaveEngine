@@ -20,6 +20,8 @@ struct PBRMaterial {
     sampler2D metallicMap;
     sampler2D roughnessMap;
     sampler2D aoMap;
+
+    samplerCube irradianceMap;
 };
 
 struct Light {
@@ -34,7 +36,6 @@ uniform vec3 u_cameraPosition;
 
 uniform int u_lightCount;
 uniform Light u_lights[MAX_LIGHT_COUNT]; // max lights
-
 uniform PBRMaterial u_material;
 
 //-----------------------------------------------------------
@@ -91,6 +92,12 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 // ----------------------------------------------------------------------------
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
+{
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}   
+// ----------------------------------------------------------------------------
+
 void main() {
     vec3 albedo = pow(texture(u_material.albedoMap, v_uv).rgb, vec3(2.2)) * u_material.albedo;
     float metallic = texture(u_material.metallicMap, v_uv).r * u_material.metallic;
@@ -100,6 +107,7 @@ void main() {
     // vec3 N = normalize(v_normal);
     vec3 N = getNormalFromMap(u_material.normalMap, v_uv, v_fragPos, v_normal);
     vec3 V = normalize(u_cameraPosition - v_fragPos);
+    vec3 R = reflect(-V, N);
 
     vec3 F0 = vec3(0.04);
     F0 = mix(F0, albedo, metallic);
@@ -136,7 +144,14 @@ void main() {
         Lo += (kD * albedo / PI + specular) * radiance * NdotL;
     }
 
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    vec3 KS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 KD = 1.0 - KS;
+    KD *= 1.0 - metallic;
+    vec3 irradiance = texture(u_material.irradianceMap, N).rgb;
+    vec3 diffuse = irradiance * albedo;
+    vec3 ambient = (KD * diffuse) * ao;
+
+    // vec3 ambient = vec3(0.03) * albedo * ao;
 
     vec3 color = ambient + Lo;
 

@@ -78,6 +78,13 @@ Texture::Texture(const std::vector<std::string> &faces, const TextureSpecificati
 {
     m_spec.textureType = TextureType::TEXTURE_CUBE_MAP;
 
+    if (m_spec.isHDR)
+    {
+        m_spec.internalFormat  = TextureInternalFormat::RGB16F;
+        m_spec.format          = TextureFormat::RGB;
+        m_spec.textureDataType = TextureDataType::FLOAT;
+    }
+
     glGenTextures(1, &m_handle);
     glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
 
@@ -114,6 +121,13 @@ Texture::Texture(uint32_t width, uint32_t height, const TextureSpecification &sp
     m_width  = width;
     m_height = height;
     m_spec   = spec;
+
+    if (m_spec.isHDR)
+    {
+        m_spec.internalFormat  = TextureInternalFormat::RGB16F;
+        m_spec.format          = TextureFormat::RGB;
+        m_spec.textureDataType = TextureDataType::FLOAT;
+    }
 
     glGenTextures(1, &m_handle);
     glBindTexture(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP

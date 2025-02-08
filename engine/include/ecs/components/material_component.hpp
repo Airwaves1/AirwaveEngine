@@ -26,6 +26,8 @@ class MaterialComponent : public AwComponent
     std::shared_ptr<Texture> roughnessMap{nullptr};
     std::shared_ptr<Texture> aoMap{nullptr};
 
+    std::shared_ptr<Texture> irradianceMap{nullptr};
+
     MaterialComponent(MaterialType type = MaterialType::Basic) { setMaterialType(type); }
 
     MaterialType getMaterialType() const { return m_type; }
@@ -38,16 +40,16 @@ class MaterialComponent : public AwComponent
         {
             case MaterialType::Basic:
                 shader = SHADER_LIB.load("basic",
-                                         PROJECT_ROOT_DIR "/assets/shaders/shader_lib/basic.vert",
-                                         PROJECT_ROOT_DIR "/assets/shaders/shader_lib/basic.frag");
+                                         PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/basic.vert",
+                                         PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/basic.frag");
                 break;
             case MaterialType::Phong:
                 // setPhongMaterial();
                 break;
             case MaterialType::PBR:
                 shader =
-                    SHADER_LIB.load("pbr", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/physical.vert",
-                                    PROJECT_ROOT_DIR "/assets/shaders/shader_lib/physical.frag");
+                    SHADER_LIB.load("pbr", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/physical.vert",
+                                    PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/physical.frag");
                 // setPBRMaterial();
                 break;
             default:

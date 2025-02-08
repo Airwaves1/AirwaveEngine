@@ -54,7 +54,7 @@ class Texture
     void setHandle(uint32_t handle) { m_handle = handle; }
     TextureType getType() const { return m_spec.textureType; }
 
-    TextureSpecification getSpecification() const { return m_spec; }
+    TextureSpecification& getSpecification() { return m_spec; }
 
   private:
     uint32_t m_width, m_height;

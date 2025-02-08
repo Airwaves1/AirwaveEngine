@@ -16,7 +16,7 @@ void Sandbox::onConfigurate(Airwave::ApplicationConfig &config)
 
 void Sandbox::onInit()
 {
-    m_editor         = std::make_unique<Airwave::Editor>(this);
+    m_editor = std::make_unique<Airwave::Editor>(this);
 
     m_scene->addSystem<TrackballCameraSystem>();
 
@@ -101,11 +101,12 @@ void Sandbox::onInit()
 
     // HDR to Cubemap
     auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
+    auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cubemap, 32);
 
     auto adminEntity            = m_scene->getAdminEntity();
     auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
-    renderer_comp.backgroundMap = cubemap;
-    renderer_comp.envMap        = cubemap;
+    renderer_comp.backgroundMap = irradiance_map;
+    renderer_comp.envMap        = irradiance_map;
 
     for (int i = 0; i < 7; i++)
     {
@@ -125,6 +126,7 @@ void Sandbox::onInit()
             // mat.normalMap    = normalMap;
             // mat.metallicMap  = metallicMap;
             // mat.roughnessMap = roughnessMap;
+            mat.irradianceMap = irradiance_map;
 
             auto &sphere_transform = sphere_entity->getComponent<TransformComponent>();
             sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));

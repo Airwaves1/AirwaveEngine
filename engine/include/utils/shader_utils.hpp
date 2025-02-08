@@ -52,7 +52,8 @@ private:
         // 读取shader文件内容
         std::string sourceCode;
         if (!readFile(filePath, sourceCode)) {
-            std::cerr << "Error: Failed to read shader file: " << filePath << std::endl;
+            // std::cerr << "Error: Failed to read shader file: " << filePath << std::endl;
+            LOG_ERROR("Failed to read shader file: {0}", filePath);
             return "";
         }
 

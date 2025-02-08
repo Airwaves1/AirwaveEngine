@@ -74,6 +74,7 @@ class RenderSystem : public AwSystem
         auto &reg          = m_scene->getRegistry();
         auto renderObjects = reg.view<MaterialComponent, MeshComponent, TransformComponent>();
         auto adminEntity   = m_scene->getAdminEntity();
+        auto &rendererComp = adminEntity->getComponent<RendererComponent>();
 
         for (auto entity : renderObjects)
         {
@@ -155,9 +156,12 @@ class RenderSystem : public AwSystem
             shader->setUniformInt("u_material.aoMap", slots);
             slots++;
 
-            if (slots == 0)
+            // 辐照度贴图
+            if (material.irradianceMap)
             {
-                ResourceManager::GetInstance().getTexture("empty")->bind(0);
+                material.irradianceMap->bind(slots);
+                shader->setUniformInt("u_material.irradianceMap", slots);
+                slots++;
             }
 
             mesh.draw();

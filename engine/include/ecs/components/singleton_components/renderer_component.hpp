@@ -17,6 +17,7 @@ class RendererComponent : public AwComponent
   public:
     std::shared_ptr<Texture> envMap;
     std::shared_ptr<Texture> backgroundMap;
+    std::shared_ptr<Texture> irradianceMap;
 
     RendererComponent()
     {
@@ -24,11 +25,13 @@ class RendererComponent : public AwComponent
                                                                      PROJECT_ROOT_DIR "/assets/"
                                                                                       "shaders/"
                                                                                       "shader_lib/"
+                                                                                      "vert/"
                                                                                       "background."
                                                                                       "vert",
                                                                      PROJECT_ROOT_DIR "/assets/"
                                                                                       "shaders/"
                                                                                       "shader_lib/"
+                                                                                      "frag/"
                                                                                       "background."
                                                                                       "frag");
 
@@ -40,6 +43,7 @@ class RendererComponent : public AwComponent
 
   private:
     std::shared_ptr<Shader> backgroundShader;
+
     std::shared_ptr<VertexArray> cubeVAO;
 
     std::shared_ptr<MeshComponent> meshComp;

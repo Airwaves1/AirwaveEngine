@@ -11,6 +11,7 @@ namespace Airwave
     {
         public:
             static std::shared_ptr<Texture> equirectangularToCubemap(Renderer* renderer, std::shared_ptr<Texture> equirectangular, uint32_t resolution, bool isHDR = false);
+            static std::shared_ptr<Texture> irradianceConvolution(Renderer* renderer, std::shared_ptr<Texture> envMap, uint32_t resolution);
     };
     
 } // namespace Airwave
