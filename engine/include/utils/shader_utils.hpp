@@ -112,7 +112,7 @@ private:
     }
 
 private:
-    std::string m_includePath; // Shader路径
+    std::string m_includePath; // Shader资源路径
     std::unordered_map<std::string, std::string> m_shaderFileCache; // Shader块路径缓存
 };
 } // namespace Airwave

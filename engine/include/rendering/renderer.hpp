@@ -4,7 +4,8 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include "rendering/opengl/gl_framebuffer.hpp"
-
+#include "rendering/opengl/gl_uniforms.hpp"
+#include "core/common.hpp"
 namespace Airwave
 {
 class Application;
@@ -42,8 +43,20 @@ class Renderer
 
     Application *getApplication() { return m_appContext; }
 
+    void bindShader(GLuint program) { glUseProgram(program); }
+    void bindTexture2D(uint32_t texture, uint32_t unit);
+    void unBindTexture2D() { glBindTexture(GL_TEXTURE_2D, 0); }
+    void bindTextureCubeMap(uint32_t texture, uint32_t unit);
+    void unBindTextureCubeMap() { glBindTexture(GL_TEXTURE_CUBE_MAP, 0); }
+
+    void set(const std::string &name, const UniformValue &value) { m_uniforms.set(name, value); }
+    const GLUniforms &getUniforms() const { return m_uniforms; }
+    void uploadUniforms(GLuint program) { m_uniforms.upload(program); }
+
   private:
     RendererParams m_rendererParams;
+
+    GLUniforms m_uniforms;
 
     Application *m_appContext;
 

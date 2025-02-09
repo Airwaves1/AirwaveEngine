@@ -8,7 +8,10 @@
 #include "ecs/systems/render_system.hpp"
 #include "ecs/systems/input_system.hpp"
 #include "ecs/systems/light_system.hpp"
+
 #include "resource/resource_manager.hpp"
+#include "resource/shader_resource.hpp"
+#include "resource/texture_resource.hpp"
 
 namespace Airwave
 {
@@ -30,6 +33,9 @@ void Application::start(int argc, char **argv)
     // 创建渲染器
     m_renderer = std::make_unique<Renderer>(this);
 
+    // 预加载
+    preLoad();
+
     // 创建场景
     m_scene = std::make_unique<AwScene>(this);
     m_scene->addSystem<InputSystem>(0);
@@ -46,9 +52,6 @@ void Application::start(int argc, char **argv)
         adminEntity->addComponent<LightsManagerComponent>();
     }
 
-    // 预加载
-    preLoad();
-
     // 初始化
     onInit();
 
@@ -64,23 +67,36 @@ void Application::quit()
 
 void Application::preLoad()
 {
-    // 加载资源
-    onPreLoad();
+
+    // 预编译shader
+
+    // basic shader
+    RES.load<ShaderResource>("basic", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/basic.vert",
+                             PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/basic.frag");
+
+    // pbr shader
+    RES.load<ShaderResource>("pbr", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/pbr.vert",
+                             PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/pbr.frag");
+
+    // background shader
+    RES.load<ShaderResource>("background", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/background.vert",
+                             PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/background.frag");
 
     // 空白纹理和默认法线贴图
     TextureSpecification spec;
     spec.internalFormat = TextureInternalFormat::RGBA;
+    spec.width          = 1;
+    spec.height         = 1;
     uint8_t data[]      = {255, 255, 255, 255};
     uint8_t data2[]     = {128, 128, 255, 255};
-    auto emptyTexture   = std::make_shared<Texture>(1, 1, spec, data);
-    auto defaultNormal  = std::make_shared<Texture>(1, 1, spec, data2);
+    uint32_t emptyTexture = RES.load<TextureResource>("empty", spec, static_cast<void *>(data))->getHandle();
+    uint32_t defaultNormal = RES.load<TextureResource>("defaultNormal", spec, static_cast<void *>(data2))->getHandle();
 
     // 生成BRDF LUT
     auto brdfLUT = TextureUtils::generateBRDFLUT(m_renderer.get());
 
-    ResourceManager::GetInstance().addTexture("empty", emptyTexture);
-    ResourceManager::GetInstance().addTexture("defaultNormal", defaultNormal);
-    ResourceManager::GetInstance().addTexture("brdfLUT", brdfLUT);
+    // 加载资源
+    onPreLoad();
 }
 
 void Application::mainLoop()

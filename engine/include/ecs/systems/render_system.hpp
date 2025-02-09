@@ -44,22 +44,26 @@ class RenderSystem : public AwSystem
   private:
     uint64_t drawCalls = 0;
 
-    void renderBackground(CameraComponent &camera)
+    void renderBackground(Renderer *renderer, CameraComponent &camera)
     {
-        auto renderer       = m_scene->getApplication()->getRenderer();
         auto adminEntity    = m_scene->getAdminEntity();
         auto &renderer_comp = adminEntity->getComponent<RendererComponent>();
         if (renderer_comp.backgroundMap)
         {
             glDepthFunc(GL_LEQUAL);
             auto shader = renderer_comp.backgroundShader;
-            shader->bind();
-            renderer_comp.backgroundMap->bind();
-            shader->setUniformInt("u_backgroundMap", 0);
-            shader->setUniformMat4("u_viewMatrix", camera.getWorldInverseMatrix());
-            shader->setUniformMat4("u_projectionMatrix", camera.getProjectionMatrix());
+
+            renderer->bindShader(shader->getHandle());
+
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, renderer_comp.backgroundMap->getHandle());
+
+            renderer->set("u_backgroundMap", 0);
+            renderer->set("u_viewMatrix", camera.getWorldInverseMatrix());
+            renderer->set("u_projectionMatrix", camera.getProjectionMatrix());
+
+            // renderer->uploadUniforms();
             renderer_comp.meshComp->draw();
-            renderer_comp.backgroundMap->unbind();
         }
     }
 
@@ -76,110 +80,140 @@ class RenderSystem : public AwSystem
         auto adminEntity   = m_scene->getAdminEntity();
         auto &rendererComp = adminEntity->getComponent<RendererComponent>();
 
+        auto &emptyMap      = rendererComp.emptyMap;
+        auto &defaultNormal = rendererComp.defaultNormal;
+
         for (auto entity : renderObjects)
         {
-            auto awEntity   = m_scene->getEntity(entity);
-            auto &material  = awEntity->getComponent<MaterialComponent>();
-            auto &mesh      = awEntity->getComponent<MeshComponent>();
-            auto &transform = awEntity->getComponent<TransformComponent>();
+            auto awEntity           = m_scene->getEntity(entity);
+            auto &material          = awEntity->getComponent<MaterialComponent>();
+            auto &mesh              = awEntity->getComponent<MeshComponent>();
+            auto &transform         = awEntity->getComponent<TransformComponent>();
+            auto &lightsManagerComp = adminEntity->getComponent<LightsManagerComponent>();
 
             if (!material.materialRenderParams.visible) continue;
 
-            auto shader = material.shader;
-            if (shader == nullptr) continue;
+            auto shader = material.shader->getHandle();
+            if (shader == 0) continue;
 
-            shader->bind();
+            renderer->bindShader(shader);
 
-            shader->setUniformMat4("u_worldMatrix", transform.getWorldMatrix());
-            shader->setUniformMat4("u_viewMatrix", camera.getWorldInverseMatrix());
-            shader->setUniformMat4("u_projectionMatrix", camera.getProjectionMatrix());
-            shader->setUniformMat3("u_normalMatrix", glm::transpose(glm::inverse(
-                                                         glm::mat3(transform.getWorldMatrix()))));
-            shader->setUniformFloat3("u_cameraPosition", camera.getCameraPosition());
-
-            auto &lightsManagerComp = adminEntity->getComponent<LightsManagerComponent>();
-            shader->setUniformInt("u_lightCount", lightsManagerComp.lights.size());
-            for (int i = 0; i < lightsManagerComp.lights.size(); i++)
-            {
-                auto &lightComp = lightsManagerComp.lights[i]->getComponent<LightComponent>();
-                auto &lightTransform =
-                    lightsManagerComp.lights[i]->getComponent<TransformComponent>();
-
-                shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].position",
-                                         lightTransform.getPosition());
-                shader->setUniformFloat3("u_lights[" + std::to_string(i) + "].color",
-                                         lightComp.color);
-                shader->setUniformFloat("u_lights[" + std::to_string(i) + "].intensity",
-                                        lightComp.intensity);
-            }
-
-            shader->setUniformFloat3("u_material.albedo", material.color);
-            shader->setUniformFloat("u_material.roughness", material.roughness);
-            shader->setUniformFloat("u_material.metallic", material.metallic);
-            shader->setUniformFloat("u_material.ao", material.ao);
+            renderer->set("u_worldMatrix", transform.getWorldMatrix());
+            renderer->set("u_viewMatrix", camera.getWorldInverseMatrix());
+            renderer->set("u_projectionMatrix", camera.getProjectionMatrix());
+            renderer->set("u_normalMatrix", glm::transpose(glm::inverse(glm::mat3(transform.getWorldMatrix()))));
+            renderer->set("u_cameraPosition", camera.getCameraPosition());
+            renderer->set("u_material.albedo", material.color);
+            renderer->set("u_material.roughness", material.roughness);
+            renderer->set("u_material.metallic", material.metallic);
+            renderer->set("u_material.ao", material.ao);
 
             int slots = 0;
 
-            // bind textures
-            if (material.albedoMap)
-                material.albedoMap->bind(slots);
-            else
-                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
-            shader->setUniformInt("u_material.albedoMap", slots);
-            slots++;
-
-            if (material.normalMap)
-                material.normalMap->bind(slots);
-            else
-                ResourceManager::GetInstance().getTexture("defaultNormal")->bind(slots);
-            shader->setUniformInt("u_material.normalMap", slots);
-            slots++;
-
-            if (material.metallicMap)
-                material.metallicMap->bind(slots);
-            else
-                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
-            shader->setUniformInt("u_material.metallicMap", slots);
-            slots++;
-
-            if (material.roughnessMap)
-                material.roughnessMap->bind(slots);
-            else
-                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
-            shader->setUniformInt("u_material.roughnessMap", slots);
-            slots++;
-
-            if (material.aoMap)
-                material.aoMap->bind(slots);
-            else
-                ResourceManager::GetInstance().getTexture("empty")->bind(slots);
-            shader->setUniformInt("u_material.aoMap", slots);
-            slots++;
-
-            // 辐照度贴图
-            if (material.irradianceMap)
+            // albedo, normal, roughness, metallic, ao
+            if (material.albedoMap->getHandle() != 0)
             {
-                material.irradianceMap->bind(slots);
-                shader->setUniformInt("u_material.irradianceMap", slots);
-                slots++;
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, material.albedoMap->getHandle());
+            }
+            else
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
+            }
+            renderer->set("u_material.albedo", material.color);
+            slots++;
+
+            if (material.normalMap->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, material.normalMap->getHandle());
+            }
+            else
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, defaultNormal->getHandle());
+            }
+            renderer->set("u_material.normalMap", slots);
+            slots++;
+
+            if (material.roughnessMap->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, material.roughnessMap->getHandle());
+            }
+            else
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
+            }
+            renderer->set("u_material.roughnessMap", slots);
+            slots++;
+
+            if (material.metallicMap->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, material.metallicMap->getHandle());
+            }
+            else
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
+            }
+            renderer->set("u_material.metallicMap", slots);
+            slots++;
+
+            if (material.aoMap->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, material.aoMap->getHandle());
+            }
+            else
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
+            }
+            renderer->set("u_material.aoMap", slots);
+            slots++;
+            // end ----------------
+
+            // lights
+            if(material.irradianceMap->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, material.irradianceMap->getHandle());
+            }
+            renderer->set("u_irradianceMap", slots);
+            slots++;
+
+            if(material.prefilterMap->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_CUBE_MAP, material.prefilterMap->getHandle());
+            }
+            renderer->set("u_prefilterMap", slots);
+            slots++;
+
+            if(material.brdfLUT->getHandle() != 0)
+            {
+                glActiveTexture(GL_TEXTURE0 + slots);
+                glBindTexture(GL_TEXTURE_2D, material.brdfLUT->getHandle());
+            }
+            renderer->set("u_brdfLUT", slots);
+            slots++;
+
+
+            renderer->set("u_lightCount", lightsManagerComp.lights.size());
+            for (int i = 0; i < lightsManagerComp.lights.size(); i++)
+            {
+                auto &lightComp  = lightsManagerComp.lights[i]->getComponent<LightComponent>();
+                auto &lightTrans = lightsManagerComp.lights[i]->getComponent<TransformComponent>();
+                renderer->set("u_lights[" + std::to_string(i) + "].position", lightTrans.getPosition());
+                renderer->set("u_lights[" + std::to_string(i) + "].color", lightComp.color);
+                renderer->set("u_lights[" + std::to_string(i) + "].intensity", lightComp.intensity);
             }
 
-            // 预过滤贴图
-            if (material.prefilterMap)
-            {
-                material.prefilterMap->bind(slots);
-                shader->setUniformInt("u_material.prefilterMap", slots);
-                slots++;
-            }
-
-            // BRDF积分贴图
-            if (material.brdfLUT)
-            {
-                material.brdfLUT->bind(slots);
-                shader->setUniformInt("u_material.brdfLUT", slots);
-                slots++;
-            }
-
+            renderer->uploadUniforms(shader);
             mesh.draw();
 
             for (int i = 0; i < slots; i++)
@@ -191,9 +225,8 @@ class RenderSystem : public AwSystem
             drawCalls++;
         }
 
-        renderBackground(camera);
-        renderer->getFramebuffer()->unbind();
-
+        // renderBackground(renderer, camera);
+        // renderer->getFramebuffer()->unbind();
     }
 };
 } // namespace Airwave

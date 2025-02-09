@@ -34,9 +34,8 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec) : m_
     {
         if (channels == 3)
         {
-            m_spec.internalFormat =
-                m_spec.sRGB ? TextureInternalFormat::SRGB : TextureInternalFormat::RGB;
-            m_spec.format = TextureFormat::RGB;
+            m_spec.internalFormat = m_spec.sRGB ? TextureInternalFormat::SRGB : TextureInternalFormat::RGB;
+            m_spec.format         = TextureFormat::RGB;
         }
         else if (channels == 1)
         {
@@ -45,9 +44,8 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec) : m_
         }
         else if (channels == 4)
         {
-            m_spec.internalFormat =
-                m_spec.sRGB ? TextureInternalFormat::SRGB_ALPHA : TextureInternalFormat::RGBA;
-            m_spec.format = TextureFormat::RGBA;
+            m_spec.internalFormat = m_spec.sRGB ? TextureInternalFormat::SRGB_ALPHA : TextureInternalFormat::RGBA;
+            m_spec.format         = TextureFormat::RGBA;
         }
     }
 
@@ -55,8 +53,7 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec) : m_
     glBindTexture(GL_TEXTURE_2D, m_handle);
 
     glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
-                 static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType),
-                 data);
+                 static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(m_spec.wrapS));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(m_spec.wrapT));
@@ -73,8 +70,7 @@ Texture::Texture(const std::string &path, const TextureSpecification &spec) : m_
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-Texture::Texture(const std::vector<std::string> &faces, const TextureSpecification &spec)
-    : m_spec(spec)
+Texture::Texture(const std::vector<std::string> &faces, const TextureSpecification &spec) : m_spec(spec)
 {
     m_spec.textureType = TextureType::TEXTURE_CUBE_MAP;
 
@@ -97,10 +93,9 @@ Texture::Texture(const std::vector<std::string> &faces, const TextureSpecificati
 
         if (data)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                         static_cast<GLint>(m_spec.internalFormat), width, height, 0,
-                         static_cast<GLenum>(m_spec.format),
-                         static_cast<GLenum>(m_spec.textureDataType), data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), width,
+                         height, 0, static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType),
+                         data);
             stbi_image_free(data);
         }
         else
@@ -130,47 +125,36 @@ Texture::Texture(uint32_t width, uint32_t height, const TextureSpecification &sp
     }
 
     glGenTextures(1, &m_handle);
-    glBindTexture(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                    : GL_TEXTURE_2D,
-                  m_handle);
+    glBindTexture(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, m_handle);
 
-    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
                     GL_TEXTURE_WRAP_S, static_cast<GLint>(m_spec.wrapS));
-    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
                     GL_TEXTURE_WRAP_T, static_cast<GLint>(m_spec.wrapT));
-    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
                     GL_TEXTURE_MIN_FILTER, static_cast<GLint>(m_spec.minFilter));
-    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
+    glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D,
                     GL_TEXTURE_MAG_FILTER, static_cast<GLint>(m_spec.magFilter));
 
     if (spec.textureType == TextureType::TEXTURE_CUBE_MAP)
     {
         for (size_t i = 0; i < 6; i++)
         {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                         static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
-                         static_cast<GLenum>(m_spec.format),
-                         static_cast<GLenum>(m_spec.textureDataType), data);
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), m_width,
+                         m_height, 0, static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType),
+                         data);
         }
     }
     else
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height,
-                     0, static_cast<GLenum>(m_spec.format),
-                     static_cast<GLenum>(m_spec.textureDataType), data);
+        glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_width, m_height, 0,
+                     static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
     }
 
     if (m_spec.generateMipmap)
-        glGenerateMipmap(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                             : GL_TEXTURE_2D);
+        glGenerateMipmap(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D);
 
-    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
-                  0);
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
 }
 
 Texture::~Texture()
@@ -184,16 +168,12 @@ Texture::~Texture()
 void Texture::bind(uint32_t slot) const
 {
     glActiveTexture(GL_TEXTURE0 + slot);
-    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
-                  m_handle);
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, m_handle);
 }
 
 void Texture::unbind() const
 {
-    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP
-                                                                      : GL_TEXTURE_2D,
-                  0);
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
 }
 
 } // namespace Airwave

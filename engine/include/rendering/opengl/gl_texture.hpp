@@ -9,28 +9,6 @@
 namespace Airwave
 {
 // 纹理规格
-struct TextureSpecification
-{
-    TextureType textureType = TextureType::TEXTURE_2D;
-
-    TextureWrap wrapS = TextureWrap::REPEAT;
-    TextureWrap wrapT = TextureWrap::REPEAT;
-    TextureWrap wrapR = TextureWrap::REPEAT;
-
-    TextureFilter minFilter = TextureFilter::LINEAR;
-    TextureFilter magFilter = TextureFilter::LINEAR;
-
-    TextureInternalFormat internalFormat = TextureInternalFormat::RGBA8;
-    TextureFormat format                 = TextureFormat::RGBA;
-    TextureDataType textureDataType      = TextureDataType::UINT8;
-
-    bool generateMipmap = true;
-    bool flip           = true;
-    bool sRGB           = false;
-    bool isHDR          = false;
-    uint32_t samples    = 1;
-    bool enableMSAA     = false;
-};
 
 class Texture
 {

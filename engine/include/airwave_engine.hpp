@@ -42,4 +42,7 @@
 #include "utils/shader_utils.hpp"
 
 #include "resource/resource_manager.hpp"
+#include "resource/resource.hpp"
+#include "resource/texture_resource.hpp"
+#include "resource/shader_resource.hpp"
 

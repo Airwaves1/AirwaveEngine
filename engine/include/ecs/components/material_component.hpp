@@ -2,10 +2,12 @@
 
 #include "core/common.hpp"
 #include "ecs/aw_component.hpp"
-#include "rendering/opengl/gl_shader.hpp"
-#include "rendering/opengl/gl_texture.hpp"
-#include "resource/shader_lib.hpp"
+
 #include "resource/resource_manager.hpp"
+
+#include "resource/shader_resource.hpp"
+#include "resource/texture_resource.hpp"
+
 namespace Airwave
 {
 class MaterialComponent : public AwComponent
@@ -19,21 +21,19 @@ class MaterialComponent : public AwComponent
 
     glm::vec3 color = glm::vec3(0.0);
 
-    std::shared_ptr<Shader> shader{nullptr};
-    std::shared_ptr<Texture> albedoMap{nullptr};
-    std::shared_ptr<Texture> normalMap{nullptr};
-    std::shared_ptr<Texture> metallicMap{nullptr};
-    std::shared_ptr<Texture> roughnessMap{nullptr};
-    std::shared_ptr<Texture> aoMap{nullptr};
+    std::shared_ptr<ShaderResource> shader;
 
-    std::shared_ptr<Texture> irradianceMap{nullptr};
-    std::shared_ptr<Texture> prefilterMap{nullptr};
-    std::shared_ptr<Texture> brdfLUT{nullptr};
+    std::shared_ptr<TextureResource> albedoMap;
+    std::shared_ptr<TextureResource> normalMap;
+    std::shared_ptr<TextureResource> metallicMap;
+    std::shared_ptr<TextureResource> roughnessMap;
+    std::shared_ptr<TextureResource> aoMap;
 
-    MaterialComponent(MaterialType type = MaterialType::Basic)
-    {
-        setMaterialType(type);
-    }
+    std::shared_ptr<TextureResource> irradianceMap;
+    std::shared_ptr<TextureResource> prefilterMap;
+    std::shared_ptr<TextureResource> brdfLUT;
+
+    MaterialComponent(MaterialType type = MaterialType::Basic) { setMaterialType(type); }
 
     MaterialType getMaterialType() const { return m_type; }
 
@@ -44,21 +44,11 @@ class MaterialComponent : public AwComponent
         switch (type)
         {
             case MaterialType::Basic:
-                shader = SHADER_LIB.load("basic", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/basic.vert",
-                                         PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/basic.frag");
-                break;
-            case MaterialType::Phong:
-                // setPhongMaterial();
+                shader = ResourceManager::GetInstance().get<ShaderResource>("basic");
                 break;
             case MaterialType::PBR:
-                shader = SHADER_LIB.load("pbr", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/physical.vert",
-                                         PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/physical.frag");
-                // setPBRMaterial();
-                brdfLUT = ResourceManager::GetInstance().getTexture("brdfLUT");
-                if(!brdfLUT)
-                {
-                    LOG_ERROR("MaterialComponent::setMaterialType: brdfLUT is nullptr");
-                }
+                shader  = ResourceManager::GetInstance().get<ShaderResource>("pbr");
+                brdfLUT = ResourceManager::GetInstance().get<TextureResource>("brdfLUT");
                 break;
             default:
                 break;

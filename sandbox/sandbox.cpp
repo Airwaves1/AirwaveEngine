@@ -1,8 +1,6 @@
 #include "sandbox.hpp"
 #include <glad/glad.h>
 
-#include "resource/texture_lib.hpp"
-
 #include "controller/trackball_camera_system.hpp"
 #include "controller/trackball_controller_component.hpp"
 namespace Airwave
@@ -42,10 +40,10 @@ void Sandbox::onInit()
     {
         for (int j = 0; j < 2; j++)
         {
-            auto light_entity    = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
-            auto &light_comp     = light_entity->addComponent<LightComponent>();
-            light_comp.intensity = 300.0f;
-            light_comp.color     = glm::vec3(.0f);
+            auto light_entity     = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
+            auto &light_comp      = light_entity->addComponent<LightComponent>();
+            light_comp.intensity  = 300.0f;
+            light_comp.color      = glm::vec3(.0f);
             auto &light_transform = light_entity->getComponent<TransformComponent>();
             light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
         }
@@ -58,17 +56,14 @@ void Sandbox::onInit()
     TextureSpecification spec;
     spec.isHDR          = true;
     spec.generateMipmap = false;
-    auto envMap         = ResourceManager::GetInstance().loadTexture(PROJECT_ROOT_DIR "/assets/textures/"
-                                                                                              "hdr/"
-                                                                                              "kiara_8_sunset_2k.hdr",
-                                                                     spec);
+    const auto &envMap  = RES.load<TextureResource>(PROJECT_ROOT_DIR "/assets/textures/hdr/kiara_8_sunset_2k.hdr", spec);
 
     // HDR to Cubemap
-    auto cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
+    const auto &cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
     // 获取辐照度贴图
-    auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cubemap, 32);
+    const auto &irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cubemap, 32);
     // 获取预过滤贴图
-    auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cubemap, 256, 5);
+    const auto &prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cubemap, 256, 5);
 
     auto adminEntity            = m_scene->getAdminEntity();
     auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
@@ -83,6 +78,7 @@ void Sandbox::onInit()
             sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
             auto &mat = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
             // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            
             mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
             mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);

@@ -6,6 +6,8 @@
 #include <mutex>
 #include <functional>
 
+#include "event.hpp"
+
 namespace Airwave {
 
 class EventDispatcher {

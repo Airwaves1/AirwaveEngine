@@ -2,9 +2,14 @@
 
 #include <glad/glad.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <variant>
 
 namespace Airwave
 {
+
+using UniformValue = std::variant<float, glm::vec2, glm::vec3, glm::vec4, int, glm::ivec2, glm::ivec3, glm::ivec4, glm::mat3, glm::mat4, bool, size_t>;
+
 enum class MaterialType
 {
     None,
@@ -257,6 +262,32 @@ struct MaterialRenderParams
     bool polygonOffset        = false; // 是否开启多边形偏移
     float polygonOffsetFactor = 0.0f;  // 多边形偏移因子
     float polygonOffsetUnits  = 0.0f;  // 多边形偏移单位
+};
+
+struct TextureSpecification
+{
+    uint32_t width  = 0;
+    uint32_t height = 0;
+
+    TextureType textureType = TextureType::TEXTURE_2D;
+
+    TextureWrap wrapS = TextureWrap::REPEAT;
+    TextureWrap wrapT = TextureWrap::REPEAT;
+    TextureWrap wrapR = TextureWrap::REPEAT;
+
+    TextureFilter minFilter = TextureFilter::LINEAR;
+    TextureFilter magFilter = TextureFilter::LINEAR;
+
+    TextureInternalFormat internalFormat = TextureInternalFormat::RGBA8;
+    TextureFormat format                 = TextureFormat::RGBA;
+    TextureDataType textureDataType      = TextureDataType::UINT8;
+
+    bool generateMipmap = true;
+    bool flip           = true;
+    bool sRGB           = false;
+    bool isHDR          = false;
+    uint32_t samples    = 1;
+    bool enableMSAA     = false;
 };
 
 } // namespace Airwave

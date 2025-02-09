@@ -4,7 +4,6 @@
 #include <imgui.h>
 
 #include "rendering/opengl/gl_texture.hpp"
-#include "resource/texture_lib.hpp"
 #include "ecs/components/singleton_components/input_component.hpp"
 
 namespace Airwave
