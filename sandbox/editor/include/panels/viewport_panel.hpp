@@ -12,17 +12,13 @@ class ViewportPanel : public Panel
 {
   public:
     std::shared_ptr<Texture> m_texture;
-    ViewportPanel(Editor *editor, const std::string &title, bool startOpened = true)
-        : Panel(editor, title, startOpened)
-    {
-
-    }
+    ViewportPanel(Editor *editor, const std::string &title, bool startOpened = true) : Panel(editor, title, startOpened) {}
 
     void onImGuiRender() override
     {
-        auto app    = m_editor->getContext();
-        auto admin  = app->getAdminEntity();
-        auto &input = admin->getComponent<InputComponent>();
+        auto app   = m_editor->getContext();
+        auto &reg  = app->getScene()->getRegistry();
+        auto admin = app->getAdminEntity();
 
         ImGui::Begin(m_title.c_str());
         ImVec2 availableSize = ImGui::GetContentRegionAvail(); // 获取当前窗口可用大小
@@ -31,13 +27,18 @@ class ViewportPanel : public Panel
         ImGui::Image((void *)(intptr_t)textureID, availableSize, ImVec2(0, 1), ImVec2(1, 0));
 
         // 如果窗口大小发生变化，更新反应区域
-        ImVec2 itemRectMin = ImGui::GetItemRectMin();
-        ImVec2 itemRectMax = ImGui::GetItemRectMax();
+        ImVec2 itemRectMin     = ImGui::GetItemRectMin();
+        ImVec2 itemRectMax     = ImGui::GetItemRectMax();
         ImVec2 mainViewportPos = ImGui::GetMainViewport()->Pos;
-        ImVec2 viewMin = ImVec2(itemRectMin.x - mainViewportPos.x, itemRectMin.y - mainViewportPos.y);
-        ImVec2 viewMax = ImVec2(itemRectMax.x - mainViewportPos.x, itemRectMax.y - mainViewportPos.y);
+        ImVec2 viewMin         = ImVec2(itemRectMin.x - mainViewportPos.x, itemRectMin.y - mainViewportPos.y);
+        ImVec2 viewMax         = ImVec2(itemRectMax.x - mainViewportPos.x, itemRectMax.y - mainViewportPos.y);
 
-        input.reactArea = glm::vec4(viewMin.x, viewMin.y, viewMax.x, viewMax.y);
+        if (reg.all_of<InputComponent>(admin))
+        {
+            auto &input     = reg.get<InputComponent>(admin);
+            input.reactArea = glm::vec4(viewMin.x, viewMin.y, viewMax.x, viewMax.y);
+        }
+
 
         ImGui::End();
     }

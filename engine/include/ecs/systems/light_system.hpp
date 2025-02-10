@@ -14,16 +14,12 @@ class LightSystem : public AwSystem
         auto &reg        = m_scene->getRegistry();
         auto view        = reg.view<LightComponent, TransformComponent>();
         auto adminEntity = m_scene->getAdminEntity();
-        if (!adminEntity)
-        {
-            return;
-        }
-        auto &lightsManager = adminEntity->getComponent<LightsManagerComponent>();
+
+        auto &lightsManager = reg.get<LightsManagerComponent>(adminEntity);
         lightsManager.lights.clear();
-        for (auto entity : view)
+        for (auto light_entity : view)
         {
-            auto lightEntity = m_scene->getEntity(entity);
-            lightsManager.lights.push_back(lightEntity);
+            lightsManager.lights.push_back(light_entity);
         }
     }
 };

@@ -3,6 +3,8 @@
 
 #include "controller/trackball_camera_system.hpp"
 #include "controller/trackball_controller_component.hpp"
+
+#include "rendering/mesh.hpp"
 namespace Airwave
 {
 void Sandbox::onConfigurate(Airwave::ApplicationConfig &config)
@@ -19,21 +21,27 @@ void Sandbox::onInit()
     m_scene->addSystem<TrackballCameraSystem>();
 
     // data
-    std::vector<AwVertex> cubeVertices;
+    std::vector<AwVertex> _cubeVertices;
     std::vector<uint32_t> cubeIndices;
-    std::vector<AwVertex> sphereVertices;
+    std::vector<AwVertex> _sphereVertices;
     std::vector<uint32_t> sphereIndices;
-    GeometryUtils::CreateCube(cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
-    GeometryUtils::CreateSphere(sphereVertices, sphereIndices, 1.0f, 36, 32);
+    GeometryUtils::CreateCube(_cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
+    GeometryUtils::CreateSphere(_sphereVertices, sphereIndices, 1.0f, 36, 32);
+    std::vector<float> cubeVertices = GeometryUtils::ConvertWaveVertexToFloatArray(_cubeVertices);
+    std::vector<float> sphereVertices = GeometryUtils::ConvertWaveVertexToFloatArray(_sphereVertices);
+    
 
     // entity
 
     // camera
+    auto &reg = m_scene->getRegistry();
+
     auto main_camera_entity = m_scene->createDefaultEntity("main_camera");
-    main_camera_entity->addComponent<CameraComponent>();
-    main_camera_entity->addComponent<TrackballController>();
-    auto &camera_transform = main_camera_entity->getComponent<TransformComponent>();
+    reg.emplace<CameraComponent>(main_camera_entity);
+    reg.emplace<TrackballController>(main_camera_entity);
+    auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
     camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 30.0f));
+
 
     // // lights
     for (int i = 0; i < 2; i++)
@@ -41,10 +49,10 @@ void Sandbox::onInit()
         for (int j = 0; j < 2; j++)
         {
             auto light_entity     = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
-            auto &light_comp      = light_entity->addComponent<LightComponent>();
+            auto &light_comp      = reg.emplace<LightComponent>(light_entity);
             light_comp.intensity  = 300.0f;
             light_comp.color      = glm::vec3(.0f);
-            auto &light_transform = light_entity->getComponent<TransformComponent>();
+            auto &light_transform = reg.emplace<TransformComponent>(light_entity);
             light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
         }
     }
@@ -74,21 +82,24 @@ void Sandbox::onInit()
     RES.add("prefilter_map", prefilter_map);
 
     auto adminEntity            = m_scene->getAdminEntity();
-    auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
+    auto &renderer_comp         = reg.emplace<RendererComponent>(adminEntity);
     renderer_comp.backgroundMap = cube_map;
     renderer_comp.envMap        = cube_map;
 
     auto brdf_lut = RES.get<TextureResource>("brdf_lut");
+
+    auto sphere_mesh = std::make_shared<Mesh>(sphereVertices, sphereIndices);
 
     for (int i = 0; i < 7; i++)
     {
         for (int j = 0; j < 7; j++)
         {
             auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
-            sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
-            auto &mat = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
-            // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            auto &mesh_comp = reg.emplace<MeshComponent>(sphere_entity);
+            mesh_comp.mesh = sphere_mesh;
+            auto &mat = reg.emplace<MaterialComponent>(sphere_entity, MaterialType::PBR);
 
+            // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
             mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
             mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
@@ -97,7 +108,7 @@ void Sandbox::onInit()
             mat.irradianceMap = irradiance_map;
             mat.prefilterMap  = prefilter_map;
 
-            auto &sphere_transform = sphere_entity->getComponent<TransformComponent>();
+            auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
             sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
             m_scene->setEntityParent(sphere_entity, sphere_container_entity);
         }

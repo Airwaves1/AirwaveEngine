@@ -11,6 +11,7 @@
 #include "ecs/components/singleton_components/lights_manager_component.hpp"
 #include "ecs/components/singleton_components/renderer_component.hpp"
 
+
 namespace Airwave
 {
 class RenderSystem : public AwSystem
@@ -46,8 +47,10 @@ class RenderSystem : public AwSystem
 
     void renderBackground(Renderer *renderer, CameraComponent &camera)
     {
+        auto &reg          = m_scene->getRegistry();
         auto adminEntity    = m_scene->getAdminEntity();
-        auto &renderer_comp = adminEntity->getComponent<RendererComponent>();
+        auto &renderer_comp = reg.get<RendererComponent>(adminEntity);
+
         if (renderer_comp.backgroundMap)
         {
             glDepthFunc(GL_LEQUAL);
@@ -63,7 +66,7 @@ class RenderSystem : public AwSystem
             renderer->set("u_projectionMatrix", camera.getProjectionMatrix());
             renderer->uploadUniforms(shader->getHandle());
 
-            renderer_comp.meshComp->draw();
+            renderer_comp.mesh->draw();
         }
     }
 
@@ -78,18 +81,17 @@ class RenderSystem : public AwSystem
         auto &reg          = m_scene->getRegistry();
         auto renderObjects = reg.view<MaterialComponent, MeshComponent, TransformComponent>();
         auto adminEntity   = m_scene->getAdminEntity();
-        auto &rendererComp = adminEntity->getComponent<RendererComponent>();
+        auto &rendererComp = reg.get<RendererComponent>(adminEntity);
 
         auto &emptyMap      = rendererComp.emptyMap;
         auto &defaultNormal = rendererComp.defaultNormal;
 
         for (auto entity : renderObjects)
         {
-            auto awEntity           = m_scene->getEntity(entity);
-            auto &material          = awEntity->getComponent<MaterialComponent>();
-            auto &mesh              = awEntity->getComponent<MeshComponent>();
-            auto &transform         = awEntity->getComponent<TransformComponent>();
-            auto &lightsManagerComp = adminEntity->getComponent<LightsManagerComponent>();
+            auto &material          = reg.get<MaterialComponent>(entity);
+            auto &mesh              = reg.get<MeshComponent>(entity);
+            auto &transform         = reg.get<TransformComponent>(entity);
+            auto &lightsManagerComp = reg.get<LightsManagerComponent>(adminEntity);
 
             if (!material.materialRenderParams.visible) continue;
 
@@ -206,15 +208,19 @@ class RenderSystem : public AwSystem
             renderer->set("u_lightCount", lightsManagerComp.lights.size());
             for (int i = 0; i < lightsManagerComp.lights.size(); i++)
             {
-                auto &lightComp  = lightsManagerComp.lights[i]->getComponent<LightComponent>();
-                auto &lightTrans = lightsManagerComp.lights[i]->getComponent<TransformComponent>();
+                auto light_entity = lightsManagerComp.lights[i];
+                auto &lightComp   = reg.get<LightComponent>(light_entity);
+                auto &lightTrans  = reg.get<TransformComponent>(light_entity);
                 renderer->set("u_lights[" + std::to_string(i) + "].position", lightTrans.getPosition());
                 renderer->set("u_lights[" + std::to_string(i) + "].color", lightComp.color);
                 renderer->set("u_lights[" + std::to_string(i) + "].intensity", lightComp.intensity);
             }
 
             renderer->uploadUniforms(shader);
-            mesh.draw();
+            if(mesh.mesh)
+            {
+                mesh.mesh->draw();
+            }
 
             drawCalls++;
         }

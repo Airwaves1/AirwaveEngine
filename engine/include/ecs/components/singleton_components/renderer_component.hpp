@@ -15,6 +15,9 @@
 #include "utils/shapes_vao.hpp"
 
 #include "ecs/components/mesh_component.hpp"
+
+#include "rendering/mesh.hpp"
+
 namespace Airwave
 {
 class RendererComponent : public AwComponent
@@ -42,11 +45,13 @@ class RendererComponent : public AwComponent
         std::vector<AwVertex> cubeVertices;
         std::vector<uint32_t> cubeIndices;
         GeometryUtils::CreateCube(cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
-        meshComp = std::make_shared<MeshComponent>(cubeVertices, cubeIndices);
+        std::vector<float> cubeVerticesFloat = GeometryUtils::ConvertWaveVertexToFloatArray(cubeVertices);
+
+        mesh = std::make_shared<Mesh>(cubeVerticesFloat, cubeIndices);
     }
 
   private:
-    std::shared_ptr<MeshComponent> meshComp;
+    std::shared_ptr<Mesh> mesh;
 
     friend class RenderSystem;
 };

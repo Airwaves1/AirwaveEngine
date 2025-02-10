@@ -16,20 +16,22 @@ class InputSystem : public AwSystem
 
     void onUpdate(float deltaTime) override
     {
+        auto &reg        = m_scene->getRegistry();
         auto adminEntity = m_scene->getAdminEntity();
-        if (adminEntity->hasComponent<InputComponent>())
+        if (reg.all_of<InputComponent>(adminEntity))
         {
-            auto &input = adminEntity->getComponent<InputComponent>();
+            auto &input = reg.get<InputComponent>(adminEntity);
             input.updateDurations(deltaTime);
         }
     }
 
     void afterAllSystemsUpdated(float deltaTime) override
     {
+        auto &reg        = m_scene->getRegistry();
         auto adminEntity = m_scene->getAdminEntity();
-        if (adminEntity->hasComponent<InputComponent>())
+        if (reg.all_of<InputComponent>(adminEntity))
         {
-            auto &input       = adminEntity->getComponent<InputComponent>();
+            auto &input = reg.get<InputComponent>(adminEntity);
             input.mouseDelta  = glm::vec2(0.0f);
             input.mouseScroll = glm::vec2(0.0f);
         }

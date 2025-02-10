@@ -21,12 +21,7 @@ class TransformSystem : public AwSystem
 
         for (auto entity : view)
         {
-            auto awEntity = m_scene->getEntity(entity);
-            if (!m_scene->isValideEntity(awEntity))
-            {
-                continue;
-            }
-            auto &transform = awEntity->getComponent<TransformComponent>();
+            auto &transform = view.get<TransformComponent>(entity);
 
             if (transform.m_dirty)
             {
@@ -34,13 +29,13 @@ class TransformSystem : public AwSystem
                 transform.m_dirty       = false;
             }
 
-            if (awEntity->hasComponent<HierarchyComponent>())
+            if (registry.all_of<HierarchyComponent>(entity))
             {
-                auto &hierarchy = awEntity->getComponent<HierarchyComponent>();
+                auto &hierarchy = registry.get<HierarchyComponent>(entity);
                 auto parent     = hierarchy.getParent();
-                if (parent && parent->hasComponent<TransformComponent>())
+                if(parent!= entt::null && registry.all_of<TransformComponent>(parent))
                 {
-                    auto &parentTransform = parent->getComponent<TransformComponent>();
+                    auto &parentTransform = registry.get<TransformComponent>(parent);
                     transform.m_worldMatrix =
                         parentTransform.m_worldMatrix * transform.m_localMatrix;
                 }

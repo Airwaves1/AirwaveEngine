@@ -44,13 +44,12 @@ void Application::start(int argc, char **argv)
     m_scene->addSystem<LightSystem>(0);
     m_scene->addSystem<RenderSystem>(2);
 
+    auto &reg        = m_scene->getRegistry();
     auto adminEntity = m_scene->getAdminEntity();
-    if (adminEntity)
-    {
-        adminEntity->addComponent<RendererComponent>();
-        adminEntity->addComponent<InputComponent>();
-        adminEntity->addComponent<LightsManagerComponent>();
-    }
+
+    reg.emplace<RendererComponent>(adminEntity);
+    reg.emplace<InputComponent>(adminEntity);
+    reg.emplace<LightsManagerComponent>(adminEntity);
 
     // 初始化
     onInit();

@@ -13,11 +13,7 @@ namespace Airwave
 class AwEntity
 {
   public:
-    AwEntity(AwScene *scene, entt::entity &entity, const std::string &name,
-             const std::string &tag = "")
-        : m_scene(scene), m_entity(entity)
-    {
-    }
+    AwEntity(AwScene *scene, entt::entity &entity, const std::string &name, const std::string &tag = "") : m_scene(scene), m_entity(entity) {}
 
     AwScene *getScene() const { return m_scene; }
 
@@ -32,15 +28,15 @@ class AwEntity
         {
             return m_scene->getRegistry().get<T>(m_entity);
         }
-        return m_scene->getRegistry().emplace<T>(m_entity, std::forward<Args>(args)...);
+
+        T &component      = m_scene->getRegistry().emplace<T>(m_entity, std::forward<Args>(args)...);
+        component.m_owner = this;
+        return component;
     }
 
     template <typename T> T &getComponent() { return m_scene->getRegistry().get<T>(m_entity); }
 
-    template <typename T> T *tryGetComponent()
-    {
-        return m_scene->getRegistry().try_get<T>(m_entity);
-    }
+    template <typename T> T *tryGetComponent() { return m_scene->getRegistry().try_get<T>(m_entity); }
 
     template <typename T> void removeComponent()
     {
@@ -49,6 +45,8 @@ class AwEntity
             m_scene->getRegistry().remove<T>(*this);
         }
     }
+
+    entt::entity getEntityHandle() const { return m_entity; }
 
   private:
     AwScene *m_scene{nullptr};

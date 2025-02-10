@@ -37,7 +37,7 @@ class Application
     Window *getWindow() const { return m_window.get(); }
     AwScene *getScene() const { return m_scene.get(); }
     Renderer *getRenderer() const { return m_renderer.get(); }
-    AwEntity *getAdminEntity() const { return m_scene->getAdminEntity(); }
+    entt::entity getAdminEntity() const { return m_scene->getAdminEntity(); }
 
   protected:
     virtual void onConfigurate(ApplicationConfig &config) {}

@@ -42,8 +42,8 @@ class Editor
     void renderPanels();
 
   public:
-    void setSelectedEntity(AwEntity *entity) { m_selectedEntity = entity; }
-    AwEntity *getSelectedEntity() { return m_selectedEntity; }
+    void setSelectedEntity(entt::entity entity) { m_selectedEntity = entity; }
+    entt::entity getSelectedEntity() { return m_selectedEntity; }
 
     std::function<void()> onSelectedEntityChanged;
     std::function<void()> onDrawDebugInfo;
@@ -52,7 +52,7 @@ class Editor
     Application *m_context;
     std::vector<std::unique_ptr<Panel>> m_panels;
 
-    AwEntity *m_selectedEntity{nullptr};
+    entt::entity m_selectedEntity = entt::null;
 };
 
 } // namespace Airwave

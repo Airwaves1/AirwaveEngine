@@ -19,30 +19,63 @@ class AwScene
     AwScene(Application *appContext);
     ~AwScene();
 
-    // std::shared_ptr<AwEntity> createEntity(const std::string &name = "Entity");
-    AwEntity *createEntity(const std::string &name = "Entity");
-    AwEntity *createDefaultEntity(const std::string &name = "Entity", const std::string &tag = "obj"
-                                                                                               "ec"
-                                                                                               "t");
+    entt::entity createEntity(const std::string &name = "Entity", const std::string &tag = "object");
+    entt::entity createDefaultEntity(const std::string &name = "Entity", const std::string &tag = "object");
 
-    AwEntity *getEntity(entt::entity entity);
-    AwEntity *getEntity(const std::string &name);
+    entt::entity getEntity(const std::string &name);
 
-    void traverseEntity(AwEntity *entity, std::function<void(AwEntity *)> callback);
+    void traverseEntity(entt::entity entity, std::function<void(entt::entity)> callback);
 
-    void destroyEntity(AwEntity &entity);
     void destroyEntity(entt::entity entity);
     void destroyAllEntities();
 
-    bool isValideEntity(AwEntity *entity);
-    void printHierarchy(AwEntity *entity, int level);
+    template <typename T> T &addComponent(entt::entity entity)
+    {
+        if (!m_registry.valid(entity))
+        {
+            LOG_ERROR("entity is not valid");
+            assert(false);
+        }
 
-    void setEntityParent(AwEntity *entity, AwEntity *parent);
-    const std::vector<AwEntity *> &getEntityChildren(AwEntity *entity);
-    AwEntity *getEntityParent(AwEntity *entity);
+        if (m_registry.has<T>(entity))
+        {
+            LOG_ERROR("entity already has component");
+            assert(false);
+        }
+
+        return m_registry.emplace<T>(entity);
+    }
+
+    template <typename T> T &getComponent(entt::entity entity)
+    {
+        if (!m_registry.valid(entity))
+        {
+            LOG_ERROR("entity is not valid");
+            assert(false);
+        }
+
+        if (!m_registry.has<T>(entity))
+        {
+            LOG_ERROR("entity has no component");
+            assert(false);
+        }
+
+        return m_registry.get<T>(entity);
+    }
+
+    template <typename T> bool hasComponent(entt::entity entity) { return m_registry.has<T>(entity); }
+
+    bool isValideEntity(entt::entity entity) { return m_registry.valid(entity); }
+
+    void printHierarchy(entt::entity entity, int level);
+
+    void setEntityParent(entt::entity child, entt::entity parent = entt::null);
+
+    const std::vector<entt::entity> &getEntityChildren(entt::entity entity);
+    entt::entity getEntityParent(entt::entity entity);
 
     entt::registry &getRegistry() { return m_registry; }
-    AwEntity *getAdminEntity() { return m_adminEntity; }
+    entt::entity getAdminEntity() { return m_adminEntity; }
 
     // 系统管理
     template <typename T> void addSystem(int order = 0)
@@ -61,12 +94,11 @@ class AwScene
   private:
     entt::registry m_registry;
 
+    entt::entity m_adminEntity = entt::null;
+
     Application *m_appContext{nullptr};
 
-    std::unordered_map<entt::entity, std::unique_ptr<AwEntity>> m_entities;
     std::multimap<int, std::unique_ptr<AwSystem>> m_systems;
-
-    AwEntity *m_adminEntity;
 };
 
 } // namespace Airwave

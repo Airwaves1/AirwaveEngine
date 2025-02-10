@@ -10,7 +10,7 @@ namespace Airwave
 class LightsManagerComponent : public AwComponent
 {
   public:
-    std::vector<AwEntity*> lights;
+    std::vector<entt::entity> lights;
 };
 
 } // namespace Airwave

@@ -36,9 +36,10 @@ class TrackballCameraSystem : public AwSystem
 
             // 获取输入组件
             auto admin = m_scene->getAdminEntity();
-            if (admin->hasComponent<InputComponent>())
+
+            if(reg.all_of<InputComponent>(admin))
             {
-                auto &inputComponent = admin->getComponent<InputComponent>();
+                auto &inputComponent = reg.get<InputComponent>(admin);
 
                 trackball.radius = glm::length(transform.getPosition() - trackball.target);
 

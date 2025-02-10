@@ -14,8 +14,10 @@ namespace Airwave
 void PropertiesPanel::onImGuiRender()
 {
     ImGui::Begin(m_title.c_str());
+    auto &registry     = m_editor->getContext()->getScene()->getRegistry();
     auto currentEntity = m_editor->getSelectedEntity();
-    if (!currentEntity)
+    // if (!currentEntity)
+    if (currentEntity != entt::null)
     {
         TagComponent tagComponent;
         drawTagProperty(tagComponent);
@@ -24,39 +26,39 @@ void PropertiesPanel::onImGuiRender()
     }
     else
     {
-        if (currentEntity->hasComponent<TagComponent>())
+        if (registry.all_of<TagComponent>(currentEntity))
         {
-            auto &tagComponent = currentEntity->getComponent<TagComponent>();
+            auto &tagComponent = registry.get<TagComponent>(currentEntity);
             drawTagProperty(tagComponent);
         }
 
-        if (currentEntity->hasComponent<TransformComponent>())
+        if (registry.all_of<TransformComponent>(currentEntity))
         {
-            auto &transformComponent = currentEntity->getComponent<TransformComponent>();
+            auto &transformComponent = registry.get<TransformComponent>(currentEntity);
             drawTransformComponent("transform", transformComponent);
         }
 
-        if (currentEntity->hasComponent<CameraComponent>())
+        if (registry.all_of<CameraComponent>(currentEntity))
         {
-            auto &cameraComponent = currentEntity->getComponent<CameraComponent>();
+            auto &cameraComponent = registry.get<CameraComponent>(currentEntity);
             drawCameraComponent(cameraComponent);
         }
 
-        if (currentEntity->hasComponent<TrackballController>())
+        if (registry.all_of<TrackballController>(currentEntity))
         {
-            auto &trackballController = currentEntity->getComponent<TrackballController>();
+            auto &trackballController = registry.get<TrackballController>(currentEntity);
             drawTrackballControllerComponent(trackballController);
         }
 
-        if (currentEntity->hasComponent<MaterialComponent>())
+        if (registry.all_of<MaterialComponent>(currentEntity))
         {
-            auto &materialComponent = currentEntity->getComponent<MaterialComponent>();
+            auto &materialComponent = registry.get<MaterialComponent>(currentEntity);
             drawMaterialComponent(materialComponent);
         }
 
-        if (currentEntity->hasComponent<LightComponent>())
+        if (registry.all_of<LightComponent>(currentEntity))
         {
-            auto &lightComponent = currentEntity->getComponent<LightComponent>();
+            auto &lightComponent = registry.get<LightComponent>(currentEntity);
             drawLightComponent(lightComponent);
         }
     }
@@ -87,8 +89,7 @@ void PropertiesPanel::drawTagProperty(TagComponent &tagComponent)
     ImGui::Text("Tag");
     ImGui::SameLine();
 
-    static std::vector<std::string> tagOptions = {"Untagged", "Player", "Enemy", "Interactable",
-                                                  "Environment"};
+    static std::vector<std::string> tagOptions = {"Untagged", "Player", "Enemy", "Interactable", "Environment"};
 
     // 确保 currentTag 不是空的，否则默认选中第一个
     static std::string currentTag = "";
@@ -155,8 +156,7 @@ void PropertiesPanel::drawTagProperty(TagComponent &tagComponent)
         if (ImGui::Button("Add"))
         {
             std::string newTag = std::string(newTagBuffer);
-            if (!newTag.empty() &&
-                std::find(tagOptions.begin(), tagOptions.end(), newTag) == tagOptions.end())
+            if (!newTag.empty() && std::find(tagOptions.begin(), tagOptions.end(), newTag) == tagOptions.end())
             {
                 tagOptions.push_back(newTag);
                 currentTag       = newTag; // 直接选中新 Tag
@@ -175,15 +175,13 @@ void PropertiesPanel::drawTagProperty(TagComponent &tagComponent)
     }
 }
 
-void PropertiesPanel::drawTransformComponent(const char *label,
-                                             TransformComponent &transformComponent)
+void PropertiesPanel::drawTransformComponent(const char *label, TransformComponent &transformComponent)
 {
     // 分界线
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(),
-                          ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
+    if (ImGui::TreeNodeEx((void *)typeid(TransformComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Transform"))
     {
         float colWidth = 150.0f;
 
@@ -210,22 +208,20 @@ void PropertiesPanel::drawCameraComponent(CameraComponent &cameraComponent)
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (ImGui::TreeNodeEx((void *)typeid(CameraComponent).hash_code(),
-                          ImGuiTreeNodeFlags_DefaultOpen, "Camera"))
+    if (ImGui::TreeNodeEx((void *)typeid(CameraComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Camera"))
     {
         static const char *cameraTypeItems[] = {"Perspective", "Orthographic"};
         static int currentCameraTypeIndex    = 0;
 
         // Start table with 2 columns (Label, Control)
-        ImGui::BeginTable("CameraProperties", 2,
-                          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
+        ImGui::BeginTable("CameraProperties", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
 
         // Set column widths
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300.0f); // Label column
                                                                                     // fixed width
-        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch); // Control column
-                                                                                // takes remaining
-                                                                                // width
+        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);     // Control column
+                                                                                    // takes remaining
+                                                                                    // width
 
         // Column 1: CameraType label
         ImGui::TableNextColumn();
@@ -233,8 +229,7 @@ void PropertiesPanel::drawCameraComponent(CameraComponent &cameraComponent)
 
         // Column 2: CameraType ComboBox
         ImGui::TableNextColumn();
-        if (ImGui::Combo("##CameraType", &currentCameraTypeIndex, cameraTypeItems,
-                         IM_ARRAYSIZE(cameraTypeItems)))
+        if (ImGui::Combo("##CameraType", &currentCameraTypeIndex, cameraTypeItems, IM_ARRAYSIZE(cameraTypeItems)))
         {
             if (currentCameraTypeIndex == 0)
             {
@@ -300,19 +295,17 @@ void PropertiesPanel::drawTrackballControllerComponent(TrackballController &trac
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (ImGui::TreeNodeEx((void *)typeid(TrackballController).hash_code(),
-                          ImGuiTreeNodeFlags_DefaultOpen, "Trackball Controller"))
+    if (ImGui::TreeNodeEx((void *)typeid(TrackballController).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Trackball Controller"))
     {
         // Start table with 2 columns (Label, Control)
-        ImGui::BeginTable("TrackballProperties", 2,
-                          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
+        ImGui::BeginTable("TrackballProperties", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
 
         // Set column widths
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300.0f); // Label column
                                                                                     // fixed width
-        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch); // Control column
-                                                                                // takes remaining
-                                                                                // width
+        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);     // Control column
+                                                                                    // takes remaining
+                                                                                    // width
 
         // Column 1: UseTrackball label
         ImGui::TableNextColumn();
@@ -374,19 +367,17 @@ void PropertiesPanel::drawMaterialComponent(MaterialComponent &materialComponent
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (ImGui::TreeNodeEx((void *)typeid(MaterialComponent).hash_code(),
-                          ImGuiTreeNodeFlags_DefaultOpen, "Material"))
+    if (ImGui::TreeNodeEx((void *)typeid(MaterialComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Material"))
     {
         // Start table with 2 columns (Label, Control)
-        ImGui::BeginTable("MaterialProperties", 2,
-                          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
+        ImGui::BeginTable("MaterialProperties", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
 
         // Set column widths
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300.0f); // Label column
                                                                                     // fixed width
-        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch); // Control column
-                                                                                // takes remaining
-                                                                                // width
+        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);     // Control column
+                                                                                    // takes remaining
+                                                                                    // width
 
         // Column 1: MaterialType label
         ImGui::TableNextColumn();
@@ -411,8 +402,7 @@ void PropertiesPanel::drawMaterialComponent(MaterialComponent &materialComponent
             currentMaterialTypeIndex = 2;
         }
 
-        if (ImGui::Combo("##MaterialType", &currentMaterialTypeIndex, materialTypeItems,
-                         IM_ARRAYSIZE(materialTypeItems)))
+        if (ImGui::Combo("##MaterialType", &currentMaterialTypeIndex, materialTypeItems, IM_ARRAYSIZE(materialTypeItems)))
         {
             if (currentMaterialTypeIndex == 0)
             {
@@ -511,19 +501,17 @@ void PropertiesPanel::drawLightComponent(LightComponent &lightComponent)
     ImGui::Spacing();
     ImGui::Separator();
 
-    if (ImGui::TreeNodeEx((void *)typeid(LightComponent).hash_code(),
-                          ImGuiTreeNodeFlags_DefaultOpen, "Light"))
+    if (ImGui::TreeNodeEx((void *)typeid(LightComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Light"))
     {
         // Start table with 2 columns (Label, Control)
-        ImGui::BeginTable("LightProperties", 2,
-                          ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
+        ImGui::BeginTable("LightProperties", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
 
         // Set column widths
         ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300.0f); // Label column
                                                                                     // fixed width
-        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch); // Control column
-                                                                                // takes remaining
-                                                                                // width
+        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);     // Control column
+                                                                                    // takes remaining
+                                                                                    // width
 
         // Column 1: LightType label
         ImGui::TableNextColumn();
@@ -548,8 +536,7 @@ void PropertiesPanel::drawLightComponent(LightComponent &lightComponent)
             currentLightTypeIndex = 2;
         }
 
-        if (ImGui::Combo("##LightType", &currentLightTypeIndex, lightTypeItems,
-                         IM_ARRAYSIZE(lightTypeItems)))
+        if (ImGui::Combo("##LightType", &currentLightTypeIndex, lightTypeItems, IM_ARRAYSIZE(lightTypeItems)))
         {
             if (currentLightTypeIndex == 0)
             {
@@ -631,8 +618,7 @@ void PropertiesPanel::DrawColorControl(const std::string &label, glm::vec3 &colo
 
         // 颜色预览按钮
         ImGui::PushID("##ColorPreview");
-        ImGui::ColorButton("##ColorPreview",
-                           ImVec4(colorArray[0], colorArray[1], colorArray[2], 1.0f),
+        ImGui::ColorButton("##ColorPreview", ImVec4(colorArray[0], colorArray[1], colorArray[2], 1.0f),
                            ImGuiColorEditFlags_NoTooltip | ImGuiColorEditFlags_NoDragDrop,
                            ImVec2(ImGui::GetFrameHeight() * 1.5f, ImGui::GetFrameHeight()));
 
@@ -643,9 +629,8 @@ void PropertiesPanel::DrawColorControl(const std::string &label, glm::vec3 &colo
             ImGui::Separator();
 
             // 使用更专业的颜色选择器布局
-            ImGuiColorEditFlags flags = ImGuiColorEditFlags_DisplayRGB |
-                                        ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB |
-                                        ImGuiColorEditFlags_PickerHueWheel;
+            ImGuiColorEditFlags flags =
+                ImGuiColorEditFlags_DisplayRGB | ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_InputRGB | ImGuiColorEditFlags_PickerHueWheel;
 
             if (ImGui::ColorPicker3("##ColorPicker", colorArray, flags))
             {
@@ -666,9 +651,7 @@ void PropertiesPanel::DrawColorControl(const std::string &label, glm::vec3 &colo
         // 右侧显示数值编辑框
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::ColorEdit3("##ColorEdit", colorArray,
-                              ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoInputs |
-                                  ImGuiColorEditFlags_NoTooltip))
+        if (ImGui::ColorEdit3("##ColorEdit", colorArray, ImGuiColorEditFlags_NoLabel | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoTooltip))
         {
             color.r = colorArray[0];
             color.g = colorArray[1];
@@ -676,8 +659,7 @@ void PropertiesPanel::DrawColorControl(const std::string &label, glm::vec3 &colo
         }
     }
 }
-void PropertiesPanel::DrawVec3Control(const std::string &label, glm::vec3 &values, float resetValue,
-                                      float columnWidth)
+void PropertiesPanel::DrawVec3Control(const std::string &label, glm::vec3 &values, float resetValue, float columnWidth)
 {
     // ImGUi push多少 要pop多少，不然会报错
     ImGui::PushID(label.c_str()); // 每一行用label做ID，3行ID不同互不干扰
@@ -694,14 +676,13 @@ void PropertiesPanel::DrawVec3Control(const std::string &label, glm::vec3 &value
     ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
 
-    float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 4.5f; // 设置行高
-    ImVec2 buttonSize = {lineHeight, lineHeight};                             // 按钮大小
+    float lineHeight  = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 4.5f; // 设置行高
+    ImVec2 buttonSize = {lineHeight, lineHeight};                                     // 按钮大小
 
     ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
     ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
-                        ImVec2{(buttonSize.x - ImGui::CalcTextSize("X").x) * 0.5f, 4.0f});
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{(buttonSize.x - ImGui::CalcTextSize("X").x) * 0.5f, 4.0f});
     if (ImGui::Button("X", buttonSize))
     {
         values.x = resetValue;

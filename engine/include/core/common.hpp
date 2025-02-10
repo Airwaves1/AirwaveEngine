@@ -29,13 +29,11 @@ const int MAX_BONE_COUNT = 100;
 
 struct AwVertex
 {
-    glm::vec3 position;
-    glm::vec3 normal;
+    alignas(16) glm::vec3 position;
+    alignas(16) glm::vec3 normal;
     glm::vec2 texCoord;
-    glm::vec3 tangent;
-
-    int boneIds[MAX_BONE_COUNT]       = {0};
-    float boneWeights[MAX_BONE_COUNT] = {0.0f};
+    glm::vec3 tangent;   // 切线
+    glm::vec3 bitangent; // 双切线
 };
 
 enum class RenderSide

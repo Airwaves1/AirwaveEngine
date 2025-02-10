@@ -5,8 +5,10 @@
 
 namespace Airwave
 {
+class AwEntity;
 class AwComponent
 {
+
   public:
     AwComponent() : uuid(UUID::Generate()) {}
     virtual ~AwComponent() = default;
@@ -15,6 +17,10 @@ class AwComponent
     virtual void from_json(const nlohmann::json &j) {}
 
     UUID uuid;
+
+  protected:
+    friend class AwEntity;
+    AwEntity *m_owner{nullptr};
 };
 
 } // namespace Airwave
