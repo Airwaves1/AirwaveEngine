@@ -8,7 +8,7 @@
 namespace Airwave
 {
 
-using UniformValue = std::variant<float, glm::vec2, glm::vec3, glm::vec4, int, glm::ivec2, glm::ivec3, glm::ivec4, glm::mat3, glm::mat4, bool, size_t>;
+using UniformValue = std::variant<size_t, float, glm::vec2, glm::vec3, glm::vec4, int, glm::ivec2, glm::ivec3, glm::ivec4, glm::mat3, glm::mat4>;
 
 enum class MaterialType
 {

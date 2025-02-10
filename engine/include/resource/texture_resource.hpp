@@ -12,20 +12,19 @@ class TextureResource : public Resource
 {
   public:
     TextureResource() = default;
+    TextureResource(TextureSpecification spec, std::vector<uint8_t> data = {});
     ~TextureResource() override;
 
     ResourceType getType() const override { return ResourceType::Texture; }
     TextureSpecification &getSpec() { return m_spec; }
 
-    // 从内存加载纹理
-    bool load(TextureSpecification spec, void *data = nullptr);
     // 从文件加载纹理
-    bool load(const std::string &path, TextureSpecification spec = {});
+    bool load(const std::string &path, TextureSpecification spec);
+
     // 从文件加载立方体贴图
-    bool load(const std::vector<std::string> &paths, TextureSpecification spec = {});
+    bool load(const std::vector<std::string> &paths, TextureSpecification spec);
 
     bool reload(TextureSpecification spec, void *data = nullptr);
-
 
   private:
     TextureSpecification m_spec;

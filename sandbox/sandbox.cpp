@@ -56,19 +56,29 @@ void Sandbox::onInit()
     TextureSpecification spec;
     spec.isHDR          = true;
     spec.generateMipmap = false;
-    const auto &envMap  = RES.load<TextureResource>(PROJECT_ROOT_DIR "/assets/textures/hdr/kiara_8_sunset_2k.hdr", spec);
+    // auto envMap  = RES.load<TextureResource>(std::string("envMap"), std::string(PROJECT_ROOT_DIR "/assets/textures/hdr/kiara_8_sunset_2k.hdr"),
+    // spec);
+    auto envMap = std::make_shared<TextureResource>();
+    envMap->load(std::string(PROJECT_ROOT_DIR "/assets/textures/hdr/newport_loft.hdr"), spec);
+    bool load = RES.add("envMap", envMap);
 
     // HDR to Cubemap
-    const auto &cubemap = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
+    auto cube_map = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
     // 获取辐照度贴图
-    const auto &irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cubemap, 32);
+    auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cube_map, 32);
     // 获取预过滤贴图
-    const auto &prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cubemap, 256, 5);
+    auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cube_map, 256, 5);
+
+    RES.add("cubeMap", cube_map);
+    RES.add("irradiance_map", irradiance_map);
+    RES.add("prefilter_map", prefilter_map);
 
     auto adminEntity            = m_scene->getAdminEntity();
     auto &renderer_comp         = adminEntity->getComponent<RendererComponent>();
-    renderer_comp.backgroundMap = cubemap;
-    renderer_comp.envMap        = cubemap;
+    renderer_comp.backgroundMap = cube_map;
+    renderer_comp.envMap        = cube_map;
+
+    auto brdf_lut = RES.get<TextureResource>("brdf_lut");
 
     for (int i = 0; i < 7; i++)
     {
@@ -78,7 +88,7 @@ void Sandbox::onInit()
             sphere_entity->addComponent<MeshComponent>(sphereVertices, sphereIndices);
             auto &mat = sphere_entity->addComponent<MaterialComponent>(MaterialType::PBR);
             // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
-            
+
             mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
             mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);

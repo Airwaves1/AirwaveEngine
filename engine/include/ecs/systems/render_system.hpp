@@ -56,13 +56,13 @@ class RenderSystem : public AwSystem
             renderer->bindShader(shader->getHandle());
 
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, renderer_comp.backgroundMap->getHandle());
+            glBindTexture(GL_TEXTURE_CUBE_MAP, renderer_comp.backgroundMap->getHandle());
 
             renderer->set("u_backgroundMap", 0);
             renderer->set("u_viewMatrix", camera.getWorldInverseMatrix());
             renderer->set("u_projectionMatrix", camera.getProjectionMatrix());
+            renderer->uploadUniforms(shader->getHandle());
 
-            // renderer->uploadUniforms();
             renderer_comp.meshComp->draw();
         }
     }
@@ -111,7 +111,7 @@ class RenderSystem : public AwSystem
             int slots = 0;
 
             // albedo, normal, roughness, metallic, ao
-            if (material.albedoMap->getHandle() != 0)
+            if (material.albedoMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, material.albedoMap->getHandle());
@@ -121,10 +121,10 @@ class RenderSystem : public AwSystem
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
             }
-            renderer->set("u_material.albedo", material.color);
+            renderer->set("u_material.albedoMap", slots);
             slots++;
 
-            if (material.normalMap->getHandle() != 0)
+            if (material.normalMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, material.normalMap->getHandle());
@@ -137,7 +137,7 @@ class RenderSystem : public AwSystem
             renderer->set("u_material.normalMap", slots);
             slots++;
 
-            if (material.roughnessMap->getHandle() != 0)
+            if (material.roughnessMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, material.roughnessMap->getHandle());
@@ -150,7 +150,7 @@ class RenderSystem : public AwSystem
             renderer->set("u_material.roughnessMap", slots);
             slots++;
 
-            if (material.metallicMap->getHandle() != 0)
+            if (material.metallicMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, material.metallicMap->getHandle());
@@ -163,7 +163,7 @@ class RenderSystem : public AwSystem
             renderer->set("u_material.metallicMap", slots);
             slots++;
 
-            if (material.aoMap->getHandle() != 0)
+            if (material.aoMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, material.aoMap->getHandle());
@@ -178,28 +178,28 @@ class RenderSystem : public AwSystem
             // end ----------------
 
             // lights
-            if(material.irradianceMap->getHandle() != 0)
+            if(material.irradianceMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_CUBE_MAP, material.irradianceMap->getHandle());
             }
-            renderer->set("u_irradianceMap", slots);
+            renderer->set("u_material.irradianceMap", slots);
             slots++;
 
-            if(material.prefilterMap->getHandle() != 0)
+            if(material.prefilterMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_CUBE_MAP, material.prefilterMap->getHandle());
             }
-            renderer->set("u_prefilterMap", slots);
+            renderer->set("u_material.prefilterMap", slots);
             slots++;
 
-            if(material.brdfLUT->getHandle() != 0)
+            if(material.brdfLUT)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, material.brdfLUT->getHandle());
             }
-            renderer->set("u_brdfLUT", slots);
+            renderer->set("u_material.brdf_lut", slots);
             slots++;
 
 
@@ -216,17 +216,11 @@ class RenderSystem : public AwSystem
             renderer->uploadUniforms(shader);
             mesh.draw();
 
-            for (int i = 0; i < slots; i++)
-            {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, 0);
-            }
-
             drawCalls++;
         }
 
-        // renderBackground(renderer, camera);
-        // renderer->getFramebuffer()->unbind();
+        renderBackground(renderer, camera);
+        renderer->getFramebuffer()->unbind();
     }
 };
 } // namespace Airwave

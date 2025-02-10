@@ -35,8 +35,9 @@ class RendererComponent : public AwComponent
     RendererComponent()
     {
         backgroundShader = RES.get<ShaderResource>("background");
-        emptyMap         = RES.get<TextureResource>("empty");
-        defaultNormal    = RES.get<TextureResource>("defaultNormal");
+        
+        emptyMap         = RES.get<TextureResource>("empty_texture");
+        defaultNormal    = RES.get<TextureResource>("default_normal");
 
         std::vector<AwVertex> cubeVertices;
         std::vector<uint32_t> cubeIndices;

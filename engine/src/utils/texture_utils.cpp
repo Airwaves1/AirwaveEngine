@@ -22,6 +22,12 @@ namespace Airwave
 std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer *renderer, const std::shared_ptr<TextureResource> &equirectangular,
                                                                         uint32_t resolution, bool isHDR)
 {
+    if (equirectangular == nullptr || equirectangular->getHandle() == 0)
+    {
+        LOG_ERROR("TextureUtils::equirectangular: equirectangular is nullptr");
+        return nullptr;
+    }
+
     auto &equirectSpec = equirectangular->getSpec();
     if (equirectSpec.textureType != TextureType::TEXTURE_2D)
     {
@@ -55,7 +61,7 @@ std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer
                                                                      // visible dots artifact)
     cube_map_spec.magFilter = TextureFilter::LINEAR;
 
-    const auto &cube_map = RES.load<TextureResource>("cube_map", cube_map_spec);
+    auto cube_map = std::make_shared<TextureResource>(cube_map_spec);
 
     renderer->bindShader(shader);
     renderer->set("u_equirectangularMap", 0);
@@ -120,7 +126,8 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
     auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
     auto shader = RES.load<ShaderResource>("irradiance_convolution", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/cube_map.vert",
-                                           PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/irradiance_convolution.frag")->getHandle();
+                                           PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/irradiance_convolution.frag")
+                      ->getHandle();
 
     TextureSpecification irradiance_spec;
     irradiance_spec.width       = resolution;
@@ -131,15 +138,14 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
     irradiance_spec.wrapT       = TextureWrap::CLAMP_TO_EDGE;
     irradiance_spec.wrapR       = TextureWrap::CLAMP_TO_EDGE;
 
-    // auto irradiance_map = std::make_shared<Texture>(resolution, resolution, irradiance_spec);
-    const auto &irradiance_map = RES.load<TextureResource>("irradiance_map", irradiance_spec);
+    auto irradiance_map = std::make_shared<TextureResource>(irradiance_spec);
 
     renderer->bindShader(shader);
-    renderer->set("u_environmentMap", 0);
-    renderer->set("u_projectionMatrix", captureProjection);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, envMap->getHandle());
+    renderer->set("u_environmentMap", 0);
+    renderer->set("u_projectionMatrix", captureProjection);
 
     uint32_t fbo;
     glGenFramebuffers(1, &fbo);
@@ -152,6 +158,7 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
         renderer->set("u_viewMatrix", captureViews[i]);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradiance_map->getHandle(), 0);
 
+        glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer->uploadUniforms(shader);
         vertexArray->bind();
@@ -172,6 +179,11 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
 std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *renderer, const std::shared_ptr<TextureResource> &envMap,
                                                                uint32_t resolution, uint32_t maxMipLevels = 5)
 {
+    if (envMap == nullptr || envMap->getHandle() == 0)
+    {
+        LOG_ERROR("TextureUtils::prefilterEnvMap: envMap is nullptr");
+        return nullptr;
+    }
     auto &envMapSpec = envMap->getSpec();
     if (envMapSpec.textureType != TextureType::TEXTURE_CUBE_MAP)
     {
@@ -191,6 +203,8 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
 
     TextureSpecification prefilter_spec;
     prefilter_spec.isHDR          = envMapSpec.isHDR;
+    prefilter_spec.width          = resolution;
+    prefilter_spec.height         = resolution;
     prefilter_spec.textureType    = TextureType::TEXTURE_CUBE_MAP;
     prefilter_spec.generateMipmap = true;
     prefilter_spec.wrapS          = TextureWrap::CLAMP_TO_EDGE;
@@ -199,13 +213,23 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
     prefilter_spec.minFilter      = TextureFilter::LINEAR_MIPMAP_LINEAR;
     prefilter_spec.magFilter      = TextureFilter::LINEAR;
 
-    const auto &prefilter_map = RES.load<TextureResource>("prefilter_map", prefilter_spec);
+    auto prefilter_map = std::make_shared<TextureResource>(prefilter_spec);
 
-    uint32_t shader = RES.load<ShaderResource>("prefilter_env_map", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/cube_map.vert",
-                                               PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/prefilter_envmap.frag")
-                          ->getHandle();
+    auto shader_res = RES.load<ShaderResource>("prefilter_env_map", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/cube_map.vert",
+                                               PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/prefilter_envmap.frag");
+
+    if (!shader_res)
+    {
+        LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
+        return nullptr;
+    }
+    uint32_t shader = shader_res->getHandle();
 
     renderer->bindShader(shader);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envMap->getHandle());
+
     renderer->set("u_environmentMap", 0);
     renderer->set("u_projectionMatrix", captureProjection);
     renderer->set("u_envMap_resolution", static_cast<float>(envMapSpec.width));
@@ -271,9 +295,14 @@ std::shared_ptr<TextureResource> TextureUtils::generateBRDFLUT(Renderer *rendere
         vertexArray->setIndexBuffer(indexBuffer);
     }
 
-    auto shader = RES.load<ShaderResource>("brdf_lut", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/quad.vert",
-                                           PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/brdf_lut.frag")
-                      ->getHandle();
+    auto shader_res = RES.load<ShaderResource>("brdf_lut", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/quad.vert",
+                                               PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/brdf_lut.frag");
+    if (!shader_res)
+    {
+        LOG_ERROR("TextureUtils::generateBRDFLUT: shader resource is nullptr");
+        return nullptr;
+    }
+    uint32_t shader = shader_res->getHandle();
 
     TextureSpecification brdfLUTSpec;
     brdfLUTSpec.width           = resolution;
@@ -289,7 +318,7 @@ std::shared_ptr<TextureResource> TextureUtils::generateBRDFLUT(Renderer *rendere
     brdfLUTSpec.minFilter       = TextureFilter::LINEAR;
     brdfLUTSpec.magFilter       = TextureFilter::LINEAR;
 
-    const auto &brdfLUT = RES.load<TextureResource>("brdf_lut", brdfLUTSpec);
+    auto brdfLUT = std::make_shared<TextureResource>(brdfLUTSpec);
 
     renderer->bindShader(shader);
 

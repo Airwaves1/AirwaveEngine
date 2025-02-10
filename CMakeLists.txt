@@ -75,3 +75,4 @@ include_directories(${CMAKE_SOURCE_DIR}/sandbox/game/include)
 # 添加子目录
 add_subdirectory(engine)
 add_subdirectory(sandbox)
+add_subdirectory(test)

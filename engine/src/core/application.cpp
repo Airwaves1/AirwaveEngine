@@ -84,17 +84,20 @@ void Application::preLoad()
 
     // 空白纹理和默认法线贴图
     TextureSpecification spec;
-    spec.internalFormat = TextureInternalFormat::RGBA;
-    spec.width          = 1;
-    spec.height         = 1;
-    uint8_t data[]      = {255, 255, 255, 255};
-    uint8_t data2[]     = {128, 128, 255, 255};
-    uint32_t emptyTexture = RES.load<TextureResource>("empty", spec, static_cast<void *>(data))->getHandle();
-    uint32_t defaultNormal = RES.load<TextureResource>("defaultNormal", spec, static_cast<void *>(data2))->getHandle();
+    spec.internalFormat        = TextureInternalFormat::RGBA;
+    spec.width                 = 1;
+    spec.height                = 1;
+    std::vector<uint8_t> data  = {255, 255, 255, 255};
+    std::vector<uint8_t> data2 = {128, 128, 255, 255};
+    auto emptyTexture          = std::make_shared<TextureResource>(spec, data);
+    auto defaultNormal         = std::make_shared<TextureResource>(spec, data2);
+
+    RES.add("empty_texture", emptyTexture);
+    RES.add("default_normal", defaultNormal);
 
     // 生成BRDF LUT
     auto brdfLUT = TextureUtils::generateBRDFLUT(m_renderer.get());
-
+    RES.add("brdf_lut", brdfLUT);
     // 加载资源
     onPreLoad();
 }

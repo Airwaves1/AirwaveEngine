@@ -48,7 +48,7 @@ class MaterialComponent : public AwComponent
                 break;
             case MaterialType::PBR:
                 shader  = ResourceManager::GetInstance().get<ShaderResource>("pbr");
-                brdfLUT = ResourceManager::GetInstance().get<TextureResource>("brdfLUT");
+                brdfLUT = ResourceManager::GetInstance().get<TextureResource>("brdf_lut");
                 break;
             default:
                 break;

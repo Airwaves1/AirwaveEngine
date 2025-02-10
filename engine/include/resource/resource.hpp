@@ -2,7 +2,6 @@
 
 #include <string>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <unordered_map>
 #include "core/event/event_dispatcher.hpp"
@@ -37,7 +36,7 @@ class ResourceEvent : public Event
 class Resource
 {
   public:
-    Resource() : m_uuid(UUID::Generate()) {}
+    Resource() : m_uuid(UUID::Generate()) { m_eventDispatcher = std::make_shared<EventDispatcher>(); }
     virtual ~Resource() = default;
 
     virtual ResourceType getType() const = 0;

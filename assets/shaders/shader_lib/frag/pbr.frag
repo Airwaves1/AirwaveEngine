@@ -23,7 +23,7 @@ struct PBRMaterial {
 
     samplerCube irradianceMap;
     samplerCube prefilterMap;
-    sampler2D brdfLUT;
+    sampler2D brdf_lut;
 };
 
 struct Light {
@@ -104,7 +104,7 @@ void main() {
     vec3 albedo = pow(texture(u_material.albedoMap, v_uv).rgb, vec3(2.2)) * u_material.albedo;
     float metallic = texture(u_material.metallicMap, v_uv).r * u_material.metallic;
     float roughness = texture(u_material.roughnessMap, v_uv).r * u_material.roughness;
-    float ao = 1.0;
+    float ao = texture(u_material.aoMap, v_uv).r * u_material.ao;
 
     // vec3 N = normalize(v_normal);
     vec3 N = getNormalFromMap(u_material.normalMap, v_uv, v_fragPos, v_normal);
@@ -157,7 +157,7 @@ void main() {
 
     const float MAX_REFLECTION_LOD = 4.0;
     vec3 prefilteredColor = textureLod(u_material.prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
-    vec2 envBRDF = texture(u_material.brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec2 envBRDF = texture(u_material.brdf_lut, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 
     vec3 ambient = (kD * diffuse + specular) * ao;

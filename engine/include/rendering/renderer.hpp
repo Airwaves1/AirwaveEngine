@@ -49,7 +49,7 @@ class Renderer
     void bindTextureCubeMap(uint32_t texture, uint32_t unit);
     void unBindTextureCubeMap() { glBindTexture(GL_TEXTURE_CUBE_MAP, 0); }
 
-    void set(const std::string &name, const UniformValue &value) { m_uniforms.set(name, value); }
+    void set(const std::string &name,const UniformValue &value) { m_uniforms.set(name, value); }
     const GLUniforms &getUniforms() const { return m_uniforms; }
     void uploadUniforms(GLuint program) { m_uniforms.upload(program); }
 

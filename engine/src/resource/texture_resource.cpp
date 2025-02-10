@@ -6,19 +6,10 @@
 
 namespace Airwave
 {
-TextureResource::~TextureResource()
-{
-    if (m_handle != 0)
-    {
-        glDeleteTextures(1, &m_handle);
-    }
-}
 
-bool TextureResource::load(TextureSpecification spec, void *data)
+TextureResource::TextureResource(TextureSpecification spec, std::vector<uint8_t> data)
 {
     m_spec = spec;
-    int width, height, channels;
-    stbi_set_flip_vertically_on_load(m_spec.flip);
 
     if (m_spec.isHDR)
     {
@@ -39,25 +30,37 @@ bool TextureResource::load(TextureSpecification spec, void *data)
     glTexParameteri(spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                     static_cast<GLint>(m_spec.magFilter));
 
+    void *_data = nullptr;
+    if (data.size() > 0)
+    {
+        _data = data.data();
+    }
+
     if (spec.textureType == TextureType::TEXTURE_CUBE_MAP)
     {
         for (size_t i = 0; i < 6; i++)
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), spec.width, spec.width, 0,
-                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), _data);
         }
     }
     else
     {
         glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), spec.width, spec.height, 0, static_cast<GLenum>(m_spec.format),
-                     static_cast<GLenum>(m_spec.textureDataType), data);
+                     static_cast<GLenum>(m_spec.textureDataType), _data);
     }
 
     if (m_spec.generateMipmap) glGenerateMipmap(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D);
 
     glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
+}
 
-    return true;
+TextureResource::~TextureResource()
+{
+    if (m_handle != 0)
+    {
+        glDeleteTextures(1, &m_handle);
+    }
 }
 
 bool TextureResource::load(const std::string &path, TextureSpecification spec)
@@ -167,9 +170,6 @@ bool TextureResource::load(const std::vector<std::string> &paths, TextureSpecifi
     return true;
 }
 
-bool TextureResource::reload(TextureSpecification spec, void *data)
-{
-    return false;
-}
+bool TextureResource::reload(TextureSpecification spec, void *data) { return false; }
 
 } // namespace Airwave

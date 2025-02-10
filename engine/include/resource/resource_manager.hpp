@@ -6,7 +6,6 @@
 #include <unordered_map>
 #include <vector>
 #include <queue>
-#include <mutex>
 #include <future>
 #include <variant>
 #include <concepts>
@@ -62,7 +61,7 @@ class ResourceManager
     ~ResourceManager() = default;
 
     template <typename T, typename KeyType, typename... Args>
-        requires LoadableResource<T, Args...> && std::is_convertible_v<KeyType, std::string>
+        requires LoadableResource<T, Args...>
     std::shared_ptr<T> load(KeyType &&key, Args &&...args)
     {
         std::string strKey = std::forward<KeyType>(key);
@@ -84,7 +83,23 @@ class ResourceManager
 
             return res;
         }
+        LOG_ERROR("Failed to load resource: {0}", strKey);
         return nullptr;
+    }
+
+    template <typename T> bool add(const std::string &key, std::shared_ptr<T> resource)
+    {
+        ResourceKey mapKey{typeid(T), key};
+        if (m_resources.find(mapKey) == m_resources.end())
+        {
+            m_resources[mapKey] = resource;
+            if (resource->m_handle != 0)
+            {
+                m_gpuHandles[resource->m_handle] = resource;
+            }
+            return true;
+        }
+        return false;
     }
 
     template <typename T> std::shared_ptr<T> get(uint32_t handle)

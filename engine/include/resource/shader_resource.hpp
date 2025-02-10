@@ -25,9 +25,8 @@ class ShaderResource : public Resource
     bool load(const std::string &vertexPath, const std::string &fragmentPath);
 
     bool reload(const std::string &vertexPath, const std::string &fragmentPath);
-    
-  private:
 
+  private:
     uint32_t compile(const std::string &source, GLenum shaderType);
     uint32_t link(const uint32_t &vertexShader, const uint32_t &fragmentShader);
 
