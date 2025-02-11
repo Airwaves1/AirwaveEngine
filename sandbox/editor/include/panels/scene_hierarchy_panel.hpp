@@ -26,41 +26,56 @@ class SceneHierarchyPanel : public Panel
         ImGui::Begin(m_title.c_str(), &m_isOpen);
 
         // 获取所有实体并按层次结构绘制
-        drawEntityHierarchy(scene, registry, adminEntity);
+        drawEntityHierarchy(scene, adminEntity, false);
 
         ImGui::End();
     }
 
   private:
     // 递归绘制实体层次结构
-    void drawEntityHierarchy(AwScene *scene, entt::registry &registry, entt::entity entity)
+    void drawEntityHierarchy(AwScene *scene, entt::entity entity, bool drawCurrentLevel = true)
     {
-        auto &hierarchy = registry.get<HierarchyComponent>(entity);
-        auto &tag       = registry.get<TagComponent>(entity);
-
-        // 只绘制当前层级的实体
-        if(hierarchy.getParent() == scene->getAdminEntity())
+        // 判断当前entity是否具有tag和hierarchy组件
+        if (scene->getRegistry().all_of<TagComponent, HierarchyComponent>(entity))
         {
-            bool isOpen = ImGui::TreeNodeEx(tag.name.c_str(), ImGuiTreeNodeFlags_OpenOnArrow);
+            auto &tag       = scene->getRegistry().get<TagComponent>(entity);
+            auto &hierarchy = scene->getRegistry().get<HierarchyComponent>(entity);
 
-            // 处理点击事件
-            if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
+            if (drawCurrentLevel)
             {
-                m_editor->setSelectedEntity(entity);
-                if (m_editor->onSelectedEntityChanged)
+                // 创建一个树节点
+                bool isSelect                = m_editor->getSelectedEntity() == entity;
+                ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
+                if (isSelect) nodeFlags |= ImGuiTreeNodeFlags_Selected;
+                bool isOpen = ImGui::TreeNodeEx(tag.name.c_str(), nodeFlags);
+
+                // 处理点击事件
+                if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
                 {
-                    m_editor->onSelectedEntityChanged();
+                    m_editor->setSelectedEntity(entity);
+                    if (m_editor->onSelectedEntityChanged)
+                    {
+                        m_editor->onSelectedEntityChanged();
+                    }
+                }
+
+                // 如果当前节点展开，递归绘制子实体
+                if (isOpen)
+                {
+                    for (auto &child : hierarchy.getChildren())
+                    {
+                        drawEntityHierarchy(scene, child);
+                    }
+                    ImGui::TreePop();
                 }
             }
-
-            // 如果当前节点展开，递归绘制子实体
-            if (isOpen)
+            else
             {
-                for (auto child : hierarchy.getChildren())
+                // 递归绘制子实体
+                for (auto &child : hierarchy.getChildren())
                 {
-                    drawEntityHierarchy(scene, registry, child);
+                    drawEntityHierarchy(scene, child);
                 }
-                ImGui::TreePop();
             }
         }
     }

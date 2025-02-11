@@ -1,5 +1,3 @@
-#pragma once
-
 #include "rendering/mesh.hpp"
 
 namespace Airwave
@@ -35,44 +33,6 @@ Mesh::Mesh(const std::vector<float> &vertices, const std::vector<uint32_t> &indi
     indexCount = indices.size();
 }
 
-Mesh::Mesh(const std::vector<AwVertex> &vertices, const std::vector<uint32_t> &indices)
-{
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-
-    glBindVertexArray(vao);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(AwVertex), vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
-
-    // position
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(AwVertex), (void *)offsetof(AwVertex, position));
-    glEnableVertexAttribArray(0);
-
-    // normal
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(AwVertex), (void *)offsetof(AwVertex, normal));
-    glEnableVertexAttribArray(1);
-
-    // texCoord
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(AwVertex), (void *)offsetof(AwVertex, texCoord));
-    glEnableVertexAttribArray(2);
-
-    // tangent
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(AwVertex), (void *)offsetof(AwVertex, tangent));
-    glEnableVertexAttribArray(3);
-
-    // bitangent
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(AwVertex), (void *)offsetof(AwVertex, bitangent));
-    glEnableVertexAttribArray(4);
-
-    glBindVertexArray(0);
-
-    indexCount = indices.size();
-}
 
 Mesh::~Mesh()
 {

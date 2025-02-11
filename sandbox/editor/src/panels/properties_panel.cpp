@@ -14,10 +14,11 @@ namespace Airwave
 void PropertiesPanel::onImGuiRender()
 {
     ImGui::Begin(m_title.c_str());
+    auto scene         = m_editor->getContext()->getScene();
     auto &registry     = m_editor->getContext()->getScene()->getRegistry();
     auto currentEntity = m_editor->getSelectedEntity();
     // if (!currentEntity)
-    if (currentEntity != entt::null)
+    if (currentEntity == entt::null)
     {
         TagComponent tagComponent;
         drawTagProperty(tagComponent);

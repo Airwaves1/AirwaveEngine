@@ -47,9 +47,9 @@ void Application::start(int argc, char **argv)
     auto &reg        = m_scene->getRegistry();
     auto adminEntity = m_scene->getAdminEntity();
 
-    reg.emplace<RendererComponent>(adminEntity);
-    reg.emplace<InputComponent>(adminEntity);
-    reg.emplace<LightsManagerComponent>(adminEntity);
+    m_scene->addComponent<RendererComponent>(adminEntity);
+    m_scene->addComponent<InputComponent>(adminEntity);
+    m_scene->addComponent<LightsManagerComponent>(adminEntity);
 
     // 初始化
     onInit();

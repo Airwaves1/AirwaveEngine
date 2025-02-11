@@ -8,14 +8,12 @@
 
 #include "core/application.hpp"
 
-#include <entt/entt.hpp>
 namespace Airwave
 {
-AwScene::AwScene(Application *appContext) : m_appContext(appContext), m_adminEntity(entt::null)
+AwScene::AwScene(Application *appContext) : m_appContext(appContext)
 {
     m_adminEntity = createEntity("AdminEntity");
-    m_registry.emplace_or_replace<TagComponent>(m_adminEntity, "AdminEntity", "AdminEntity");
-    m_registry.emplace<HierarchyComponent>(m_adminEntity);
+    this->addComponent<HierarchyComponent>(m_adminEntity);
 }
 
 AwScene::~AwScene() {}
@@ -28,7 +26,6 @@ entt::entity AwScene::createEntity(const std::string &name, const std::string &t
 }
 entt::entity AwScene::createDefaultEntity(const std::string &name, const std::string &tag)
 {
-    int a = 0;
     auto entity = createEntity(name, tag);
     m_registry.emplace<TransformComponent>(entity);
     m_registry.emplace<HierarchyComponent>(entity);

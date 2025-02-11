@@ -1,9 +1,8 @@
 #pragma once
 
-#include <glad/glad.h>
 #include <vector>
 #include <glm/glm.hpp>
-
+#include "rendering/primitive.hpp"
 #include "core/common.hpp"
 
 namespace Airwave
@@ -11,6 +10,7 @@ namespace Airwave
 class Mesh
 {
   public:
+    Mesh() = default;
     Mesh(const std::vector<float> &vertices, const std::vector<uint32_t> &indices);
     Mesh(const std::vector<AwVertex> &vertices, const std::vector<uint32_t> &indices);
 

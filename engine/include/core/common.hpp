@@ -27,13 +27,13 @@ enum class LightType
 
 const int MAX_BONE_COUNT = 100;
 
-struct AwVertex
-{
-    alignas(16) glm::vec3 position;
-    alignas(16) glm::vec3 normal;
+struct AwVertex {
+    glm::vec3 position;
+    glm::vec3 normal;
     glm::vec2 texCoord;
-    glm::vec3 tangent;   // 切线
-    glm::vec3 bitangent; // 双切线
+    glm::vec4 tangent;
+    glm::ivec4 jointIndices; // 骨骼索引
+    glm::vec4 jointWeights;  // 骨骼权重
 };
 
 enum class RenderSide

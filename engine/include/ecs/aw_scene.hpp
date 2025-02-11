@@ -8,15 +8,17 @@
 #include "utils/utils.hpp"
 #include "core/log.hpp"
 
+#include "ecs/aw_system.hpp"
+
 namespace Airwave
 {
 class Application;
 class AwEntity;
-class AwSystem;
 
 class AwScene
 {
   public:
+    AwScene() = default;
     AwScene(Application *appContext);
     ~AwScene();
 
@@ -30,7 +32,7 @@ class AwScene
     void destroyEntity(entt::entity entity);
     void destroyAllEntities();
 
-    template <typename T> T &addComponent(entt::entity entity)
+    template <typename T, typename... Args> T &addComponent(entt::entity entity, Args &&...args)
     {
         if (!m_registry.valid(entity))
         {
@@ -40,11 +42,11 @@ class AwScene
 
         if (m_registry.all_of<T>(entity))
         {
-            LOG_ERROR("entity already has component: {0}",  demangle(typeid(T).name()));
-            assert(false);
+            LOG_WARN("entity {1} already has component: {0}", static_cast<uint32_t>(entity), demangle(typeid(T).name()));
+            return m_registry.get<T>(entity);
         }
 
-        return m_registry.emplace<T>(entity);
+        return m_registry.emplace<T>(entity, std::forward<Args>(args)...);
     }
 
     template <typename T> T &getComponent(entt::entity entity)
@@ -57,7 +59,7 @@ class AwScene
 
         if (!m_registry.all_of<T>(entity))
         {
-            LOG_ERROR("entity has no component: {0}" , demangle(typeid(T).name()));
+            LOG_ERROR("entity has no component: {0}", demangle(typeid(T).name()));
             assert(false);
         }
 
@@ -73,13 +75,17 @@ class AwScene
 
         if (!m_registry.all_of<T>(entity))
         {
-            LOG_ERROR("entity has no component: {0} ",  demangle(typeid(T).name()));
+            LOG_ERROR("entity has no component: {0} ", demangle(typeid(T).name()));
         }
 
         m_registry.remove<T>(entity);
     }
 
     template <typename T> bool hasComponent(entt::entity entity) { return m_registry.all_of<T>(entity); }
+
+    template <typename T> T *tryGetComponent(entt::entity entity) { return m_registry.try_get<T>(entity); }
+
+    template <typename... T> auto getView() { return m_registry.view<T...>(); }
 
     bool isValideEntity(entt::entity entity) { return m_registry.valid(entity); }
 

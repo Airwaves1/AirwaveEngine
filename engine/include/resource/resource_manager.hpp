@@ -124,7 +124,7 @@ class ResourceManager
         return nullptr;
     }
 
-    // 新增：安全删除接口
+    // 安全删除接口
     template <typename T> bool unload(const std::string &key)
     {
         ResourceKey mapKey{typeid(T), key};
@@ -144,7 +144,7 @@ class ResourceManager
         return false;
     }
 
-    // 新增：获取所有同类资源
+    //获取所有同类资源
     template <typename T> std::vector<std::shared_ptr<T>> getAllOfType()
     {
         std::vector<std::shared_ptr<T>> result;

@@ -4,6 +4,7 @@
 
 namespace Airwave
 {
+class AwScene;
 class AwSystem
 {
   public:
@@ -14,7 +15,7 @@ class AwSystem
 
     virtual void onInit() {}
     virtual void onUpdate(float deltaTime) = 0;
-    virtual void afterAllSystemsUpdated (float deltaTime) {}
+    virtual void afterAllSystemsUpdated(float deltaTime) {}
 
   protected:
     AwScene *m_scene;

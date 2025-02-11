@@ -27,9 +27,8 @@ void Sandbox::onInit()
     std::vector<uint32_t> sphereIndices;
     GeometryUtils::CreateCube(_cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
     GeometryUtils::CreateSphere(_sphereVertices, sphereIndices, 1.0f, 36, 32);
-    std::vector<float> cubeVertices = GeometryUtils::ConvertWaveVertexToFloatArray(_cubeVertices);
+    std::vector<float> cubeVertices   = GeometryUtils::ConvertWaveVertexToFloatArray(_cubeVertices);
     std::vector<float> sphereVertices = GeometryUtils::ConvertWaveVertexToFloatArray(_sphereVertices);
-    
 
     // entity
 
@@ -37,11 +36,10 @@ void Sandbox::onInit()
     auto &reg = m_scene->getRegistry();
 
     auto main_camera_entity = m_scene->createDefaultEntity("main_camera");
-    reg.emplace<CameraComponent>(main_camera_entity);
-    reg.emplace<TrackballController>(main_camera_entity);
+    m_scene->addComponent<CameraComponent>(main_camera_entity);
+    m_scene->addComponent<TrackballController>(main_camera_entity);
     auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
     camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 30.0f));
-
 
     // // lights
     for (int i = 0; i < 2; i++)
@@ -49,10 +47,10 @@ void Sandbox::onInit()
         for (int j = 0; j < 2; j++)
         {
             auto light_entity     = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
-            auto &light_comp      = reg.emplace<LightComponent>(light_entity);
+            auto &light_comp      = m_scene->addComponent<LightComponent>(light_entity);
             light_comp.intensity  = 300.0f;
             light_comp.color      = glm::vec3(.0f);
-            auto &light_transform = reg.emplace<TransformComponent>(light_entity);
+            auto &light_transform = m_scene->getComponent<TransformComponent>(light_entity);
             light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
         }
     }
@@ -82,7 +80,7 @@ void Sandbox::onInit()
     RES.add("prefilter_map", prefilter_map);
 
     auto adminEntity            = m_scene->getAdminEntity();
-    auto &renderer_comp         = reg.emplace<RendererComponent>(adminEntity);
+    auto &renderer_comp         = m_scene->getComponent<RendererComponent>(adminEntity);
     renderer_comp.backgroundMap = cube_map;
     renderer_comp.envMap        = cube_map;
 
@@ -95,9 +93,9 @@ void Sandbox::onInit()
         for (int j = 0; j < 7; j++)
         {
             auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
-            auto &mesh_comp = reg.emplace<MeshComponent>(sphere_entity);
-            mesh_comp.mesh = sphere_mesh;
-            auto &mat = reg.emplace<MaterialComponent>(sphere_entity, MaterialType::PBR);
+            auto &mesh_comp    = m_scene->addComponent<MeshComponent>(sphere_entity);
+            mesh_comp.mesh     = sphere_mesh;
+            auto &mat = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
 
             // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
             mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
@@ -113,6 +111,8 @@ void Sandbox::onInit()
             m_scene->setEntityParent(sphere_entity, sphere_container_entity);
         }
     }
+
+    m_scene->printHierarchy(sphere_container_entity, 0);
 }
 
 void Sandbox::onDestory() {}

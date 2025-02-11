@@ -1,40 +1,61 @@
-// #pragma once
+#pragma once
 
-// #include "resource/resource.hpp"
-// #include <entt/entt.hpp>
-// #include <memory>
-// #include <tiny_gltf/tiny_gltf.h>
+#include "resource/resource.hpp"
+#include "resource/texture_resource.hpp"
 
-// namespace Airwave
-// {
-// class AwScene;
-// class AwEntity;
+#include "rendering/primitive.hpp"
+#include <entt/entt.hpp>
+#include <tiny_gltf/tiny_gltf.h>
 
-// class Model : public Resource
-// {
-//   public:
-//     entt::entity resourceRootEntity;
+namespace Airwave
+{
 
-//     Model() = default;
-//     ~Model();
+class AwScene;
+class AwEntity;
 
-//     bool load(const std::string &path);
+class Model : public Resource
+{
+  public:
+    struct MaterialParams
+    {
+        glm::vec4 baseColorFactor{1.0f};
+        float metallicFactor  = 1.0f;
+        float roughnessFactor = 1.0f;
+        glm::vec3 emissiveFactor{0.0f};
 
-//     entt::entity loadModelToScene(AwScene *scene, entt::entity rootEntity = entt::null);
+        std::shared_ptr<TextureResource> baseColorTexture;
+        std::shared_ptr<TextureResource> normalTexture;
+        std::shared_ptr<TextureResource> metallicRoughnessTexture;
+    };
 
-//   private:
-//     struct CachedNode
-//     {
-//         entt::entity entity;
-//         int gltfNodeIndex;
-//         std::vector<CachedNode> children;
-//     };
+    Model() = default;
+    ~Model() override;
 
-//     CachedNode m_rootNode;
+    bool load(const std::string &path);
+    void onDispose() override {}
 
-//     // CachedNode createNodeHierarchy(AwScene *scene, entt::entity parentEntity, int gltfNodeIndex);
+    entt::entity instantiate(AwScene *scene, entt::entity rootEntity = entt::null);
 
-//     std::shared_ptr<tinygltf::Model> m_model;
-// };
+  private:
+    void processNode(const tinygltf::Node &node, AwScene *scene, entt::entity parentEntity, const glm::mat4 &parentMatrix);
 
-// } // namespace Airwave
+    void processMesh(const tinygltf::Mesh &mesh, AwScene *scene, entt::entity entity, const glm::mat4 &transform);
+
+    std::shared_ptr<Primitive> createPrimitive(const tinygltf::Primitive &gltfPrimitive);
+
+    MaterialParams processMaterial(const tinygltf::Material &gltfMaterial);
+
+  private:
+    // GLTF模型数据
+    std::unique_ptr<tinygltf::Model> m_model;
+
+    // 资源缓存
+    std::unordered_map<int, std::shared_ptr<TextureResource>> m_textureCache;
+    std::unordered_map<int, MaterialParams> m_materialCache;
+    std::unordered_map<int, std::shared_ptr<Primitive>> m_primitiveCache;
+
+    // 根实体引用
+    entt::entity m_rootEntity{entt::null};
+};
+
+} // namespace Airwave

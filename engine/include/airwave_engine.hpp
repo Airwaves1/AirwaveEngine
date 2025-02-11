@@ -7,6 +7,9 @@
 #include "core/event/event_dispatcher.hpp"
 #include "core/event/event_observer.hpp"
 
+#include "core/math/plane.hpp"
+#include "core/math/aabb.hpp"
+
 #include "ecs/aw_scene.hpp"
 #include "ecs/aw_entity.hpp"
 #include "ecs/aw_system.hpp"
@@ -29,6 +32,8 @@
 
 
 #include "rendering/renderer.hpp"   
+#include "rendering/primitive.hpp"
+#include "rendering/material.hpp"
 #include "rendering/opengl/gl_shader.hpp"
 #include "rendering/opengl/gl_texture.hpp"
 #include "rendering/opengl/gl_vertex_array.hpp"
