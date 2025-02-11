@@ -63,6 +63,11 @@ TextureResource::~TextureResource()
     }
 }
 
+bool Airwave::TextureResource::onLoad(const std::string &path, const std::any &params)
+{
+    return false;
+}
+
 bool TextureResource::load(const std::string &path, TextureSpecification spec)
 {
     int width, height, channels;

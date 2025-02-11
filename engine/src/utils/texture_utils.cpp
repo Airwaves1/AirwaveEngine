@@ -45,9 +45,13 @@ std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer
 
     auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
-    uint32_t shader = RES.load<ShaderResource>("equirect", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/cube_map.vert",
-                                               PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/equirectangular_to_cubemap.frag")
-                          ->getHandle();
+    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/equirectangular_to_cubemap.glsl");
+    if (!shader_res)
+    {
+        LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
+        return nullptr;
+    }
+    uint32_t shader = shader_res->getHandle();
 
     TextureSpecification cube_map_spec;
     cube_map_spec.width       = resolution;
@@ -125,9 +129,13 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
 
     auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
-    auto shader = RES.load<ShaderResource>("irradiance_convolution", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/cube_map.vert",
-                                           PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/irradiance_convolution.frag")
-                      ->getHandle();
+    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/irradiance_convolution.glsl");
+    if (!shader_res)
+    {
+        LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
+        return nullptr;
+    }
+    uint32_t shader = shader_res->getHandle();
 
     TextureSpecification irradiance_spec;
     irradiance_spec.width       = resolution;
@@ -215,9 +223,7 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
 
     auto prefilter_map = std::make_shared<TextureResource>(prefilter_spec);
 
-    auto shader_res = RES.load<ShaderResource>("prefilter_env_map", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/cube_map.vert",
-                                               PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/prefilter_envmap.frag");
-
+    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/prefilter_env_map.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
@@ -295,8 +301,7 @@ std::shared_ptr<TextureResource> TextureUtils::generateBRDFLUT(Renderer *rendere
         vertexArray->setIndexBuffer(indexBuffer);
     }
 
-    auto shader_res = RES.load<ShaderResource>("brdf_lut", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/quad.vert",
-                                               PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/brdf_lut.frag");
+    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/brdf_lut.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::generateBRDFLUT: shader resource is nullptr");

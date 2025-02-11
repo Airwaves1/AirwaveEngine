@@ -365,137 +365,137 @@ void PropertiesPanel::drawTrackballControllerComponent(TrackballController &trac
 
 void PropertiesPanel::drawMaterialComponent(MaterialComponent &materialComponent)
 {
-    ImGui::Spacing();
-    ImGui::Separator();
+    // ImGui::Spacing();
+    // ImGui::Separator();
 
-    if (ImGui::TreeNodeEx((void *)typeid(MaterialComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Material"))
-    {
-        // Start table with 2 columns (Label, Control)
-        ImGui::BeginTable("MaterialProperties", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
+    // if (ImGui::TreeNodeEx((void *)typeid(MaterialComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen, "Material"))
+    // {
+    //     // Start table with 2 columns (Label, Control)
+    //     ImGui::BeginTable("MaterialProperties", 2, ImGuiTableFlags_Resizable | ImGuiTableFlags_SizingFixedFit);
 
-        // Set column widths
-        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300.0f); // Label column
-                                                                                    // fixed width
-        ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);     // Control column
-                                                                                    // takes remaining
-                                                                                    // width
+    //     // Set column widths
+    //     ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 300.0f); // Label column
+    //                                                                                 // fixed width
+    //     ImGui::TableSetupColumn("Control", ImGuiTableColumnFlags_WidthStretch);     // Control column
+    //                                                                                 // takes remaining
+    //                                                                                 // width
 
-        // Column 1: MaterialType label
-        ImGui::TableNextColumn();
-        ImGui::Text("Material Type");
+    //     // Column 1: MaterialType label
+    //     ImGui::TableNextColumn();
+    //     ImGui::Text("Material Type");
 
-        // Column 2: MaterialType ComboBox
-        ImGui::TableNextColumn();
-        static const char *materialTypeItems[] = {"Basic", "Phong", "PBR"};
-        static int currentMaterialTypeIndex    = 0;
+    //     // Column 2: MaterialType ComboBox
+    //     ImGui::TableNextColumn();
+    //     static const char *materialTypeItems[] = {"Basic", "Phong", "PBR"};
+    //     static int currentMaterialTypeIndex    = 0;
 
-        MaterialType currentMaterialType = materialComponent.getMaterialType();
-        if (currentMaterialType == MaterialType::Basic)
-        {
-            currentMaterialTypeIndex = 0;
-        }
-        else if (currentMaterialType == MaterialType::Phong)
-        {
-            currentMaterialTypeIndex = 1;
-        }
-        else if (currentMaterialType == MaterialType::PBR)
-        {
-            currentMaterialTypeIndex = 2;
-        }
+    //     MaterialType currentMaterialType = materialComponent.getMaterialType();
+    //     if (currentMaterialType == MaterialType::Basic)
+    //     {
+    //         currentMaterialTypeIndex = 0;
+    //     }
+    //     else if (currentMaterialType == MaterialType::Phong)
+    //     {
+    //         currentMaterialTypeIndex = 1;
+    //     }
+    //     else if (currentMaterialType == MaterialType::PBR)
+    //     {
+    //         currentMaterialTypeIndex = 2;
+    //     }
 
-        if (ImGui::Combo("##MaterialType", &currentMaterialTypeIndex, materialTypeItems, IM_ARRAYSIZE(materialTypeItems)))
-        {
-            if (currentMaterialTypeIndex == 0)
-            {
-                materialComponent.setMaterialType(MaterialType::Basic);
-            }
-            else if (currentMaterialTypeIndex == 1)
-            {
-                materialComponent.setMaterialType(MaterialType::Phong);
-            }
-            else if (currentMaterialTypeIndex == 2)
-            {
-                materialComponent.setMaterialType(MaterialType::PBR);
-            }
-        }
+    //     if (ImGui::Combo("##MaterialType", &currentMaterialTypeIndex, materialTypeItems, IM_ARRAYSIZE(materialTypeItems)))
+    //     {
+    //         if (currentMaterialTypeIndex == 0)
+    //         {
+    //             materialComponent.setMaterialType(MaterialType::Basic);
+    //         }
+    //         else if (currentMaterialTypeIndex == 1)
+    //         {
+    //             materialComponent.setMaterialType(MaterialType::Phong);
+    //         }
+    //         else if (currentMaterialTypeIndex == 2)
+    //         {
+    //             materialComponent.setMaterialType(MaterialType::PBR);
+    //         }
+    //     }
 
-        // Column 1: visible label
-        ImGui::TableNextColumn();
-        ImGui::Text("Visible");
+    //     // Column 1: visible label
+    //     ImGui::TableNextColumn();
+    //     ImGui::Text("Visible");
 
-        // Column 2: visible CheckBox
-        ImGui::TableNextColumn();
-        bool visible = materialComponent.materialRenderParams.visible;
-        if (ImGui::Checkbox("##Visible", &visible))
-        {
-            materialComponent.materialRenderParams.visible = visible;
-        }
+    //     // Column 2: visible CheckBox
+    //     ImGui::TableNextColumn();
+    //     bool visible = materialComponent.materialRenderParams.visible;
+    //     if (ImGui::Checkbox("##Visible", &visible))
+    //     {
+    //         materialComponent.materialRenderParams.visible = visible;
+    //     }
 
-        DrawColorControl("Color", materialComponent.color);
-        switch (materialComponent.getMaterialType())
-        {
-            case MaterialType::Basic:
-            {
+    //     DrawColorControl("Color", materialComponent.color);
+    //     switch (materialComponent.getMaterialType())
+    //     {
+    //         case MaterialType::Basic:
+    //         {
 
-                break;
-            }
-            case MaterialType::PBR:
-            {
-                // Column 1: Roughness label
-                ImGui::TableNextColumn();
-                ImGui::Text("Roughness");
+    //             break;
+    //         }
+    //         case MaterialType::PBR:
+    //         {
+    //             // Column 1: Roughness label
+    //             ImGui::TableNextColumn();
+    //             ImGui::Text("Roughness");
 
-                // Column 2: Roughness DragFloat (range: 0.0 - 1.0)
-                ImGui::TableNextColumn();
-                float roughness = materialComponent.roughness;
-                if (ImGui::DragFloat("##Roughness", &roughness, 0.01f, 0.0f, 1.0f, "%.2f"))
-                {
-                    materialComponent.roughness = glm::clamp(roughness, 0.0f, 1.0f);
-                }
+    //             // Column 2: Roughness DragFloat (range: 0.0 - 1.0)
+    //             ImGui::TableNextColumn();
+    //             float roughness = materialComponent.roughness;
+    //             if (ImGui::DragFloat("##Roughness", &roughness, 0.01f, 0.0f, 1.0f, "%.2f"))
+    //             {
+    //                 materialComponent.roughness = glm::clamp(roughness, 0.0f, 1.0f);
+    //             }
 
-                // Column 1: Metallic label
-                ImGui::TableNextColumn();
-                ImGui::Text("Metallic");
+    //             // Column 1: Metallic label
+    //             ImGui::TableNextColumn();
+    //             ImGui::Text("Metallic");
 
-                // Column 2: Metallic DragFloat (range: 0.0 - 1.0)
-                ImGui::TableNextColumn();
-                float metallic = materialComponent.metallic;
-                if (ImGui::DragFloat("##Metallic", &metallic, 0.01f, 0.0f, 1.0f, "%.2f"))
-                {
-                    materialComponent.metallic = glm::clamp(metallic, 0.0f, 1.0f);
-                }
+    //             // Column 2: Metallic DragFloat (range: 0.0 - 1.0)
+    //             ImGui::TableNextColumn();
+    //             float metallic = materialComponent.metallic;
+    //             if (ImGui::DragFloat("##Metallic", &metallic, 0.01f, 0.0f, 1.0f, "%.2f"))
+    //             {
+    //                 materialComponent.metallic = glm::clamp(metallic, 0.0f, 1.0f);
+    //             }
 
-                // Column 1: AO label
-                ImGui::TableNextColumn();
-                ImGui::Text("AO");
+    //             // Column 1: AO label
+    //             ImGui::TableNextColumn();
+    //             ImGui::Text("AO");
 
-                // Column 2: AO DragFloat (range: 0.0 - 1.0)
-                ImGui::TableNextColumn();
-                float ao = materialComponent.ao;
-                if (ImGui::DragFloat("##AO", &ao, 0.01f, 0.0f, 1.0f, "%.2f"))
-                {
-                    materialComponent.ao = glm::clamp(ao, 0.0f, 1.0f);
-                }
+    //             // Column 2: AO DragFloat (range: 0.0 - 1.0)
+    //             ImGui::TableNextColumn();
+    //             float ao = materialComponent.ao;
+    //             if (ImGui::DragFloat("##AO", &ao, 0.01f, 0.0f, 1.0f, "%.2f"))
+    //             {
+    //                 materialComponent.ao = glm::clamp(ao, 0.0f, 1.0f);
+    //             }
 
-                break;
-            }
+    //             break;
+    //         }
 
-            case MaterialType::None:
-            {
-                break;
-            }
+    //         case MaterialType::None:
+    //         {
+    //             break;
+    //         }
 
-            default:
-            {
-                break;
-            }
-        }
+    //         default:
+    //         {
+    //             break;
+    //         }
+    //     }
 
-        // End the table
-        ImGui::EndTable();
+    //     // End the table
+    //     ImGui::EndTable();
 
-        ImGui::TreePop();
-    }
+    //     ImGui::TreePop();
+    // }
 }
 void PropertiesPanel::drawLightComponent(LightComponent &lightComponent)
 {

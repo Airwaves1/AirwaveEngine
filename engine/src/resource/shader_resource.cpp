@@ -19,13 +19,15 @@ ShaderResource::~ShaderResource()
     m_eventDispatcher->dispatch(event);
 }
 
-bool ShaderResource::load(const std::string &vertexPath, const std::string &fragmentPath)
+bool ShaderResource::onLoad(const std::string &path, const std::any &params)
 {
-    m_vertexPath   = vertexPath;
-    m_fragmentPath = fragmentPath;
+    m_path = path;
+    std::string shaderCode                      = ShaderUtils::GetInstance().process(path);
+    auto [vertexShaderCode, fragmentShaderCode] = ShaderUtils::GetInstance().separateShader(shaderCode);
 
-    m_vertexShaderSource   = ShaderUtils::GetInstance().process(vertexPath);
-    m_fragmentShaderSource = ShaderUtils::GetInstance().process(fragmentPath);
+    m_vertexShaderSource   = vertexShaderCode;
+    m_fragmentShaderSource = fragmentShaderCode;
+
 
     uint32_t vertexShader   = compile(m_vertexShaderSource, GL_VERTEX_SHADER);
     uint32_t fragmentShader = compile(m_fragmentShaderSource, GL_FRAGMENT_SHADER);
@@ -48,8 +50,7 @@ uint32_t ShaderResource::compile(const std::string &source, GLenum shaderType)
     {
         char infoLog[512];
         glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-        std::string path = shaderType == GL_VERTEX_SHADER ? m_vertexPath : m_fragmentPath;
-        LOG_ERROR("Shader {0} compilation failed: {1}", path, infoLog);
+        LOG_ERROR("Shader {0} compilation failed: {1}", m_path, infoLog);
     }
 
     return shader;
@@ -68,7 +69,7 @@ uint32_t ShaderResource::link(const uint32_t &vertexShader, const uint32_t &frag
     {
         char infoLog[512];
         glGetProgramInfoLog(program, 512, nullptr, infoLog);
-        LOG_ERROR("Shader linking failed: {0}", infoLog);
+        LOG_ERROR("Shader {0} linking failed: {1}",m_path, infoLog);
     }
 
     glDeleteShader(vertexShader);
@@ -77,9 +78,6 @@ uint32_t ShaderResource::link(const uint32_t &vertexShader, const uint32_t &frag
     return program;
 }
 
-bool ShaderResource::reload(const std::string &vertexPath, const std::string &fragmentPath)
-{
-    return false;
-}
+bool ShaderResource::reload(const std::string &vertexPath, const std::string &fragmentPath) { return false; }
 
 } // namespace Airwave

@@ -4,6 +4,7 @@
 #include "resource/texture_resource.hpp"
 
 #include "rendering/primitive.hpp"
+#include "rendering/material.hpp"
 #include <entt/entt.hpp>
 #include <tiny_gltf/tiny_gltf.h>
 
@@ -16,18 +17,6 @@ class AwEntity;
 class Model : public Resource
 {
   public:
-    struct MaterialParams
-    {
-        glm::vec4 baseColorFactor{1.0f};
-        float metallicFactor  = 1.0f;
-        float roughnessFactor = 1.0f;
-        glm::vec3 emissiveFactor{0.0f};
-
-        std::shared_ptr<TextureResource> baseColorTexture;
-        std::shared_ptr<TextureResource> normalTexture;
-        std::shared_ptr<TextureResource> metallicRoughnessTexture;
-    };
-
     Model() = default;
     ~Model() override;
 
@@ -43,7 +32,7 @@ class Model : public Resource
 
     std::shared_ptr<Primitive> createPrimitive(const tinygltf::Primitive &gltfPrimitive);
 
-    MaterialParams processMaterial(const tinygltf::Material &gltfMaterial);
+    Material processMaterial(const tinygltf::Material &gltfMaterial);
 
   private:
     // GLTF模型数据
@@ -51,7 +40,7 @@ class Model : public Resource
 
     // 资源缓存
     std::unordered_map<int, std::shared_ptr<TextureResource>> m_textureCache;
-    std::unordered_map<int, MaterialParams> m_materialCache;
+    std::unordered_map<int, Material> m_materialCache;
     std::unordered_map<int, std::shared_ptr<Primitive>> m_primitiveCache;
 
     // 根实体引用

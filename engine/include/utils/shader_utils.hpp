@@ -16,21 +16,56 @@ namespace Airwave
 {
 class ShaderUtils
 {
-public:
-    static ShaderUtils& GetInstance()
+  public:
+    static ShaderUtils &GetInstance()
     {
         static ShaderUtils instance;
         return instance;
     }
 
-    std::string process(const std::string& filePath,
-                        const std::unordered_map<std::string, std::string>& defines = {})
+    const std::pair<std::string, std::string> separateShader(const std::string& shaderCode)
+    {
+        std::string vertexShader;
+        std::string fragmentShader;
+        std::string currentShader;
+    
+        std::istringstream sourceStream(shaderCode);
+        std::string line;
+    
+        while (std::getline(sourceStream, line))
+        {
+            if (line.find("#shader") != std::string::npos)
+            {
+                // 修改匹配关键字
+                if (line.find("vert") != std::string::npos) {
+                    currentShader = "vertex";
+                }
+                else if (line.find("frag") != std::string::npos) {
+                    currentShader = "fragment";
+                }
+            }
+            else
+            {
+                if (currentShader == "vertex") {
+                    vertexShader += line + "\n";
+                }
+                else if (currentShader == "fragment") {
+                    fragmentShader += line + "\n";
+                }
+            }
+        }
+    
+        return { vertexShader, fragmentShader };
+    }
+    
+
+    std::string process(const std::string &filePath, const std::unordered_map<std::string, std::string> &defines = {})
     {
         std::set<std::string> processedFiles;
         return processInternal(filePath, defines, true, processedFiles);
     }
 
-private:
+  private:
     ShaderUtils()
     {
         m_includePath = std::string(PROJECT_ROOT_DIR) + "/assets/shaders/";
@@ -38,20 +73,20 @@ private:
         m_shaderFileCache["common"] = std::string(PROJECT_ROOT_DIR) + "/assets/shaders/shader_chunk/common.glsl";
     }
 
-    std::string processInternal(const std::string& filePath,
-                                const std::unordered_map<std::string, std::string>& defines,
-                                bool isTopLevel,
-                                std::set<std::string>& processedFiles)
+    std::string processInternal(const std::string &filePath, const std::unordered_map<std::string, std::string> &defines, bool isTopLevel,
+                                std::set<std::string> &processedFiles)
     {
         // 防止循环包含和重复处理
-        if (processedFiles.find(filePath) != processedFiles.end()) {
+        if (processedFiles.find(filePath) != processedFiles.end())
+        {
             return "";
         }
         processedFiles.insert(filePath);
 
         // 读取shader文件内容
         std::string sourceCode;
-        if (!readFile(filePath, sourceCode)) {
+        if (!readFile(filePath, sourceCode))
+        {
             // std::cerr << "Error: Failed to read shader file: " << filePath << std::endl;
             LOG_ERROR("Failed to read shader file: {0}", filePath);
             return "";
@@ -62,8 +97,10 @@ private:
         std::string line;
 
         // 添加宏定义到顶层文件
-        if (isTopLevel) {
-            for (const auto& [name, value] : defines) {
+        if (isTopLevel)
+        {
+            for (const auto &[name, value] : defines)
+            {
                 output << "#define " << name << " " << value << "\n";
             }
         }
@@ -71,26 +108,31 @@ private:
         // 正则表达式匹配#include指令
         std::regex includeRegex(R"(\s*#include\s+[<"](.+?)[">]\s*)");
 
-        while (std::getline(sourceStream, line)) {
+        while (std::getline(sourceStream, line))
+        {
             std::smatch match;
-            
+
             // 处理include指令
-            if (std::regex_match(line, match, includeRegex)) {
+            if (std::regex_match(line, match, includeRegex))
+            {
                 std::string includeName = match[1].str();
 
                 // 从m_includePath查找路径
                 std::string includePath = m_includePath + includeName;
 
                 // 递归处理包含文件
-                if (readFile(includePath, sourceCode)) {
+                if (readFile(includePath, sourceCode))
+                {
                     output << processInternal(includePath, defines, false, processedFiles) << "\n";
-                } else {
-                    std::cerr << "Warning: Missing include file - " << includeName 
-                              << " (searched in: " << includePath << ")" << std::endl;
                 }
-            } 
+                else
+                {
+                    std::cerr << "Warning: Missing include file - " << includeName << " (searched in: " << includePath << ")" << std::endl;
+                }
+            }
             // 保留原始代码
-            else {
+            else
+            {
                 output << line << "\n";
             }
         }
@@ -98,10 +140,11 @@ private:
         return output.str();
     }
 
-    bool readFile(const std::string& path, std::string& content)
+    bool readFile(const std::string &path, std::string &content)
     {
         std::ifstream file(path);
-        if (!file.is_open()) {
+        if (!file.is_open())
+        {
             return false;
         }
 
@@ -111,8 +154,8 @@ private:
         return true;
     }
 
-private:
-    std::string m_includePath; // Shader资源路径
+  private:
+    std::string m_includePath;                                      // Shader资源路径
     std::unordered_map<std::string, std::string> m_shaderFileCache; // Shader块路径缓存
 };
 } // namespace Airwave

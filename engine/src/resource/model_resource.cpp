@@ -13,6 +13,9 @@
 #include "ecs/components/transform_component.hpp"
 #include "ecs/components/hierarchy_component.hpp"
 
+#include "resource/resource_manager.hpp"
+#include "resource/texture_resource.hpp"
+
 namespace Airwave
 {
 
@@ -67,12 +70,14 @@ entt::entity Model::instantiate(AwScene *scene, entt::entity rootEntity)
     }
 
     const auto &gltf_scene = m_model->scenes[m_model->defaultScene];
-    if(rootEntity == entt::null)
+    if (rootEntity == entt::null)
     {
-        rootEntity = scene->createEntity("ModelRoot");
+        rootEntity = scene->createDefaultEntity("model_root");
     }
 
-    const glm::mat4 rootTransform{1.0f};
+    auto &transform_comp    = scene->getComponent<TransformComponent>(rootEntity);
+    glm::mat4 rootTransform = transform_comp.getWorldMatrix();
+
     for (const auto &nodeIdx : gltf_scene.nodes)
     {
         processNode(m_model->nodes[nodeIdx], scene, rootEntity, rootTransform);
@@ -81,12 +86,132 @@ entt::entity Model::instantiate(AwScene *scene, entt::entity rootEntity)
     return rootEntity;
 }
 
-void Model::processNode(const tinygltf::Node &node, AwScene *scene, entt::entity parentEntity, const glm::mat4 &parentMatrix) {}
+void Model::processNode(const tinygltf::Node &node, AwScene *scene, entt::entity parentEntity, const glm::mat4 &parentMatrix)
+{
+    auto entity          = scene->createDefaultEntity(node.name);
+    auto &transform_comp = scene->getComponent<TransformComponent>(entity);
+
+    // 处理节点变换
+    if (!node.translation.empty())
+    {
+        transform_comp.setPosition(glm::make_vec3(node.translation.data()));
+    }
+    if (!node.rotation.empty())
+    {
+        transform_comp.setRotation(glm::make_quat(node.rotation.data()));
+    }
+    if (!node.scale.empty())
+    {
+        transform_comp.setScale(glm::make_vec3(node.scale.data()));
+    }
+
+    transform_comp.localMatrix = transform_comp.calculateTransformMatrix();
+    transform_comp.worldMatrix = parentMatrix * transform_comp.localMatrix;
+
+    // 处理子节点
+    for (int meshIdx : node.children)
+    {
+        processNode(m_model->nodes[meshIdx], scene, entity, transform_comp.worldMatrix);
+    }
+
+    // 处理网格
+    if (node.mesh >= 0)
+    {
+        const auto &gltfMesh = m_model->meshes[node.mesh];
+        processMesh(gltfMesh, scene, entity, transform_comp.worldMatrix);
+    }
+}
 
 void Model::processMesh(const tinygltf::Mesh &mesh, AwScene *scene, entt::entity entity, const glm::mat4 &transform) {}
 
-std::shared_ptr<Primitive> Airwave::Model::createPrimitive(const tinygltf::Primitive &gltfPrimitive) { return std::shared_ptr<Primitive>(); }
+std::shared_ptr<Primitive> Airwave::Model::createPrimitive(const tinygltf::Primitive &gltfPrimitive)
+{
+    auto primitive = std::make_shared<Primitive>();
 
-// MaterialParams Airwave::Model::processMaterial(const tinygltf::Material &gltfMaterial) { return MaterialParams(); }
+    // vao
+    glGenVertexArrays(1, &primitive->vao);
+    glBindVertexArray(primitive->vao);
+
+    // vbos
+    const auto &attributes = gltfPrimitive.attributes;
+    for (const auto &[name, accessorIdx] : attributes)
+    {
+        const auto &accessor   = m_model->accessors[accessorIdx];
+        const auto &buffer     = m_model->buffers[accessor.bufferView];
+        const auto &bufferView = m_model->bufferViews[accessor.bufferView];
+
+        glGenBuffers(1, &primitive->vbo);
+        glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
+        glBufferData(GL_ARRAY_BUFFER, bufferView.byteLength, &buffer.data[bufferView.byteOffset], GL_STATIC_DRAW);
+
+        // vertex attributes
+        if (name == "POSITION")
+        {
+            glVertexAttribPointer(0, accessor.type, accessor.componentType, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(0);
+        }
+        else if (name == "NORMAL")
+        {
+            glVertexAttribPointer(1, accessor.type, accessor.componentType, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(1);
+        }
+        else if (name == "TEXCOORD_0")
+        {
+            glVertexAttribPointer(2, accessor.type, accessor.componentType, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(2);
+        }
+        else if (name == "TANGENT")
+        {
+            glVertexAttribPointer(3, accessor.type, accessor.componentType, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(3);
+        }
+        else if (name == "COLOR_0")
+        {
+            glVertexAttribPointer(4, accessor.type, accessor.componentType, GL_FALSE, 0, nullptr);
+            glEnableVertexAttribArray(4);
+        }
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // index buffer
+        if (gltfPrimitive.indices >= 0)
+        {
+            const auto &indexAccessor   = m_model->accessors[gltfPrimitive.indices];
+            const auto &indexBuffer     = m_model->buffers[indexAccessor.bufferView];
+            const auto &indexBufferView = m_model->bufferViews[indexAccessor.bufferView];
+
+            glGenBuffers(1, &primitive->ebo);
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexBufferView.byteLength, &indexBuffer.data[indexBufferView.byteOffset], GL_STATIC_DRAW);
+
+            primitive->indexCount = indexAccessor.count;
+        }
+
+        glBindVertexArray(0);
+
+        return primitive;
+    }
+}
+
+Material Model::processMaterial(const tinygltf::Material &gltfMaterial)
+{
+    Material material;
+
+    // base color
+    if (gltfMaterial.pbrMetallicRoughness.baseColorFactor.size() == 4)
+    {
+        material.color = glm::make_vec3(gltfMaterial.pbrMetallicRoughness.baseColorFactor.data());
+    }
+
+    // base color texture
+    if (gltfMaterial.pbrMetallicRoughness.baseColorTexture.index >= 0)
+    {
+        const auto &texture = m_model->textures[gltfMaterial.pbrMetallicRoughness.baseColorTexture.index];
+        const auto &image   = m_model->images[texture.source];
+        const auto &sampler = m_model->samplers[texture.sampler];
+
+        // auto textureResource = RES.load<TextureResource>(image.uri);
+    }
+}
 
 } // namespace Airwave

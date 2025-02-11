@@ -26,7 +26,11 @@ class TextureResource : public Resource
 
     bool reload(TextureSpecification spec, void *data = nullptr);
 
+  protected:
+    bool onLoad(const std::string &path, const std::any &params) override;
+
   private:
+
     TextureSpecification m_spec;
 };
 

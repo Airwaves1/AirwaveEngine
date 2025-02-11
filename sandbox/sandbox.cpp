@@ -64,53 +64,59 @@ void Sandbox::onInit()
     spec.generateMipmap = false;
     // auto envMap  = RES.load<TextureResource>(std::string("envMap"), std::string(PROJECT_ROOT_DIR "/assets/textures/hdr/kiara_8_sunset_2k.hdr"),
     // spec);
-    auto envMap = std::make_shared<TextureResource>();
-    envMap->load(std::string(PROJECT_ROOT_DIR "/assets/textures/hdr/newport_loft.hdr"), spec);
-    bool load = RES.add("envMap", envMap);
+    // auto envMap = std::make_shared<TextureResource>();
+    // envMap->load(std::string(PROJECT_ROOT_DIR "/assets/textures/hdr/newport_loft.hdr"), spec);
+    // bool load = RES.add("envMap", envMap);
 
     // HDR to Cubemap
-    auto cube_map = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
-    // 获取辐照度贴图
-    auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cube_map, 32);
-    // 获取预过滤贴图
-    auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cube_map, 256, 5);
+    // auto cube_map = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap, 1024, true);
+    // // 获取辐照度贴图
+    // auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cube_map, 32);
+    // // 获取预过滤贴图
+    // auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cube_map, 256, 5);
 
-    RES.add("cubeMap", cube_map);
-    RES.add("irradiance_map", irradiance_map);
-    RES.add("prefilter_map", prefilter_map);
+    // RES.add("cubeMap", cube_map);
+    // RES.add("irradiance_map", irradiance_map);
+    // RES.add("prefilter_map", prefilter_map);
 
-    auto adminEntity            = m_scene->getAdminEntity();
-    auto &renderer_comp         = m_scene->getComponent<RendererComponent>(adminEntity);
-    renderer_comp.backgroundMap = cube_map;
-    renderer_comp.envMap        = cube_map;
+    // auto adminEntity            = m_scene->getAdminEntity();
+    // auto &renderer_comp         = m_scene->getComponent<RendererComponent>(adminEntity);
+    // renderer_comp.backgroundMap = cube_map;
+    // renderer_comp.envMap        = cube_map;
 
     auto brdf_lut = RES.get<TextureResource>("brdf_lut");
+    m_editor->onDrawDebugInfo = [this, brdf_lut]() {
+        ImGui::Begin("Debug Info");
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        ImGui::Image((void *)(intptr_t)brdf_lut->getHandle(), ImVec2(256, 256));
+        ImGui::End();
+    };
 
-    auto sphere_mesh = std::make_shared<Mesh>(sphereVertices, sphereIndices);
+    // auto sphere_mesh = std::make_shared<Mesh>(sphereVertices, sphereIndices);
 
-    for (int i = 0; i < 7; i++)
-    {
-        for (int j = 0; j < 7; j++)
-        {
-            auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
-            auto &mesh_comp    = m_scene->addComponent<MeshComponent>(sphere_entity);
-            mesh_comp.mesh     = sphere_mesh;
-            auto &mat = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
+    // for (int i = 0; i < 7; i++)
+    // {
+    //     for (int j = 0; j < 7; j++)
+    //     {
+    //         auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
+    //         auto &mesh_comp    = m_scene->addComponent<MeshComponent>(sphere_entity);
+    //         mesh_comp.mesh     = sphere_mesh;
+    //         auto &mat = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
 
-            // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
-            mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
-            mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
-            mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
-            mat.ao        = 1.0f;
+    //         // mat.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+    //         mat.color     = glm::vec3(0.6f, 0.0f, 0.0f);
+    //         mat.metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
+    //         mat.roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
+    //         mat.ao        = 1.0f;
 
-            mat.irradianceMap = irradiance_map;
-            mat.prefilterMap  = prefilter_map;
+    //         mat.irradianceMap = irradiance_map;
+    //         mat.prefilterMap  = prefilter_map;
 
-            auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
-            sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
-            m_scene->setEntityParent(sphere_entity, sphere_container_entity);
-        }
-    }
+    //         auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
+    //         sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
+    //         m_scene->setEntityParent(sphere_entity, sphere_container_entity);
+    //     }
+    // }
 
     m_scene->printHierarchy(sphere_container_entity, 0);
 }

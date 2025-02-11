@@ -4,9 +4,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <variant>
+#include <string>
 
 namespace Airwave
 {
+
+const std::string ASSETS_PATH = "/assets/";
+const std::string SHADER_PATH = "/assets/shaders/";
+const std::string TEXTURE_PATH = "/assets/textures/";
+const std::string MODEL_PATH = "/assets/models/";
+const std::string FONT_PATH = "/assets/fonts/";
 
 using UniformValue = std::variant<size_t, float, glm::vec2, glm::vec3, glm::vec4, int, glm::ivec2, glm::ivec3, glm::ivec4, glm::mat3, glm::mat4>;
 

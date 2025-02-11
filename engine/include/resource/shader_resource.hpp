@@ -22,9 +22,13 @@ class ShaderResource : public Resource
 
     ResourceType getType() const override { return ResourceType::Shader; }
 
-    bool load(const std::string &vertexPath, const std::string &fragmentPath);
-
     bool reload(const std::string &vertexPath, const std::string &fragmentPath);
+
+    std::string getVertexShaderSource() const { return m_vertexShaderSource; }
+    std::string getFragmentShaderSource() const { return m_fragmentShaderSource; }
+
+  protected:
+    bool onLoad(const std::string &path, const std::any &params) override;
 
   private:
     uint32_t compile(const std::string &source, GLenum shaderType);
@@ -35,8 +39,7 @@ class ShaderResource : public Resource
     std::string m_vertexShaderSource;
     std::string m_fragmentShaderSource;
 
-    std::string m_vertexPath;
-    std::string m_fragmentPath;
+    std::string m_path;
 };
 
 } // namespace Airwave

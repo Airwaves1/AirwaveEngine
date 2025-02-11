@@ -25,7 +25,7 @@ class TransformSystem : public AwSystem
 
             if (transform.m_dirty)
             {
-                transform.m_localMatrix = transform.calculateTransformMatrix();
+                transform.localMatrix = transform.calculateTransformMatrix();
                 transform.m_dirty       = false;
             }
 
@@ -36,12 +36,12 @@ class TransformSystem : public AwSystem
                 if(parent!= entt::null && registry.all_of<TransformComponent>(parent))
                 {
                     auto &parentTransform = registry.get<TransformComponent>(parent);
-                    transform.m_worldMatrix =
-                        parentTransform.m_worldMatrix * transform.m_localMatrix;
+                    transform.worldMatrix =
+                        parentTransform.worldMatrix * transform.localMatrix;
                 }
                 else
                 {
-                    transform.m_worldMatrix = transform.m_localMatrix;
+                    transform.worldMatrix = transform.localMatrix;
                 }
             }
         }

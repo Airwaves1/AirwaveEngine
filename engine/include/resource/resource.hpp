@@ -8,7 +8,6 @@
 #include "core/event/event_observer.hpp"
 #include "utils/uuid.hpp"
 
-
 namespace Airwave
 {
 class Resource;
@@ -27,6 +26,15 @@ enum class ResourceType
 class ResourceEvent : public Event
 {
   public:
+    enum class Type
+    {
+        LoadBegin,
+        LoadSuccess,
+        LoadFailed,
+        Reload,
+        Dispose
+    };
+
     ResourceEvent(uint32_t handle, UUID uuid) : handle(handle), m_uuid(uuid) {}
     std::string getType() const override { return "ResourceEvent"; }
     uint32_t handle;
@@ -41,13 +49,26 @@ class Resource
 
     virtual ResourceType getType() const = 0;
 
-    virtual void onDispose() {}
+    bool load(const std::string &path, const std::any &params = {})
+    {
+        if (m_loaded)
+        {
+            return true;
+        }
+
+        m_loaded = onLoad(path, params);
+
+        return m_loaded;
+    }
 
     bool isLoaded() const { return m_loaded; }
 
     uint32_t getHandle() const { return m_handle; }
 
   protected:
+    virtual bool onLoad(const std::string &path, const std::any &params) { return false; }
+    virtual void onDispose() {}
+
     friend class ResourceManager;
 
     UUID m_uuid; // 资源唯一标识符

@@ -13,6 +13,8 @@
 #include "resource/shader_resource.hpp"
 #include "resource/texture_resource.hpp"
 
+#include "core/common.hpp"
+
 namespace Airwave
 {
 Application::~Application() {}
@@ -68,20 +70,15 @@ void Application::preLoad()
 {
 
     // 预编译shader
-
     // basic shader
-    RES.load<ShaderResource>("basic", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/basic.vert",
-                             PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/basic.frag");
-
+    auto basic = RES.load<ShaderResource>(SHADER_PATH + std::string("shader_lib/basic.glsl"));
     // pbr shader
-    RES.load<ShaderResource>("pbr", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/pbr.vert",
-                             PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/pbr.frag");
-
+    auto pbr =  RES.load<ShaderResource>(SHADER_PATH + std::string("shader_lib/pbr.glsl"));
     // background shader
-    RES.load<ShaderResource>("background", PROJECT_ROOT_DIR "/assets/shaders/shader_lib/vert/background.vert",
-                             PROJECT_ROOT_DIR "/assets/shaders/shader_lib/frag/background.frag");
+    auto background = RES.load<ShaderResource>(SHADER_PATH + std::string("shader_lib/background.glsl"));
 
-    // 空白纹理和默认法线贴图
+
+    // // 空白纹理和默认法线贴图
     TextureSpecification spec;
     spec.internalFormat        = TextureInternalFormat::RGBA;
     spec.width                 = 1;
@@ -91,14 +88,14 @@ void Application::preLoad()
     auto emptyTexture          = std::make_shared<TextureResource>(spec, data);
     auto defaultNormal         = std::make_shared<TextureResource>(spec, data2);
 
-    RES.add("empty_texture", emptyTexture);
-    RES.add("default_normal", defaultNormal);
+    // RES.add("empty_texture", emptyTexture);
+    // RES.add("default_normal", defaultNormal);
 
-    // 生成BRDF LUT
+    // // 生成BRDF LUT
     auto brdfLUT = TextureUtils::generateBRDFLUT(m_renderer.get());
-    RES.add("brdf_lut", brdfLUT);
-    // 加载资源
-    onPreLoad();
+    RES.add<TextureResource>("brdf_lut", brdfLUT);
+    // // 加载资源
+    // onPreLoad();
 }
 
 void Application::mainLoop()
