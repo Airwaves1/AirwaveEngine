@@ -5,6 +5,7 @@
 #include <memory>
 #include <type_traits>
 
+#include "utils/utils.hpp"
 #include "core/log.hpp"
 
 namespace Airwave
@@ -37,9 +38,9 @@ class AwScene
             assert(false);
         }
 
-        if (m_registry.has<T>(entity))
+        if (m_registry.all_of<T>(entity))
         {
-            LOG_ERROR("entity already has component");
+            LOG_ERROR("entity already has component: {0}",  demangle(typeid(T).name()));
             assert(false);
         }
 
@@ -54,16 +55,31 @@ class AwScene
             assert(false);
         }
 
-        if (!m_registry.has<T>(entity))
+        if (!m_registry.all_of<T>(entity))
         {
-            LOG_ERROR("entity has no component");
+            LOG_ERROR("entity has no component: {0}" , demangle(typeid(T).name()));
             assert(false);
         }
 
         return m_registry.get<T>(entity);
     }
 
-    template <typename T> bool hasComponent(entt::entity entity) { return m_registry.has<T>(entity); }
+    template <typename T> void removeComponent(entt::entity entity)
+    {
+        if (!m_registry.valid(entity))
+        {
+            LOG_ERROR("entity is not valid");
+        }
+
+        if (!m_registry.all_of<T>(entity))
+        {
+            LOG_ERROR("entity has no component: {0} ",  demangle(typeid(T).name()));
+        }
+
+        m_registry.remove<T>(entity);
+    }
+
+    template <typename T> bool hasComponent(entt::entity entity) { return m_registry.all_of<T>(entity); }
 
     bool isValideEntity(entt::entity entity) { return m_registry.valid(entity); }
 
