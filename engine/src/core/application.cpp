@@ -71,11 +71,11 @@ void Application::preLoad()
 
     // 预编译shader
     // basic shader
-    auto basic = RES.load<ShaderResource>(SHADER_PATH + std::string("shader_lib/basic.glsl"));
+    auto basic = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/basic.glsl");
     // pbr shader
-    auto pbr =  RES.load<ShaderResource>(SHADER_PATH + std::string("shader_lib/pbr.glsl"));
+    auto pbr =  RES.load<ShaderResource>(SHADER_PATH + "shader_lib/pbr.glsl");
     // background shader
-    auto background = RES.load<ShaderResource>(SHADER_PATH + std::string("shader_lib/background.glsl"));
+    auto background = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/background.glsl");
 
 
     // // 空白纹理和默认法线贴图
@@ -88,14 +88,15 @@ void Application::preLoad()
     auto emptyTexture          = std::make_shared<TextureResource>(spec, data);
     auto defaultNormal         = std::make_shared<TextureResource>(spec, data2);
 
-    // RES.add("empty_texture", emptyTexture);
-    // RES.add("default_normal", defaultNormal);
+    RES.add<TextureResource>("empty_texture", emptyTexture);
+    RES.add<TextureResource>("default_normal", defaultNormal);
 
     // // 生成BRDF LUT
     auto brdfLUT = TextureUtils::generateBRDFLUT(m_renderer.get());
     RES.add<TextureResource>("brdf_lut", brdfLUT);
-    // // 加载资源
-    // onPreLoad();
+    
+    // 加载资源
+    onPreLoad();
 }
 
 void Application::mainLoop()

@@ -16,13 +16,16 @@
 
 #include "ecs/components/mesh_component.hpp"
 
-#include "rendering/mesh.hpp"
+#include "rendering/primitive.hpp"
 
 namespace Airwave
 {
 class RendererComponent : public AwComponent
 {
   public:
+    std::shared_ptr<ShaderResource> backgroundShader;
+    std::shared_ptr<ShaderResource> basicShader;
+
     std::shared_ptr<TextureResource> emptyMap;
     std::shared_ptr<TextureResource> defaultNormal;
 
@@ -33,25 +36,19 @@ class RendererComponent : public AwComponent
     std::shared_ptr<TextureResource> envMap;
     std::shared_ptr<TextureResource> backgroundMap;
 
-    std::shared_ptr<ShaderResource> backgroundShader;
-
     RendererComponent()
     {
-        backgroundShader = RES.get<ShaderResource>("background");
-        
-        emptyMap         = RES.get<TextureResource>("empty_texture");
-        defaultNormal    = RES.get<TextureResource>("default_normal");
+        backgroundShader = RES.get_shared<ShaderResource>(SHADER_PATH + "shader_lib/background.glsl");
+        basicShader      = RES.get_shared<ShaderResource>(SHADER_PATH + "shader_lib/basic.glsl");
 
-        std::vector<AwVertex> cubeVertices;
-        std::vector<uint32_t> cubeIndices;
-        GeometryUtils::CreateCube(cubeVertices, cubeIndices, 1.0f, 1.0f, 1.0f, 1, 1, 1);
-        std::vector<float> cubeVerticesFloat = GeometryUtils::ConvertWaveVertexToFloatArray(cubeVertices);
+        emptyMap      = RES.get_shared<TextureResource>("empty_texture");
+        defaultNormal = RES.get_shared<TextureResource>("default_normal");
 
-        mesh = std::make_shared<Mesh>(cubeVerticesFloat, cubeIndices);
+        cube = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
     }
 
   private:
-    std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Primitive> cube;
 
     friend class RenderSystem;
 };

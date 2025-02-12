@@ -2,6 +2,22 @@
 
 namespace Airwave
 {
+Primitive::~Primitive()
+{
+    if (vao)
+    {
+        glDeleteVertexArrays(1, &vao);
+    }
+    if (vbo)
+    {
+        glDeleteBuffers(1, &vbo);
+    }
+    if (ebo)
+    {
+        glDeleteBuffers(1, &ebo);
+    }
+}
+
 void Primitive::draw()
 {
     glBindVertexArray(vao);

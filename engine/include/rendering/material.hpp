@@ -21,7 +21,9 @@ class Material
     std::shared_ptr<TextureResource> normalMap;
     std::shared_ptr<TextureResource> metallicMap;
     std::shared_ptr<TextureResource> roughnessMap;
+    std::shared_ptr<TextureResource> metallicRoughnessMap;
     std::shared_ptr<TextureResource> aoMap;
+    std::shared_ptr<TextureResource> emissiveMap;
 
     std::shared_ptr<TextureResource> irradianceMap;
     std::shared_ptr<TextureResource> prefilterMap;

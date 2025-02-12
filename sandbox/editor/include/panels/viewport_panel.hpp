@@ -11,7 +11,6 @@ namespace Airwave
 class ViewportPanel : public Panel
 {
   public:
-    std::shared_ptr<Texture> m_texture;
     ViewportPanel(Editor *editor, const std::string &title, bool startOpened = true) : Panel(editor, title, startOpened) {}
 
     void onImGuiRender() override
@@ -23,7 +22,8 @@ class ViewportPanel : public Panel
         ImGui::Begin(m_title.c_str());
         ImVec2 availableSize = ImGui::GetContentRegionAvail(); // 获取当前窗口可用大小
         auto fbo             = m_editor->getContext()->getRenderer()->getFramebuffer();
-        int textureID        = fbo->getColorAttachment(0)->getHandle();
+        auto textureID       = fbo.lock()->getMainColorAttachment();
+
         ImGui::Image((void *)(intptr_t)textureID, availableSize, ImVec2(0, 1), ImVec2(1, 0));
 
         // 如果窗口大小发生变化，更新反应区域

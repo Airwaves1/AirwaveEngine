@@ -19,7 +19,7 @@
 namespace Airwave
 {
 
-Model::~Model()
+ModelResource::~ModelResource()
 {
     if (!m_loaded) return;
 
@@ -32,7 +32,7 @@ Model::~Model()
     m_loaded = false;
 }
 
-bool Model::load(const std::string &path)
+bool Airwave::ModelResource::onLoad(const std::string &path, const std::any &params)
 {
     if (m_loaded) return true;
 
@@ -61,11 +61,11 @@ bool Model::load(const std::string &path)
     return ret;
 }
 
-entt::entity Model::instantiate(AwScene *scene, entt::entity rootEntity)
+entt::entity ModelResource::instantiate(AwScene *scene, entt::entity rootEntity)
 {
     if (!m_loaded || !scene)
     {
-        LOG_ERROR("Model not loaded or scene is null");
+        LOG_ERROR("ModelResource not loaded or scene is null");
         return entt::null;
     }
 
@@ -86,7 +86,7 @@ entt::entity Model::instantiate(AwScene *scene, entt::entity rootEntity)
     return rootEntity;
 }
 
-void Model::processNode(const tinygltf::Node &node, AwScene *scene, entt::entity parentEntity, const glm::mat4 &parentMatrix)
+void ModelResource::processNode(const tinygltf::Node &node, AwScene *scene, entt::entity parentEntity, const glm::mat4 &parentMatrix)
 {
     auto entity          = scene->createDefaultEntity(node.name);
     auto &transform_comp = scene->getComponent<TransformComponent>(entity);
@@ -122,9 +122,9 @@ void Model::processNode(const tinygltf::Node &node, AwScene *scene, entt::entity
     }
 }
 
-void Model::processMesh(const tinygltf::Mesh &mesh, AwScene *scene, entt::entity entity, const glm::mat4 &transform) {}
+void ModelResource::processMesh(const tinygltf::Mesh &mesh, AwScene *scene, entt::entity entity, const glm::mat4 &transform) {}
 
-std::shared_ptr<Primitive> Airwave::Model::createPrimitive(const tinygltf::Primitive &gltfPrimitive)
+std::shared_ptr<Primitive> ModelResource::createPrimitive(const tinygltf::Primitive &gltfPrimitive)
 {
     auto primitive = std::make_shared<Primitive>();
 
@@ -191,9 +191,11 @@ std::shared_ptr<Primitive> Airwave::Model::createPrimitive(const tinygltf::Primi
 
         return primitive;
     }
+
+    return nullptr;
 }
 
-Material Model::processMaterial(const tinygltf::Material &gltfMaterial)
+Material ModelResource::processMaterial(const tinygltf::Material &gltfMaterial)
 {
     Material material;
 
@@ -210,8 +212,61 @@ Material Model::processMaterial(const tinygltf::Material &gltfMaterial)
         const auto &image   = m_model->images[texture.source];
         const auto &sampler = m_model->samplers[texture.sampler];
 
-        // auto textureResource = RES.load<TextureResource>(image.uri);
+        TextureSpecification spec;
+        spec.sRGB            = true;
+        auto textureResource = RES.load<TextureResource>(image.uri, spec);
+        material.albedoMap   = textureResource;
     }
+
+    // normal texture
+    if (gltfMaterial.normalTexture.index >= 0)
+    {
+        const auto &texture = m_model->textures[gltfMaterial.normalTexture.index];
+        const auto &image   = m_model->images[texture.source];
+        const auto &sampler = m_model->samplers[texture.sampler];
+
+        TextureSpecification spec;
+        auto textureResource = RES.load<TextureResource>(image.uri, spec);
+        material.normalMap   = textureResource;
+    }
+
+    // metallic roughness texture
+    if (gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index >= 0)
+    {
+        const auto &texture = m_model->textures[gltfMaterial.pbrMetallicRoughness.metallicRoughnessTexture.index];
+        const auto &image   = m_model->images[texture.source];
+        const auto &sampler = m_model->samplers[texture.sampler];
+
+        TextureSpecification spec;
+        auto textureResource          = RES.load<TextureResource>(image.uri, spec);
+        material.metallicRoughnessMap = textureResource;
+    }
+
+    // ao texture
+    if (gltfMaterial.occlusionTexture.index >= 0)
+    {
+        const auto &texture = m_model->textures[gltfMaterial.occlusionTexture.index];
+        const auto &image   = m_model->images[texture.source];
+        const auto &sampler = m_model->samplers[texture.sampler];
+
+        TextureSpecification spec;
+        auto textureResource = RES.load<TextureResource>(image.uri, spec);
+        material.aoMap       = textureResource;
+    }
+
+    // emissive texture
+    if (gltfMaterial.emissiveTexture.index >= 0)
+    {
+        const auto &texture = m_model->textures[gltfMaterial.emissiveTexture.index];
+        const auto &image   = m_model->images[texture.source];
+        const auto &sampler = m_model->samplers[texture.sampler];
+
+        TextureSpecification spec;
+        auto textureResource = RES.load<TextureResource>(image.uri, spec);
+        material.emissiveMap = textureResource;
+    }
+
+    return material;
 }
 
 } // namespace Airwave

@@ -65,11 +65,16 @@ TextureResource::~TextureResource()
 
 bool Airwave::TextureResource::onLoad(const std::string &path, const std::any &params)
 {
-    return false;
-}
+    TextureSpecification spec;
+    if(params.has_value())
+    {
+        spec = std::any_cast<TextureSpecification>(params);
+    }
+    else
+    {
+        spec = m_spec;
+    }
 
-bool TextureResource::load(const std::string &path, TextureSpecification spec)
-{
     int width, height, channels;
     stbi_set_flip_vertically_on_load(spec.flip);
 
@@ -127,50 +132,6 @@ bool TextureResource::load(const std::string &path, TextureSpecification spec)
     glBindTexture(GL_TEXTURE_2D, 0);
 
     stbi_image_free(data);
-
-    return true;
-}
-
-bool TextureResource::load(const std::vector<std::string> &paths, TextureSpecification spec)
-{
-    m_spec      = spec;
-    m_spec.flip = false;
-
-    if (m_spec.isHDR)
-    {
-        m_spec.internalFormat  = TextureInternalFormat::RGB16F;
-        m_spec.format          = TextureFormat::RGB;
-        m_spec.textureDataType = TextureDataType::FLOAT;
-    }
-
-    glGenTextures(1, &m_handle);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, m_handle);
-
-    stbi_set_flip_vertically_on_load(m_spec.flip);
-
-    for (size_t i = 0; i < 6; i++)
-    {
-        int width, height, channels;
-        void *data = m_spec.isHDR ? (void *)stbi_loadf(paths[i].c_str(), &width, &height, &channels, 0)
-                                  : (void *)stbi_load(paths[i].c_str(), &width, &height, &channels, 0);
-
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), width, height, 0,
-                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
-            stbi_image_free(data);
-        }
-        else
-        {
-            LOG_ERROR("Failed to load cubemap face: {0}", paths[i]);
-        }
-    }
-
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
     return true;
 }

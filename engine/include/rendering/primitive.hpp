@@ -10,7 +10,7 @@ class Primitive
 {
   public:
     Primitive()          = default;
-    virtual ~Primitive() = default;
+    ~Primitive();
 
     void draw();
     void drawInstanced(uint32_t instanceCount);

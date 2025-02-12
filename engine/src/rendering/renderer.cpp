@@ -9,20 +9,20 @@ namespace Airwave
 
 Renderer::Renderer(Application *appContext) : m_appContext(appContext)
 {
-    FramebufferSpecification spec;
-    // spec.enableMSAA          = true;
-    // spec.samples             = 4;
-    spec.colorInternalFormat = TextureInternalFormat::RGBA16F;
-    spec.colorFormat         = TextureFormat::RGBA;
+    // FramebufferSpecification spec;
+    // // spec.enableMSAA          = true;
+    // // spec.samples             = 4;
+    // spec.colorInternalFormat = TextureInternalFormat::RGBA16F;
+    // spec.colorFormat         = TextureFormat::RGBA;
 
-    m_framebuffer   = std::make_unique<Framebuffer>(m_appContext->getWindowWidth(), m_appContext->getWindowHeight(), spec);
-    m_eventObserver = std::make_unique<EventObserver>();
-    m_eventObserver->subscribe<WindowResizeEvent>(
-        [this](const WindowResizeEvent &event)
-        {
-            glViewport(0, 0, event.getWidth(), event.getHeight());
-            m_framebuffer->resize(event.getWidth(), event.getHeight());
-        });
+    // m_framebuffer   = std::make_unique<Framebuffer>(m_appContext->getWindowWidth(), m_appContext->getWindowHeight(), spec);
+    // m_eventObserver = std::make_unique<EventObserver>();
+    // m_eventObserver->subscribe<WindowResizeEvent>(
+    //     [this](const WindowResizeEvent &event)
+    //     {
+    //         glViewport(0, 0, event.getWidth(), event.getHeight());
+    //         m_framebuffer->resize(event.getWidth(), event.getHeight());
+    //     });
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }

@@ -43,6 +43,19 @@ struct AwVertex {
     glm::vec4 jointWeights;  // 骨骼权重
 };
 
+
+struct FramebufferSpecification
+{
+    uint32_t width  = 0;
+    uint32_t height = 0;
+
+    bool enableMSAA = false;
+    uint32_t samples = 1;
+
+    uint32_t colorAttachmentCount = 1;
+    bool enableDepth = false;
+};
+
 enum class RenderSide
 {
     Front      = GL_FRONT,

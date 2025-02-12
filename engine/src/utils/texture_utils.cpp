@@ -223,7 +223,7 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
 
     auto prefilter_map = std::make_shared<TextureResource>(prefilter_spec);
 
-    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/prefilter_env_map.glsl");
+    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/prefilter_envmap.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");

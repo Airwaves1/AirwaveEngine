@@ -2,9 +2,136 @@
 
 namespace Airwave
 {
-void GeometryUtils::CreatePlane(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                                float width, float height, int widthSegments, int heightSegments,
-                                float repeatX, float repeatY )
+
+std::shared_ptr<Primitive> Airwave::GeometryUtils::CreatePlane(float width, float height, int widthSegments, int heightSegments, float repeatX,
+                                                               float repeatY)
+{
+    std::vector<AwVertex> vertices;
+    std::vector<uint32_t> indices;
+
+    CreatePlane(vertices, indices, width, height, widthSegments, heightSegments, repeatX, repeatY);
+
+    std::vector<float> verticesFloat = ConvertWaveVertexToFloatArray(vertices);
+
+    auto primitive = std::make_shared<Primitive>();
+    
+    glGenVertexArrays(1, &primitive->vao);
+    glGenBuffers(1, &primitive->vbo);
+    glGenBuffers(1, &primitive->ebo);
+
+    glBindVertexArray(primitive->vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
+    glBufferData(GL_ARRAY_BUFFER, verticesFloat.size() * sizeof(float), verticesFloat.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // texCoord
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    primitive->indexCount = indices.size();
+
+    return primitive;
+}
+
+std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateCube(float width, float height, float depth, int widthSegments, int heightSegments, int depthSegments)
+{
+    std::vector<AwVertex> vertices;
+    std::vector<uint32_t> indices;
+
+    CreateCube(vertices, indices, width, height, depth, widthSegments, heightSegments, depthSegments);
+
+    std::vector<float> verticesFloat = ConvertWaveVertexToFloatArray(vertices);
+
+    auto primitive = std::make_shared<Primitive>();
+    
+    glGenVertexArrays(1, &primitive->vao);
+    glGenBuffers(1, &primitive->vbo);
+    glGenBuffers(1, &primitive->ebo);
+
+    glBindVertexArray(primitive->vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
+    glBufferData(GL_ARRAY_BUFFER, verticesFloat.size() * sizeof(float), verticesFloat.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // texCoord
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    primitive->indexCount = indices.size();
+
+    return primitive;
+}
+
+std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateSphere(float radius, int widthSegments, int heightSegments, float phiStart, float phiLength, float thetaStart, float thetaLength)
+{
+    std::vector<AwVertex> vertices;
+    std::vector<uint32_t> indices;
+
+    CreateSphere(vertices, indices, radius, widthSegments, heightSegments, phiStart, phiLength, thetaStart, thetaLength);
+
+    std::vector<float> verticesFloat = ConvertWaveVertexToFloatArray(vertices);
+
+    auto primitive = std::make_shared<Primitive>();
+    
+    glGenVertexArrays(1, &primitive->vao);
+    glGenBuffers(1, &primitive->vbo);
+    glGenBuffers(1, &primitive->ebo);
+
+    glBindVertexArray(primitive->vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
+    glBufferData(GL_ARRAY_BUFFER, verticesFloat.size() * sizeof(float), verticesFloat.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+    // position
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
+
+    // normal
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // texCoord
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    glBindVertexArray(0);
+
+    primitive->indexCount = indices.size();
+
+    return primitive;
+}
+
+void GeometryUtils::CreatePlane(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float width, float height, int widthSegments,
+                                int heightSegments, float repeatX, float repeatY)
 {
     // 计算每个段的宽度和高度
     float segmentWidth  = width / widthSegments;
@@ -17,12 +144,10 @@ void GeometryUtils::CreatePlane(std::vector<AwVertex> &vertices, std::vector<uin
         {
             AwVertex vertex;
 
-            vertex.position =
-                glm::vec3(x * segmentWidth - width / 2.0f, 0.0f, y * segmentHeight - height / 2.0f);
+            vertex.position = glm::vec3(x * segmentWidth - width / 2.0f, 0.0f, y * segmentHeight - height / 2.0f);
 
             // UV坐标乘以重复因子，实现纹理重复
-            vertex.texCoord = glm::vec2(static_cast<float>(x) / widthSegments * repeatX,
-                                        static_cast<float>(y) / heightSegments * repeatY);
+            vertex.texCoord = glm::vec2(static_cast<float>(x) / widthSegments * repeatX, static_cast<float>(y) / heightSegments * repeatY);
 
             vertex.normal = glm::vec3(0.0f, 1.0f, 0.0f);
 
@@ -51,10 +176,8 @@ void GeometryUtils::CreatePlane(std::vector<AwVertex> &vertices, std::vector<uin
     }
 }
 
-
-void GeometryUtils::CreateCube(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                               float width, float height, float depth, int widthSegments,
-                               int heightSegments, int depthSegments)
+void GeometryUtils::CreateCube(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float width, float height, float depth,
+                               int widthSegments, int heightSegments, int depthSegments)
 {
     float halfWidth  = width / 2.0f;
     float halfHeight = height / 2.0f;
@@ -62,9 +185,8 @@ void GeometryUtils::CreateCube(std::vector<AwVertex> &vertices, std::vector<uint
 
     // 用于生成一个面的顶点和索引,
     // 接受面法线、四个角落的位置，以及每个方向上的细分数（即每个面上的网格细分
-    auto addFace = [&](const glm::vec3 &normal, const glm::vec3 &corner1, const glm::vec3 &corner2,
-                       const glm::vec3 &corner3, const glm::vec3 &corner4, int widthSeg,
-                       int heightSeg) -> void
+    auto addFace = [&](const glm::vec3 &normal, const glm::vec3 &corner1, const glm::vec3 &corner2, const glm::vec3 &corner3,
+                       const glm::vec3 &corner4, int widthSeg, int heightSeg) -> void
     {
         int baseIndex = vertices.size();
 
@@ -74,8 +196,7 @@ void GeometryUtils::CreateCube(std::vector<AwVertex> &vertices, std::vector<uint
             {
                 AwVertex vertex;
                 vertex.position =
-                    glm::mix(glm::mix(corner1, corner2, x / float(widthSeg)),
-                             glm::mix(corner3, corner4, x / float(widthSeg)), y / float(heightSeg));
+                    glm::mix(glm::mix(corner1, corner2, x / float(widthSeg)), glm::mix(corner3, corner4, x / float(widthSeg)), y / float(heightSeg));
                 vertex.normal   = normal;
                 vertex.texCoord = glm::vec2(x / float(widthSeg), y / float(heightSeg));
                 vertices.push_back(vertex);
@@ -122,29 +243,21 @@ void GeometryUtils::CreateCube(std::vector<AwVertex> &vertices, std::vector<uint
     glm::vec3 cornerBackBottomRight(halfWidth, -halfHeight, -halfDepth);
 
     // Front face
-    addFace(normalFront, cornerFrontTopLeft, cornerFrontTopRight, cornerFrontBottomLeft,
-            cornerFrontBottomRight, widthSegments, heightSegments);
+    addFace(normalFront, cornerFrontTopLeft, cornerFrontTopRight, cornerFrontBottomLeft, cornerFrontBottomRight, widthSegments, heightSegments);
     // Back face
-    addFace(normalBack, cornerBackTopRight, cornerBackTopLeft, cornerBackBottomRight,
-            cornerBackBottomLeft, widthSegments, heightSegments);
+    addFace(normalBack, cornerBackTopRight, cornerBackTopLeft, cornerBackBottomRight, cornerBackBottomLeft, widthSegments, heightSegments);
     // Top face
-    addFace(normalTop, cornerFrontTopRight, cornerFrontTopLeft, cornerBackTopRight,
-            cornerBackTopLeft, widthSegments, depthSegments);
+    addFace(normalTop, cornerFrontTopRight, cornerFrontTopLeft, cornerBackTopRight, cornerBackTopLeft, widthSegments, depthSegments);
     // Bottom face
-    addFace(normalBottom, cornerFrontBottomLeft, cornerFrontBottomRight, cornerBackBottomLeft,
-            cornerBackBottomRight, widthSegments, depthSegments);
+    addFace(normalBottom, cornerFrontBottomLeft, cornerFrontBottomRight, cornerBackBottomLeft, cornerBackBottomRight, widthSegments, depthSegments);
     // Left face
-    addFace(normalLeft, cornerFrontTopLeft, cornerBackTopLeft, cornerFrontBottomLeft,
-            cornerBackBottomLeft, depthSegments, heightSegments);
+    addFace(normalLeft, cornerFrontTopLeft, cornerBackTopLeft, cornerFrontBottomLeft, cornerBackBottomLeft, depthSegments, heightSegments);
     // Right face
-    addFace(normalRight, cornerBackTopRight, cornerFrontTopRight, cornerBackBottomRight,
-            cornerFrontBottomRight, depthSegments, heightSegments);
+    addFace(normalRight, cornerBackTopRight, cornerFrontTopRight, cornerBackBottomRight, cornerFrontBottomRight, depthSegments, heightSegments);
 }
 
-void GeometryUtils::CreateSphere(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                                 float radius, int widthSegments, int heightSegments,
-                                 float phiStart, float phiLength, float thetaStart,
-                                 float thetaLength)
+void GeometryUtils::CreateSphere(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float radius, int widthSegments, int heightSegments,
+                                 float phiStart, float phiLength, float thetaStart, float thetaLength)
 {
     for (int y = 0; y <= heightSegments; ++y)
     {
@@ -190,10 +303,8 @@ void GeometryUtils::CreateSphere(std::vector<AwVertex> &vertices, std::vector<ui
     }
 }
 
-void GeometryUtils::CreateCylinder(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                                   float radiusTop, float radiusBottom, float height,
-                                   int radialSegments, int heightSegments, bool openEnded,
-                                   float thetaStart, float thetaLength)
+void GeometryUtils::CreateCylinder(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float radiusTop, float radiusBottom, float height,
+                                   int radialSegments, int heightSegments, bool openEnded, float thetaStart, float thetaLength)
 {
     float halfHeight    = height / 2.0f;
     float segmentHeight = height / heightSegments;
@@ -213,8 +324,7 @@ void GeometryUtils::CreateCylinder(std::vector<AwVertex> &vertices, std::vector<
             float cosTheta = cos(theta);
 
             AwVertex vertex;
-            vertex.position =
-                glm::vec3(radius * sinTheta, -v * height + halfHeight, radius * cosTheta);
+            vertex.position = glm::vec3(radius * sinTheta, -v * height + halfHeight, radius * cosTheta);
             vertex.texCoord = glm::vec2(u, 1.0f - v);
 
             glm::vec3 tangent   = glm::vec3(-cosTheta, 0.0f, sinTheta);
@@ -249,9 +359,8 @@ void GeometryUtils::CreateCylinder(std::vector<AwVertex> &vertices, std::vector<
         }
     }
 }
-void GeometryUtils::CreateCone(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                               float radius, float height, int radialSegments, int heightSegments,
-                               bool openEnded, float thetaStart, float thetaLength)
+void GeometryUtils::CreateCone(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float radius, float height, int radialSegments,
+                               int heightSegments, bool openEnded, float thetaStart, float thetaLength)
 {
     float halfHeight    = height / 2.0f;
     float segmentHeight = height / heightSegments;
@@ -269,8 +378,7 @@ void GeometryUtils::CreateCone(std::vector<AwVertex> &vertices, std::vector<uint
             float cosTheta = cos(theta);
 
             AwVertex vertex;
-            vertex.position =
-                glm::vec3(radius * sinTheta, -v * height + halfHeight, radius * cosTheta);
+            vertex.position = glm::vec3(radius * sinTheta, -v * height + halfHeight, radius * cosTheta);
             vertex.texCoord = glm::vec2(u, 1.0f - v);
 
             glm::vec3 tangent   = glm::vec3(-cosTheta, 0.0f, sinTheta);
@@ -305,9 +413,8 @@ void GeometryUtils::CreateCone(std::vector<AwVertex> &vertices, std::vector<uint
         }
     }
 }
-void GeometryUtils::CreateTorus(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                                float radius, float tube, int radialSegments, int tubularSegments,
-                                float arc)
+void GeometryUtils::CreateTorus(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float radius, float tube, int radialSegments,
+                                int tubularSegments, float arc)
 {
     for (int y = 0; y <= tubularSegments; ++y)
     {
@@ -325,8 +432,7 @@ void GeometryUtils::CreateTorus(std::vector<AwVertex> &vertices, std::vector<uin
             float cosPhi   = cos(phi);
 
             AwVertex vertex;
-            vertex.position = glm::vec3((radius + tube * cosPhi) * cosTheta, tube * sinPhi,
-                                        (radius + tube * cosPhi) * sinTheta);
+            vertex.position = glm::vec3((radius + tube * cosPhi) * cosTheta, tube * sinPhi, (radius + tube * cosPhi) * sinTheta);
             vertex.texCoord = glm::vec2(u, v);
 
             glm::vec3 tangent   = glm::vec3(-sinTheta, 0.0f, cosTheta);
@@ -362,8 +468,7 @@ void GeometryUtils::CreateTorus(std::vector<AwVertex> &vertices, std::vector<uin
     }
 }
 
-void GeometryUtils::CreateTorusKnot(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices,
-                                    float radius, float tube, int tubularSegments,
+void GeometryUtils::CreateTorusKnot(std::vector<AwVertex> &vertices, std::vector<uint32_t> &indices, float radius, float tube, int tubularSegments,
                                     int radialSegments, float p, float q)
 {
     for (int y = 0; y <= tubularSegments; ++y)
@@ -382,12 +487,10 @@ void GeometryUtils::CreateTorusKnot(std::vector<AwVertex> &vertices, std::vector
             float cosTheta = cos(theta);
 
             AwVertex vertex;
-            vertex.position = glm::vec3((radius + tube * cosPhi) * cosTheta,
-                                        (radius + tube * cosPhi) * sinTheta, tube * sinPhi);
+            vertex.position = glm::vec3((radius + tube * cosPhi) * cosTheta, (radius + tube * cosPhi) * sinTheta, tube * sinPhi);
             vertex.texCoord = glm::vec2(u, v);
 
-            glm::vec3 tangent   = glm::vec3(-sinTheta * (radius + tube * cosPhi), -sinPhi * tube,
-                                            cosTheta * (radius + tube * cosPhi));
+            glm::vec3 tangent   = glm::vec3(-sinTheta * (radius + tube * cosPhi), -sinPhi * tube, cosTheta * (radius + tube * cosPhi));
             glm::vec3 bitangent = glm::vec3(cosTheta * cosPhi, -sinPhi, sinTheta * cosPhi);
 
             glm::vec3 normal = glm::normalize(glm::cross(tangent, bitangent));

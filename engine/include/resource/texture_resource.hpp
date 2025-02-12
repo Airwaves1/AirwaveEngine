@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendering/"
 #include "resource/resource.hpp"
 
 #include <glad/glad.h>
@@ -18,11 +19,8 @@ class TextureResource : public Resource
     ResourceType getType() const override { return ResourceType::Texture; }
     TextureSpecification &getSpec() { return m_spec; }
 
-    // 从文件加载纹理
-    bool load(const std::string &path, TextureSpecification spec);
-
     // 从文件加载立方体贴图
-    bool load(const std::vector<std::string> &paths, TextureSpecification spec);
+    // bool load(const std::vector<std::string> &paths, TextureSpecification spec);
 
     bool reload(TextureSpecification spec, void *data = nullptr);
 
@@ -30,8 +28,7 @@ class TextureResource : public Resource
     bool onLoad(const std::string &path, const std::any &params) override;
 
   private:
-
-    TextureSpecification m_spec;
+    std::shared_ptr<Texture> m_texture;
 };
 
 } // namespace Airwave

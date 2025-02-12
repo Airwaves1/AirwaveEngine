@@ -14,16 +14,20 @@ namespace Airwave
 class AwScene;
 class AwEntity;
 
-class Model : public Resource
+class ModelResource : public Resource
 {
   public:
-    Model() = default;
-    ~Model() override;
+    ModelResource() = default;
+    ~ModelResource() override;
 
-    bool load(const std::string &path);
+    virtual ResourceType getType() const override { return ResourceType::Model; }
+
     void onDispose() override {}
 
     entt::entity instantiate(AwScene *scene, entt::entity rootEntity = entt::null);
+
+  protected:
+    bool onLoad(const std::string &path, const std::any &params) override;
 
   private:
     void processNode(const tinygltf::Node &node, AwScene *scene, entt::entity parentEntity, const glm::mat4 &parentMatrix);

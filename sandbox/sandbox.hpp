@@ -21,6 +21,7 @@ class Sandbox : public Airwave::Application
     void onUpdate(float deltaTime) override;
     void onRender() override;
     void onImGuiRender() override;
+    void onPreLoad() override;
 
   private:
     std::unique_ptr<Airwave::Editor> m_editor;

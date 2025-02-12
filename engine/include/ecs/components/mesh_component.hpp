@@ -6,7 +6,6 @@
 
 #include "ecs/aw_component.hpp"
 
-#include "rendering/mesh.hpp"
 #include "rendering/primitive.hpp"
 
 namespace Airwave

@@ -62,7 +62,7 @@ class ResourceManager
         return false;
     }
 
-    template <typename T> std::shared_ptr<T> get(const std::string &path)
+    template <typename T> std::weak_ptr<T> get_weak(const std::string &path)
     {
         if (auto it = m_resources.find(path); it != m_resources.end())
         {
@@ -70,6 +70,17 @@ class ResourceManager
         }
         return nullptr;
     }
+
+    template <typename T> std::shared_ptr<T> get_shared(const std::string &path)
+    {
+        if (auto it = m_resources.find(path); it != m_resources.end())
+        {
+            return std::dynamic_pointer_cast<T>(it->second);
+        }
+        LOG_ERROR("Resource not found: {0}", path);
+        return nullptr;
+    }
+
 
     template <typename T> bool unload(const std::string &path)
     {

@@ -15,7 +15,7 @@ class Resource;
 enum class ResourceType
 {
     Texture,
-    Mesh,
+    Model,
     Material,
     Shader,
     Sound,

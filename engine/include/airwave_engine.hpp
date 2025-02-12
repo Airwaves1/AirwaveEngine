@@ -50,4 +50,5 @@
 #include "resource/resource.hpp"
 #include "resource/texture_resource.hpp"
 #include "resource/shader_resource.hpp"
+#include "resource/model_resource.hpp"
 

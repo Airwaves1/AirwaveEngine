@@ -16,7 +16,11 @@ class MaterialComponent : public AwComponent
     MaterialRenderParams materialRenderParams;
     std::shared_ptr<Material> material;
 
-    MaterialComponent(MaterialType type = MaterialType::Basic) { setMaterialType(type); }
+    MaterialComponent(MaterialType type = MaterialType::Basic)
+    {
+        material = std::make_shared<Material>();
+        setMaterialType(type);
+    }
 
     MaterialType getMaterialType() const { return m_type; }
 
@@ -27,11 +31,11 @@ class MaterialComponent : public AwComponent
         switch (type)
         {
             case MaterialType::Basic:
-                material->shader = ResourceManager::GetInstance().get<ShaderResource>("basic");
+                material->shader = RES.get_shared<ShaderResource>(SHADER_PATH + "shader_lib/basic.glsl");
                 break;
             case MaterialType::PBR:
-                material->shader  = ResourceManager::GetInstance().get<ShaderResource>("pbr");
-                material->brdfLUT = ResourceManager::GetInstance().get<TextureResource>("brdf_lut");
+                material->shader  = RES.get_shared<ShaderResource>(SHADER_PATH + "shader_lib/pbr.glsl");
+                material->brdfLUT = RES.get_shared<TextureResource>("brdf_lut");
                 break;
             default:
                 break;
