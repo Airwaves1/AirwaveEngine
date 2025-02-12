@@ -10,19 +10,6 @@
 
 namespace Airwave
 {
-class Resource;
-
-enum class ResourceType
-{
-    Texture,
-    Model,
-    Material,
-    Shader,
-    Sound,
-    Font,
-    Unknown
-};
-
 class ResourceEvent : public Event
 {
   public:
@@ -34,11 +21,7 @@ class ResourceEvent : public Event
         Reload,
         Dispose
     };
-
-    ResourceEvent(uint32_t handle, UUID uuid) : handle(handle), m_uuid(uuid) {}
     std::string getType() const override { return "ResourceEvent"; }
-    uint32_t handle;
-    UUID m_uuid;
 };
 
 class Resource
@@ -46,8 +29,6 @@ class Resource
   public:
     Resource() : m_uuid(UUID::Generate()) { m_eventDispatcher = std::make_shared<EventDispatcher>(); }
     virtual ~Resource() = default;
-
-    virtual ResourceType getType() const = 0;
 
     bool load(const std::string &path, const std::any &params = {})
     {
@@ -61,23 +42,13 @@ class Resource
         return m_loaded;
     }
 
-    bool isLoaded() const { return m_loaded; }
-
-    uint32_t getHandle() const { return m_handle; }
-
   protected:
-    virtual bool onLoad(const std::string &path, const std::any &params) { return false; }
-    virtual void onDispose() {}
-
-    friend class ResourceManager;
-
-    UUID m_uuid; // 资源唯一标识符
-
-    uint32_t m_handle = 0; // GPU 资源句柄
-
-    bool m_loaded = false;
+    virtual bool onLoad(const std::string &path, const std::any &params) = 0;
 
     std::shared_ptr<EventDispatcher> m_eventDispatcher;
+    UUID m_uuid;
+
+    bool m_loaded = false;
 };
 
 } // namespace Airwave

@@ -2,8 +2,46 @@
 
 namespace Airwave
 {
+std::shared_ptr<Primitive> GeometryUtils::CreateQuad(float width, float height, float repeatX, float repeatY)
+{
+    // 全屏四边形
+    std::vector<float> vertices = {
+        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    };
+
+    std::vector<uint32_t> indices = {
+        0, 1, 2, 2, 3, 0,
+    };
+
+    auto primitive = std::make_shared<Primitive>();
+
+
+    glGenVertexArrays(1, &primitive->vao);
+    glGenBuffers(1, &primitive->vbo);
+    glGenBuffers(1, &primitive->ebo); 
+
+    glBindVertexArray(primitive->vao);
+
+
+    glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+
+    glBindVertexArray(0); 
+}
 
 std::shared_ptr<Primitive> Airwave::GeometryUtils::CreatePlane(float width, float height, int widthSegments, int heightSegments, float repeatX,
+
                                                                float repeatY)
 {
     std::vector<AwVertex> vertices;
@@ -14,7 +52,7 @@ std::shared_ptr<Primitive> Airwave::GeometryUtils::CreatePlane(float width, floa
     std::vector<float> verticesFloat = ConvertWaveVertexToFloatArray(vertices);
 
     auto primitive = std::make_shared<Primitive>();
-    
+
     glGenVertexArrays(1, &primitive->vao);
     glGenBuffers(1, &primitive->vbo);
     glGenBuffers(1, &primitive->ebo);
@@ -46,7 +84,8 @@ std::shared_ptr<Primitive> Airwave::GeometryUtils::CreatePlane(float width, floa
     return primitive;
 }
 
-std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateCube(float width, float height, float depth, int widthSegments, int heightSegments, int depthSegments)
+std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateCube(float width, float height, float depth, int widthSegments, int heightSegments,
+                                                              int depthSegments)
 {
     std::vector<AwVertex> vertices;
     std::vector<uint32_t> indices;
@@ -56,7 +95,7 @@ std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateCube(float width, float
     std::vector<float> verticesFloat = ConvertWaveVertexToFloatArray(vertices);
 
     auto primitive = std::make_shared<Primitive>();
-    
+
     glGenVertexArrays(1, &primitive->vao);
     glGenBuffers(1, &primitive->vbo);
     glGenBuffers(1, &primitive->ebo);
@@ -88,7 +127,8 @@ std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateCube(float width, float
     return primitive;
 }
 
-std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateSphere(float radius, int widthSegments, int heightSegments, float phiStart, float phiLength, float thetaStart, float thetaLength)
+std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateSphere(float radius, int widthSegments, int heightSegments, float phiStart, float phiLength,
+                                                                float thetaStart, float thetaLength)
 {
     std::vector<AwVertex> vertices;
     std::vector<uint32_t> indices;
@@ -98,7 +138,7 @@ std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateSphere(float radius, in
     std::vector<float> verticesFloat = ConvertWaveVertexToFloatArray(vertices);
 
     auto primitive = std::make_shared<Primitive>();
-    
+
     glGenVertexArrays(1, &primitive->vao);
     glGenBuffers(1, &primitive->vbo);
     glGenBuffers(1, &primitive->ebo);

@@ -3,7 +3,7 @@
 #include "panels/panel.hpp"
 #include <imgui.h>
 
-#include "rendering/opengl/gl_texture.hpp"
+#include "rendering/texture.hpp"
 #include "ecs/components/singleton_components/input_component.hpp"
 
 namespace Airwave
@@ -22,7 +22,7 @@ class ViewportPanel : public Panel
         ImGui::Begin(m_title.c_str());
         ImVec2 availableSize = ImGui::GetContentRegionAvail(); // 获取当前窗口可用大小
         auto fbo             = m_editor->getContext()->getRenderer()->getFramebuffer();
-        auto textureID       = fbo.lock()->getMainColorAttachment();
+        auto textureID       = fbo->getColorAttachment()->getHandle();
 
         ImGui::Image((void *)(intptr_t)textureID, availableSize, ImVec2(0, 1), ImVec2(1, 0));
 

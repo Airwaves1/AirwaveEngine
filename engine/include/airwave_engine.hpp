@@ -30,18 +30,15 @@
 #include "ecs/systems/render_system.hpp"
 #include "ecs/systems/input_system.hpp"
 
-
-#include "rendering/renderer.hpp"   
+#include "rendering/renderer.hpp"
 #include "rendering/primitive.hpp"
 #include "rendering/material.hpp"
-#include "rendering/opengl/gl_shader.hpp"
-#include "rendering/opengl/gl_texture.hpp"
-#include "rendering/opengl/gl_vertex_array.hpp"
-#include "rendering/opengl/gl_vertex_buffer.hpp"
-#include "rendering/opengl/gl_framebuffer.hpp"
+#include "rendering/texture.hpp"
+#include "rendering/shader.hpp"
+#include "rendering/uniforms.hpp"
+#include "rendering/framebuffer.hpp"
 
 #include "utils/geometry_utils.hpp"
-#include "utils/shapes_vao.hpp"
 #include "utils/texture_utils.hpp"
 #include "utils/file_utils.hpp"
 #include "utils/shader_utils.hpp"
@@ -51,4 +48,3 @@
 #include "resource/texture_resource.hpp"
 #include "resource/shader_resource.hpp"
 #include "resource/model_resource.hpp"
-

@@ -1,106 +1,86 @@
 #pragma once
 
-#include <string>
-#include <functional>
 #include <memory>
 #include <unordered_map>
-#include <vector>
-#include <queue>
-#include <future>
-#include <variant>
-#include <concepts>
+#include <typeindex>
+#include <typeinfo>
 
 #include "core/log.hpp"
 #include "resource/resource.hpp"
 
 namespace Airwave
 {
-
 #define RES ResourceManager::GetInstance()
-
+/**
+ * @brief 资源管理器
+ * 资源以路径为唯一标识符, 通过路径加载资源, 如果资源已经加载, 直接返回资源, 否则加载资源并返回
+ */
 class ResourceManager
 {
-  private:
-    std::unordered_map<std::string, std::shared_ptr<Resource>> m_resources;
-
   public:
     static ResourceManager &GetInstance()
     {
         static ResourceManager instance;
         return instance;
     }
-    ~ResourceManager() = default;
 
-    template <typename T> std::shared_ptr<T> load(const std::string &path, std::any &&params = {})
+    using ResourceMap = std::unordered_map<std::string, std::shared_ptr<Resource>>;
+
+    std::unordered_map<std::type_index, ResourceMap> m_resources;
+
+  public:
+    template <typename T> std::shared_ptr<T> load(const std::string &path, std::any &&params = std::any())
     {
-        if (auto it = m_resources.find(path); it != m_resources.end())
+        const auto type = std::type_index(typeid(T));
+
+        auto &type_map = m_resources[type];
+
+        if (type_map.find(path) != type_map.end())
         {
-            return std::dynamic_pointer_cast<T>(it->second);
+            return std::static_pointer_cast<T>(type_map[path]);
         }
 
         auto resource = std::make_shared<T>();
-        if (resource->load(PROJECT_ROOT_DIR + path, params))
+        if (resource->load(std::string(PROJECT_ROOT_DIR)+ "/assets/" + path, std::move(params)))
         {
-            m_resources[path] = resource;
+            type_map[path] = resource;
             return resource;
         }
 
         LOG_ERROR("Failed to load resource: {0}", path);
+        return std::shared_ptr<T>();
+    }
+
+    template <typename T> std::shared_ptr<T> get(const std::string &path)
+    {
+        const auto type = std::type_index(typeid(T));
+
+        auto &type_map = m_resources[type];
+
+        if (type_map.find(path) != type_map.end())
+        {
+            return std::static_pointer_cast<T>(type_map[path]);
+        }
+
+        LOG_ERROR("Resource not found: {0}", path);
         return nullptr;
     }
 
     template <typename T> bool add(const std::string &path, std::shared_ptr<T> resource)
     {
-        if (auto it = m_resources.find(path); it == m_resources.end())
+        const auto type = std::type_index(typeid(T));
+
+        auto &type_map = m_resources[type];
+
+        if (type_map.find(path) != type_map.end())
         {
-            m_resources[path] = resource;
-            return true;
+            LOG_ERROR("Resource already exists: {0}", path);
+            return false;
         }
 
-        LOG_ERROR("Resource already exists: {0}", path);
-
-        return false;
+        type_map[path] = resource;
+        return true;
     }
-
-    template <typename T> std::weak_ptr<T> get_weak(const std::string &path)
-    {
-        if (auto it = m_resources.find(path); it != m_resources.end())
-        {
-            return std::dynamic_pointer_cast<T>(it->second);
-        }
-        return nullptr;
-    }
-
-    template <typename T> std::shared_ptr<T> get_shared(const std::string &path)
-    {
-        if (auto it = m_resources.find(path); it != m_resources.end())
-        {
-            return std::dynamic_pointer_cast<T>(it->second);
-        }
-        LOG_ERROR("Resource not found: {0}", path);
-        return nullptr;
-    }
-
-
-    template <typename T> bool unload(const std::string &path)
-    {
-        if (auto it = m_resources.find(path); it != m_resources.end())
-        {
-            if (it->second.use_count() == 1)
-            {
-                m_resources.erase(it);
-                return true;
-            }
-            else
-            {
-                LOG_ERROR("Resource still in use: {0}", path);
-            }
-        }
-        return false;
-    }
-
-  private:
-    ResourceManager() = default;
 };
 
-} // namespace Airwave
+}; // namespace Airwave

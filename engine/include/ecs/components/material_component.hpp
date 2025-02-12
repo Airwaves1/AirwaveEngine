@@ -4,6 +4,9 @@
 #include "ecs/aw_component.hpp"
 
 #include "rendering/material.hpp"
+#include "rendering/shader.hpp"
+#include "rendering/texture.hpp"
+
 #include "resource/resource_manager.hpp"
 #include "resource/shader_resource.hpp"
 #include "resource/texture_resource.hpp"
@@ -31,11 +34,11 @@ class MaterialComponent : public AwComponent
         switch (type)
         {
             case MaterialType::Basic:
-                material->shader = RES.get_shared<ShaderResource>(SHADER_PATH + "shader_lib/basic.glsl");
+                material->shader = RES.load<ShaderResource>("shader/shader_lib/basic.glsl")->getShader();
                 break;
             case MaterialType::PBR:
-                material->shader  = RES.get_shared<ShaderResource>(SHADER_PATH + "shader_lib/pbr.glsl");
-                material->brdfLUT = RES.get_shared<TextureResource>("brdf_lut");
+                material->shader  = RES.load<ShaderResource>("shader/shader_lib/pbr.glsl")->getShader();
+                material->brdfLUT = RES.load<TextureResource>("brdf_lut")->getTexture();
                 break;
             default:
                 break;

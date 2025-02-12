@@ -15,6 +15,8 @@ namespace Airwave
 class GeometryUtils
 {
   public:
+    static std::shared_ptr<Primitive> CreateQuad(float width = 1.0f, float height = 1.0f, float repeatX = 1.0f, float repeatY = 1.0f);
+
     static std::shared_ptr<Primitive> CreatePlane(float width = 1.0, float height = 1.0, int widthSegments = 1.0, int heightSegments = 1.0,
                                                   float repeatX = 1.0f, float repeatY = 1.0f);
 

@@ -9,11 +9,11 @@
 namespace Airwave
 {
 
-const std::string ASSETS_PATH = "/assets/";
-const std::string SHADER_PATH = "/assets/shaders/";
+const std::string ASSETS_PATH  = "/assets/";
+const std::string SHADER_PATH  = "/assets/shaders/";
 const std::string TEXTURE_PATH = "/assets/textures/";
-const std::string MODEL_PATH = "/assets/models/";
-const std::string FONT_PATH = "/assets/fonts/";
+const std::string MODEL_PATH   = "/assets/models/";
+const std::string FONT_PATH    = "/assets/fonts/";
 
 using UniformValue = std::variant<size_t, float, glm::vec2, glm::vec3, glm::vec4, int, glm::ivec2, glm::ivec3, glm::ivec4, glm::mat3, glm::mat4>;
 
@@ -34,7 +34,8 @@ enum class LightType
 
 const int MAX_BONE_COUNT = 100;
 
-struct AwVertex {
+struct AwVertex
+{
     glm::vec3 position;
     glm::vec3 normal;
     glm::vec2 texCoord;
@@ -43,17 +44,16 @@ struct AwVertex {
     glm::vec4 jointWeights;  // 骨骼权重
 };
 
-
 struct FramebufferSpecification
 {
     uint32_t width  = 0;
     uint32_t height = 0;
 
-    bool enableMSAA = false;
+    bool enableMSAA  = false;
     uint32_t samples = 1;
 
     uint32_t colorAttachmentCount = 1;
-    bool enableDepth = false;
+    bool enableDepth              = false;
 };
 
 enum class RenderSide
@@ -282,8 +282,16 @@ struct MaterialRenderParams
     float polygonOffsetUnits  = 0.0f;  // 多边形偏移单位
 };
 
+enum class TextureUsage
+{
+    ColorAttachment,
+    DepthAttachment,
+    StencilAttachment
+};
 struct TextureSpecification
 {
+    TextureUsage usage = TextureUsage::ColorAttachment;
+
     uint32_t width  = 0;
     uint32_t height = 0;
 
@@ -306,6 +314,7 @@ struct TextureSpecification
     bool isHDR          = false;
     uint32_t samples    = 1;
     bool enableMSAA     = false;
+    bool isRenderTarget = false;
 };
 
 } // namespace Airwave

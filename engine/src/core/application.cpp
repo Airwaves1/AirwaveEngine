@@ -68,35 +68,30 @@ void Application::quit()
 
 void Application::preLoad()
 {
+    try
+    {
+        // 预编译shader
+        // basic shader
+        auto basic = RES.load<ShaderResource>("shaders/shader_lib/basic.glsl");
+        // pbr shader
+        auto pbr = RES.load<ShaderResource>("shaders/shader_lib/pbr.glsl");
+        // background shader
+        auto background = RES.load<ShaderResource>("shaders/shader_lib/background.glsl");
 
-    // 预编译shader
-    // basic shader
-    auto basic = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/basic.glsl");
-    // pbr shader
-    auto pbr =  RES.load<ShaderResource>(SHADER_PATH + "shader_lib/pbr.glsl");
-    // background shader
-    auto background = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/background.glsl");
+        // // 生成BRDF LUT
+        // auto brdfLUT         = TextureUtils::generateBRDFLUT(m_renderer.get());
+        // auto brdfLUTResource = std::make_shared<TextureResource>(brdfLUT);
+        // RES.add<TextureResource>("brdf_lut", brdfLUTResource);
 
+        // 加载资源
+        onPreLoad();
+    }
+    catch (const std::exception &e)
+    {
+        LOG_ERROR("Failed to preload resources: {0}", e.what());
+    }
 
-    // // 空白纹理和默认法线贴图
-    TextureSpecification spec;
-    spec.internalFormat        = TextureInternalFormat::RGBA;
-    spec.width                 = 1;
-    spec.height                = 1;
-    std::vector<uint8_t> data  = {255, 255, 255, 255};
-    std::vector<uint8_t> data2 = {128, 128, 255, 255};
-    auto emptyTexture          = std::make_shared<TextureResource>(spec, data);
-    auto defaultNormal         = std::make_shared<TextureResource>(spec, data2);
-
-    RES.add<TextureResource>("empty_texture", emptyTexture);
-    RES.add<TextureResource>("default_normal", defaultNormal);
-
-    // // 生成BRDF LUT
-    auto brdfLUT = TextureUtils::generateBRDFLUT(m_renderer.get());
-    RES.add<TextureResource>("brdf_lut", brdfLUT);
-    
-    // 加载资源
-    onPreLoad();
+    LOG_INFO("Preload resources done");
 }
 
 void Application::mainLoop()

@@ -1,34 +1,33 @@
 #pragma once
 
-#include "rendering/"
 #include "resource/resource.hpp"
-
-#include <glad/glad.h>
-
-#include "core/common.hpp"
-
+#include "rendering/texture.hpp"
 namespace Airwave
 {
+class Texture;
 class TextureResource : public Resource
 {
   public:
     TextureResource() = default;
-    TextureResource(TextureSpecification spec, std::vector<uint8_t> data = {});
+    TextureResource(std::shared_ptr<Texture> texture) : m_texture(texture) {}
     ~TextureResource() override;
 
-    ResourceType getType() const override { return ResourceType::Texture; }
-    TextureSpecification &getSpec() { return m_spec; }
+    std::shared_ptr<Texture> getTexture() const
+    {
+        if (m_texture == nullptr)
+        {
+            return Texture::create_white_texture();
+        }
+        return m_texture;
+    }
 
-    // 从文件加载立方体贴图
-    // bool load(const std::vector<std::string> &paths, TextureSpecification spec);
-
-    bool reload(TextureSpecification spec, void *data = nullptr);
+    void setTexture(std::shared_ptr<Texture> texture) { m_texture = texture; }
 
   protected:
     bool onLoad(const std::string &path, const std::any &params) override;
 
   private:
-    std::shared_ptr<Texture> m_texture;
+    std::shared_ptr<Texture> m_texture = nullptr;
 };
 
 } // namespace Airwave

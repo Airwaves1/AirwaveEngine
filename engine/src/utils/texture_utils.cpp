@@ -7,20 +7,20 @@
 
 #include "resource/resource_manager.hpp"
 #include "resource/shader_resource.hpp"
-#include "resource/texture_resource.hpp"
 
-#include "rendering/opengl/gl_framebuffer.hpp"
+
+#include "rendering/shader.hpp"
+#include "rendering/texture.hpp"
+#include "rendering/framebuffer.hpp"
+#include "rendering/primitive.hpp"
 
 #include "core/common.hpp"
-#include "utils/shapes_vao.hpp"
 #include "utils/geometry_utils.hpp"
-
-#include "rendering/opengl/gl_vertex_array.hpp"
 
 namespace Airwave
 {
-std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer *renderer, const std::shared_ptr<TextureResource> &equirectangular,
-                                                                        uint32_t resolution, bool isHDR)
+std::shared_ptr<Texture> TextureUtils::equirectangularToCubemap(Renderer *renderer, const std::shared_ptr<Texture> &equirectangular,
+                                                                uint32_t resolution, bool isHDR)
 {
     if (equirectangular == nullptr || equirectangular->getHandle() == 0)
     {
@@ -43,15 +43,16 @@ std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer
                                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
                                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
 
-    auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
+    // auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
+    auto primitive = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
-    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/equirectangular_to_cubemap.glsl");
+    auto shader_res = RES.load<ShaderResource>("shaders/shader_lib/equirectangular_to_cubemap.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
         return nullptr;
     }
-    uint32_t shader = shader_res->getHandle();
+    uint32_t shader = shader_res->getShader()->getHandle();
 
     TextureSpecification cube_map_spec;
     cube_map_spec.width       = resolution;
@@ -65,7 +66,7 @@ std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer
                                                                      // visible dots artifact)
     cube_map_spec.magFilter = TextureFilter::LINEAR;
 
-    auto cube_map = std::make_shared<TextureResource>(cube_map_spec);
+    auto cube_map = std::make_shared<Texture>(cube_map_spec);
 
     renderer->bindShader(shader);
     renderer->set("u_equirectangularMap", 0);
@@ -88,8 +89,7 @@ std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer->uploadUniforms(shader);
-        vertexArray->bind();
-        glDrawElements(GL_TRIANGLES, vertexArray->getIndexCount(), GL_UNSIGNED_INT, nullptr);
+        primitive->draw();
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -109,7 +109,7 @@ std::shared_ptr<TextureResource> TextureUtils::equirectangularToCubemap(Renderer
     return cube_map;
 }
 
-std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *renderer, const std::shared_ptr<TextureResource> &envMap,
+std::shared_ptr<Texture> TextureUtils::irradianceConvolution(Renderer *renderer, const std::shared_ptr<Texture> &envMap,
                                                                      uint32_t resolution)
 {
     auto &envMapSpec = envMap->getSpec();
@@ -127,15 +127,15 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
                                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
                                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
 
-    auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
+    auto primitive = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
-    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/irradiance_convolution.glsl");
+    auto shader_res = RES.load<ShaderResource>("shaders/shader_lib/irradiance_convolution.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
         return nullptr;
     }
-    uint32_t shader = shader_res->getHandle();
+    uint32_t shader = shader_res->getShader()->getHandle();
 
     TextureSpecification irradiance_spec;
     irradiance_spec.width       = resolution;
@@ -146,7 +146,7 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
     irradiance_spec.wrapT       = TextureWrap::CLAMP_TO_EDGE;
     irradiance_spec.wrapR       = TextureWrap::CLAMP_TO_EDGE;
 
-    auto irradiance_map = std::make_shared<TextureResource>(irradiance_spec);
+    auto irradiance_map = std::make_shared<Texture>(irradiance_spec);
 
     renderer->bindShader(shader);
 
@@ -169,8 +169,7 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderer->uploadUniforms(shader);
-        vertexArray->bind();
-        glDrawElements(GL_TRIANGLES, vertexArray->getIndexCount(), GL_UNSIGNED_INT, nullptr);
+        primitive->draw();
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -184,7 +183,7 @@ std::shared_ptr<TextureResource> TextureUtils::irradianceConvolution(Renderer *r
     return irradiance_map;
 }
 
-std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *renderer, const std::shared_ptr<TextureResource> &envMap,
+std::shared_ptr<Texture> TextureUtils::prefilterEnvMap(Renderer *renderer, const std::shared_ptr<Texture> &envMap,
                                                                uint32_t resolution, uint32_t maxMipLevels = 5)
 {
     if (envMap == nullptr || envMap->getHandle() == 0)
@@ -207,7 +206,7 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
                                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)),
                                    glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f))};
 
-    auto vertexArray = ShapesVAO::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
+    auto primitive = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
 
     TextureSpecification prefilter_spec;
     prefilter_spec.isHDR          = envMapSpec.isHDR;
@@ -221,15 +220,15 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
     prefilter_spec.minFilter      = TextureFilter::LINEAR_MIPMAP_LINEAR;
     prefilter_spec.magFilter      = TextureFilter::LINEAR;
 
-    auto prefilter_map = std::make_shared<TextureResource>(prefilter_spec);
+    auto prefilter_map = std::make_shared<Texture>(prefilter_spec);
 
-    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/prefilter_envmap.glsl");
+    auto shader_res = RES.load<ShaderResource>("shaders/shader_lib/prefilter_envmap.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::prefilterEnvMap: shader resource is nullptr");
         return nullptr;
     }
-    uint32_t shader = shader_res->getHandle();
+    uint32_t shader = shader_res->getShader()->getHandle();
 
     renderer->bindShader(shader);
 
@@ -260,8 +259,7 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
 
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             renderer->uploadUniforms(shader);
-            vertexArray->bind();
-            glDrawElements(GL_TRIANGLES, vertexArray->getIndexCount(), GL_UNSIGNED_INT, nullptr);
+            primitive->draw();
         }
     }
 
@@ -276,38 +274,18 @@ std::shared_ptr<TextureResource> TextureUtils::prefilterEnvMap(Renderer *rendere
     return prefilter_map;
 }
 
-std::shared_ptr<TextureResource> TextureUtils::generateBRDFLUT(Renderer *renderer, uint32_t resolution)
+std::shared_ptr<Texture> TextureUtils::generateBRDFLUT(Renderer *renderer, uint32_t resolution)
 {
-    // 全屏四边形
-    std::vector<float> vertices = {
-        -1.0f, -1.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f, 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-    };
 
-    std::vector<uint32_t> indices = {
-        0, 1, 2, 2, 3, 0,
-    };
+    auto primitive = GeometryUtils::CreateQuad(1.0f, 1.0f, 1, 1);
 
-    auto vertexArray = std::make_shared<VertexArray>();
-    vertexArray->bind();
-    {
-        auto vertexBuffer = std::make_shared<VertexBuffer>(vertices.data(), vertices.size() * sizeof(float));
-        vertexBuffer->setLayout({
-            {ShaderDataType::Float3, "a_position"},
-            {ShaderDataType::Float2, "a_texCoord"},
-        });
-        vertexArray->addVertexBuffer(vertexBuffer);
-
-        auto indexBuffer = std::make_shared<IndexBuffer>(indices.data(), indices.size());
-        vertexArray->setIndexBuffer(indexBuffer);
-    }
-
-    auto shader_res = RES.load<ShaderResource>(SHADER_PATH + "shader_lib/brdf_lut.glsl");
+    auto shader_res = RES.load<ShaderResource>("shaders/shader_lib/brdf_lut.glsl");
     if (!shader_res)
     {
         LOG_ERROR("TextureUtils::generateBRDFLUT: shader resource is nullptr");
         return nullptr;
     }
-    uint32_t shader = shader_res->getHandle();
+    uint32_t shader = shader_res->getShader()->getHandle();
 
     TextureSpecification brdfLUTSpec;
     brdfLUTSpec.width           = resolution;
@@ -323,7 +301,7 @@ std::shared_ptr<TextureResource> TextureUtils::generateBRDFLUT(Renderer *rendere
     brdfLUTSpec.minFilter       = TextureFilter::LINEAR;
     brdfLUTSpec.magFilter       = TextureFilter::LINEAR;
 
-    auto brdfLUT = std::make_shared<TextureResource>(brdfLUTSpec);
+    auto brdfLUT = std::make_shared<Texture>(brdfLUTSpec);
 
     renderer->bindShader(shader);
 
@@ -336,8 +314,7 @@ std::shared_ptr<TextureResource> TextureUtils::generateBRDFLUT(Renderer *rendere
     glViewport(0, 0, resolution, resolution);
 
     renderer->uploadUniforms(shader);
-    vertexArray->bind();
-    glDrawElements(GL_TRIANGLES, vertexArray->getIndexCount(), GL_UNSIGNED_INT, nullptr);
+    primitive->draw();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

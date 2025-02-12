@@ -3,9 +3,14 @@
 #include <memory>
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include "rendering/opengl/gl_framebuffer.hpp"
-#include "rendering/opengl/gl_uniforms.hpp"
+
 #include "core/common.hpp"
+
+#include "rendering/texture.hpp"
+#include "rendering/uniforms.hpp"
+#include "rendering/framebuffer.hpp"
+#include "rendering/primitive.hpp"
+
 namespace Airwave
 {
 class Application;
@@ -39,7 +44,7 @@ class Renderer
 
     void setViewport(int x, int y, int width, int height) { glViewport(x, y, width, height); }
 
-    std::weak_ptr<Framebuffer> getFramebuffer() { return m_framebuffer; }
+    std::shared_ptr<Framebuffer> getFramebuffer() { return m_framebuffer; }
 
     Application *getApplication() { return m_appContext; }
 
@@ -49,9 +54,18 @@ class Renderer
     void bindTextureCubeMap(uint32_t texture, uint32_t unit);
     void unBindTextureCubeMap() { glBindTexture(GL_TEXTURE_CUBE_MAP, 0); }
 
-    void set(const std::string &name,const UniformValue &value) { m_uniforms.set(name, value); }
+    void set(const std::string &name, const UniformValue &value) { m_uniforms.set(name, value); }
     const GLUniforms &getUniforms() const { return m_uniforms; }
     void uploadUniforms(GLuint program) { m_uniforms.upload(program); }
+
+    void draw(uint32_t program, const std::vector<std::shared_ptr<Primitive>> &primitives)
+    {
+        uploadUniforms(program);
+        for (auto &primitive : primitives)
+        {
+            primitive->draw();
+        }
+    }
 
   private:
     RendererParams m_rendererParams;

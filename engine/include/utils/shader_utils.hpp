@@ -9,7 +9,7 @@
 #include <set>
 
 #include "resource/resource_manager.hpp"
-#include "rendering/opengl/gl_shader.hpp"
+#include "rendering/shader.hpp"
 #include "utils/file_utils.hpp"
 
 namespace Airwave
