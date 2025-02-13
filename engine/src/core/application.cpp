@@ -78,10 +78,10 @@ void Application::preLoad()
         // background shader
         auto background = RES.load<ShaderResource>("shaders/shader_lib/background.glsl");
 
-        // // 生成BRDF LUT
-        // auto brdfLUT         = TextureUtils::generateBRDFLUT(m_renderer.get());
-        // auto brdfLUTResource = std::make_shared<TextureResource>(brdfLUT);
-        // RES.add<TextureResource>("brdf_lut", brdfLUTResource);
+        // 生成BRDF LUT
+        auto brdfLUT         = TextureUtils::generateBRDFLUT(m_renderer.get());
+        auto brdfLUTResource = std::make_shared<TextureResource>(brdfLUT);
+        RES.add<TextureResource>("brdf_lut", brdfLUTResource);
 
         // 加载资源
         onPreLoad();

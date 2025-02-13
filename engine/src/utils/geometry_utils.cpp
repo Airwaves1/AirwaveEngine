@@ -2,7 +2,7 @@
 
 namespace Airwave
 {
-std::shared_ptr<Primitive> GeometryUtils::CreateQuad(float width, float height, float repeatX, float repeatY)
+std::shared_ptr<Primitive> Airwave::GeometryUtils::CreateQuad(float width, float height, float repeatX, float repeatY)
 {
     // 全屏四边形
     std::vector<float> vertices = {
@@ -15,29 +15,31 @@ std::shared_ptr<Primitive> GeometryUtils::CreateQuad(float width, float height, 
 
     auto primitive = std::make_shared<Primitive>();
 
-
     glGenVertexArrays(1, &primitive->vao);
     glGenBuffers(1, &primitive->vbo);
-    glGenBuffers(1, &primitive->ebo); 
+    glGenBuffers(1, &primitive->ebo);
 
     glBindVertexArray(primitive->vao);
-
 
     glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
-
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
 
-
-    glEnableVertexAttribArray(0);
+    // position
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+    glEnableVertexAttribArray(0);
 
-    glEnableVertexAttribArray(1);
+    // texCoord
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
-    glBindVertexArray(0); 
+    glBindVertexArray(0);
+
+    primitive->indexCount = indices.size();
+
+    return primitive;
 }
 
 std::shared_ptr<Primitive> Airwave::GeometryUtils::CreatePlane(float width, float height, int widthSegments, int heightSegments, float repeatX,

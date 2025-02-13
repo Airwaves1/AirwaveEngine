@@ -17,7 +17,7 @@ class Texture
     static std::shared_ptr<Texture> create_default_normal_map();
 
     // 创建空 2D 纹理或立方体贴图
-    Texture(TextureSpecification spec = TextureSpecification(), const std::vector<uint8_t> &data = std::vector<uint8_t>());
+    Texture(TextureSpecification spec = TextureSpecification(), void* data = nullptr);
 
     ~Texture();
 

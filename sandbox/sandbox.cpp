@@ -59,31 +59,31 @@ void Sandbox::onInit()
     TextureSpecification spec;
     spec.isHDR          = true;
     spec.generateMipmap = false;
-    // auto envMap = RES.load<TextureResource>(TEXTURE_PATH + std::string("hdr/newport_loft.hdr"), spec);
+    auto envMap = RES.load<TextureResource>("textures/hdr/newport_loft.hdr", spec);
 
-    // // HDR to Cubemap
-    // auto cube_map = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap->getTexture(), 1024, true);
-    // // // 获取辐照度贴图
-    // auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cube_map, 32);
-    // // // 获取预过滤贴图
-    // auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cube_map, 256, 5);
+    // HDR to Cubemap
+    auto cube_map = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap->getTexture(), 1024, true);
+    // // 获取辐照度贴图
+    auto irradiance_map = TextureUtils::irradianceConvolution(m_renderer.get(), cube_map, 32);
+    // // 获取预过滤贴图
+    auto prefilter_map = TextureUtils::prefilterEnvMap(m_renderer.get(), cube_map, 256, 5);
 
-    // RES.add<TextureResource>("cubeMap", std::make_shared<TextureResource>(cube_map));
-    // RES.add<TextureResource>("irradiance_map", std::make_shared<TextureResource>(irradiance_map));
-    // RES.add<TextureResource>("prefilter_map", std::make_shared<TextureResource>(prefilter_map));
+    RES.add<TextureResource>("cubeMap", std::make_shared<TextureResource>(cube_map));
+    RES.add<TextureResource>("irradiance_map", std::make_shared<TextureResource>(irradiance_map));
+    RES.add<TextureResource>("prefilter_map", std::make_shared<TextureResource>(prefilter_map));
 
-    // auto adminEntity            = m_scene->getAdminEntity();
-    // auto &renderer_comp         = m_scene->getComponent<RendererComponent>(adminEntity);
-    // renderer_comp.backgroundMap = cube_map;
-    // renderer_comp.envMap        = cube_map;
+    auto adminEntity            = m_scene->getAdminEntity();
+    auto &renderer_comp         = m_scene->getComponent<RendererComponent>(adminEntity);
+    renderer_comp.backgroundMap = cube_map;
+    renderer_comp.envMap        = cube_map;
 
-    // auto brdf_lut             = RES.get<TextureResource>("brdf_lut")->getTexture();
-    // m_editor->onDrawDebugInfo = [this, brdf_lut]()
-    // {
-    //     ImGui::Begin("Debug Info");
-    //     ImGui::Image((void *)(intptr_t)brdf_lut->getHandle(), ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
-    //     ImGui::End();
-    // };
+    auto brdf_lut             = RES.get<TextureResource>("brdf_lut")->getTexture();
+    m_editor->onDrawDebugInfo = [this, brdf_lut]()
+    {
+        ImGui::Begin("Debug Info");
+        ImGui::Image((void *)(intptr_t)brdf_lut->getHandle(), ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
+        ImGui::End();
+    };
 
     // auto sphere = GeometryUtils::CreateSphere(1.0f, 36, 32);
 

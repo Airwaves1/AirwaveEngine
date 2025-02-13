@@ -11,7 +11,7 @@ namespace Airwave
 std::shared_ptr<Texture> Texture::create_white_texture()
 {
     static std::shared_ptr<Texture> white_texture = std::make_shared<Texture>(
-        TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8}, std::vector<uint8_t>{255, 255, 255, 255});
+        TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8}, std::vector<uint8_t>{255, 255, 255, 255}.data());
 
     return white_texture;
 }
@@ -19,12 +19,12 @@ std::shared_ptr<Texture> Texture::create_white_texture()
 std::shared_ptr<Texture> Texture::create_default_normal_map()
 {
     static std::shared_ptr<Texture> default_normal_map = std::make_shared<Texture>(
-        TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8}, std::vector<uint8_t>{128, 128, 255, 255});
+        TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8}, std::vector<uint8_t>{128, 128, 255, 255}.data());
 
     return default_normal_map;
 }
 
-Texture::Texture(TextureSpecification spec, const std::vector<uint8_t> &data) : m_spec(spec)
+Texture::Texture(TextureSpecification spec, void* data) : m_spec(spec)
 {
     if (m_spec.isHDR)
     {
@@ -58,14 +58,13 @@ Texture::Texture(TextureSpecification spec, const std::vector<uint8_t> &data) : 
     glTexParameteri(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                     static_cast<GLint>(m_spec.magFilter));
 
-    const void *_data = data.empty() ? nullptr : data.data();
 
     if (m_spec.textureType == TextureType::TEXTURE_CUBE_MAP)
     {
         for (size_t i = 0; i < 6; i++)
         {
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), m_spec.width, m_spec.width, 0,
-                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), _data);
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
         }
     }
     else
@@ -80,7 +79,7 @@ Texture::Texture(TextureSpecification spec, const std::vector<uint8_t> &data) : 
         else
         {
             glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_spec.width, m_spec.height, 0,
-                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), _data);
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), data);
         }
     }
 

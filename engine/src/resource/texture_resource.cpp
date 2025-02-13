@@ -14,9 +14,20 @@ TextureResource::~TextureResource() {}
 
 bool Airwave::TextureResource::onLoad(const std::string &path, const std::any &params)
 {
+    TextureSpecification spec = std::any_cast<TextureSpecification>(params);
+
     int width, height, channels;
-    stbi_set_flip_vertically_on_load(true);
-    unsigned char *data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    stbi_set_flip_vertically_on_load(spec.flip);
+
+    void *data = nullptr;
+    if (spec.isHDR)
+    {
+        data = stbi_loadf(path.c_str(), &width, &height, &channels, 0);
+    }
+    else
+    {
+        data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    }
 
     if (data == nullptr)
     {
@@ -24,14 +35,10 @@ bool Airwave::TextureResource::onLoad(const std::string &path, const std::any &p
         return false;
     }
 
-    TextureSpecification spec = std::any_cast<TextureSpecification>(params);
-
     spec.width  = width;
     spec.height = height;
 
-    m_texture = std::make_shared<Texture>(spec, std::vector<uint8_t>(data, data + width * height * channels));
-
-    
+    m_texture = std::make_shared<Texture>(spec, data);
 
     return true;
 }

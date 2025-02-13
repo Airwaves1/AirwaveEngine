@@ -278,6 +278,7 @@ std::shared_ptr<Texture> TextureUtils::generateBRDFLUT(Renderer *renderer, uint3
 {
 
     auto primitive = GeometryUtils::CreateQuad(1.0f, 1.0f, 1, 1);
+    // auto primitive = GeometryUtils::CreatePlane(2.0f, 2.0f, 1, 1);
 
     auto shader_res = RES.load<ShaderResource>("shaders/shader_lib/brdf_lut.glsl");
     if (!shader_res)
