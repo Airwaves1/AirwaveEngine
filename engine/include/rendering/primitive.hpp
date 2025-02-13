@@ -23,6 +23,7 @@ class Primitive
     uint32_t material_index = 0;
 
     uint32_t indexCount = 0;
+    GLenum indexType    = GL_UNSIGNED_INT;
 
     Math::AABB bounding_box;
 };

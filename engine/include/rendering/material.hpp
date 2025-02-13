@@ -5,8 +5,11 @@
 #include "rendering/shader.hpp"
 #include "rendering/texture.hpp"
 
+#include "resource/resource_manager.hpp"
 #include "resource/texture_resource.hpp"
 #include "resource/shader_resource.hpp"
+
+#include "core/common.hpp"
 namespace Airwave
 {
 class Material
@@ -16,7 +19,8 @@ class Material
     float metallic  = 1.0f;
     float ao        = 1.0f;
 
-    glm::vec3 color = glm::vec3(0.0);
+    glm::vec3 color    = glm::vec3(0.0);
+    glm::vec3 emissive = glm::vec3(0.0);
 
     std::shared_ptr<Shader> shader;
 
@@ -31,6 +35,36 @@ class Material
     std::shared_ptr<Texture> irradianceMap;
     std::shared_ptr<Texture> prefilterMap;
     std::shared_ptr<Texture> brdfLUT;
+
+    Material(MaterialType type = MaterialType::PBR)
+    {
+        setMaterialType(type);
+    }
+
+    MaterialType getMaterialType() const { return m_type; }
+
+    void setMaterialType(MaterialType type)
+    {
+        if (m_type == type) return;
+
+        switch (type)
+        {
+            case MaterialType::Basic:
+                shader = RES.load<ShaderResource>("shaders/shader_lib/basic.glsl")->getShader();
+                break;
+            case MaterialType::PBR:
+                shader  = RES.load<ShaderResource>("shaders/shader_lib/pbr.glsl")->getShader();
+                brdfLUT = RES.load<TextureResource>("brdf_lut")->getTexture();
+                break;
+            default:
+                break;
+        }
+
+        m_type = type;
+    }
+
+  private:
+    MaterialType m_type = MaterialType::None;
 };
 
 } // namespace Airwave

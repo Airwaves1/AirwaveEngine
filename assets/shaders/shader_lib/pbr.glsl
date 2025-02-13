@@ -1,9 +1,9 @@
 #shader vert
 #version 460 core
 
-layout (location = 0) in vec3 a_position;
-layout (location = 1) in vec3 a_normal;
-layout (location = 2) in vec2 a_texCoords;
+layout(location = 0) in vec3 a_position;
+layout(location = 1) in vec3 a_normal;
+layout(location = 2) in vec2 a_texCoords;
 
 out vec2 v_uv;
 out vec3 v_normal;
@@ -36,7 +36,8 @@ in vec3 v_normal;
 #include "shader_chunk/common.glsl"
 const int MAX_LIGHT_COUNT = 16;
 
-struct PBRMaterial {
+struct PBRMaterial
+{
     vec3 albedo;
     float metallic;
     float roughness;
@@ -44,6 +45,7 @@ struct PBRMaterial {
 
     sampler2D albedoMap;
     sampler2D normalMap;
+    sampler2D metallicRoughnessMap;
     sampler2D metallicMap;
     sampler2D roughnessMap;
     sampler2D aoMap;
@@ -53,7 +55,8 @@ struct PBRMaterial {
     sampler2D brdf_lut;
 };
 
-struct Light {
+struct Light
+{
     int type;
     vec3 position;
     vec3 direction;
@@ -68,7 +71,8 @@ uniform Light u_lights[MAX_LIGHT_COUNT]; // max lights
 uniform PBRMaterial u_material;
 
 //-----------------------------------------------------------
-vec3 getNormalFromMap(sampler2D normalMap, vec2 uv, vec3 fragPos, vec3 normal) {
+vec3 getNormalFromMap(sampler2D normalMap, vec2 uv, vec3 fragPos, vec3 normal)
+{
     vec3 tangentNormal = texture(normalMap, uv).xyz * 2.0 - 1.0;
 
     vec3 Q1 = dFdx(fragPos);
@@ -85,7 +89,8 @@ vec3 getNormalFromMap(sampler2D normalMap, vec2 uv, vec3 fragPos, vec3 normal) {
 }
 
 // ----------------------------------------------------------------------------
-float distributionGGX(vec3 N, vec3 H, float roughness) {
+float distributionGGX(vec3 N, vec3 H, float roughness)
+{
     float a = roughness * roughness;
     float a2 = a * a;
     float NdotH = max(dot(N, H), 0.0);
@@ -98,7 +103,8 @@ float distributionGGX(vec3 N, vec3 H, float roughness) {
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float geometrySchlickGGX(float NdotV, float roughness) {
+float geometrySchlickGGX(float NdotV, float roughness)
+{
     float r = (roughness + 1.0);
     float k = (r * r) / 8.0;
 
@@ -108,7 +114,8 @@ float geometrySchlickGGX(float NdotV, float roughness) {
     return nom / denom;
 }
 // ----------------------------------------------------------------------------
-float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
+float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
+{
     float NdotV = max(dot(N, V), 0.0);
     float NdotL = max(dot(N, L), 0.0);
     float ggx2 = geometrySchlickGGX(NdotV, roughness);
@@ -117,7 +124,8 @@ float geometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
     return ggx1 * ggx2;
 }
 // ----------------------------------------------------------------------------
-vec3 fresnelSchlick(float cosTheta, vec3 F0) {
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
+{
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 // ----------------------------------------------------------------------------
@@ -127,10 +135,14 @@ vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 }   
 // ----------------------------------------------------------------------------
 
-void main() {
+void main()
+{
     vec3 albedo = pow(texture(u_material.albedoMap, v_uv).rgb, vec3(2.2)) * u_material.albedo;
-    float metallic = texture(u_material.metallicMap, v_uv).r * u_material.metallic;
-    float roughness = texture(u_material.roughnessMap, v_uv).r * u_material.roughness;
+
+    vec3 mr = texture(u_material.metallicRoughnessMap, v_uv).rgb; 
+
+    float roughness = texture(u_material.roughnessMap, v_uv).r * u_material.roughness * mr.g;
+    float metallic = texture(u_material.metallicMap, v_uv).r * u_material.metallic * mr.b;
     float ao = texture(u_material.aoMap, v_uv).r * u_material.ao;
 
     // vec3 N = normalize(v_normal);
@@ -143,7 +155,8 @@ void main() {
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < u_lightCount; ++i) {
+    for(int i = 0; i < u_lightCount; ++i)
+    {
         Light light = u_lights[i];
 
         // calculate per-light radiance
@@ -177,13 +190,13 @@ void main() {
 
     vec3 kS = F;
     vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;     
+    kD *= 1.0 - metallic;
 
     vec3 irradiance = texture(u_material.irradianceMap, N).rgb;
     vec3 diffuse = irradiance * albedo;
 
     const float MAX_REFLECTION_LOD = 4.0;
-    vec3 prefilteredColor = textureLod(u_material.prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;
+    vec3 prefilteredColor = textureLod(u_material.prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
     vec2 envBRDF = texture(u_material.brdf_lut, vec2(max(dot(N, V), 0.0), roughness)).rg;
     vec3 specular = prefilteredColor * (F * envBRDF.x + envBRDF.y);
 

@@ -19,36 +19,14 @@ class MaterialComponent : public AwComponent
     MaterialRenderParams materialRenderParams;
     std::shared_ptr<Material> material;
 
-    MaterialComponent(MaterialType type = MaterialType::Basic)
+    MaterialComponent(MaterialType type = MaterialType::PBR)
     {
-        material = std::make_shared<Material>();
-        setMaterialType(type);
+        material = std::make_shared<Material>(type);
     }
 
-    MaterialType getMaterialType() const { return m_type; }
-
-    void setMaterialType(MaterialType type)
-    {
-        if (m_type == type) return;
-
-        switch (type)
-        {
-            case MaterialType::Basic:
-                material->shader = RES.load<ShaderResource>("shader/shader_lib/basic.glsl")->getShader();
-                break;
-            case MaterialType::PBR:
-                material->shader  = RES.load<ShaderResource>("shader/shader_lib/pbr.glsl")->getShader();
-                material->brdfLUT = RES.load<TextureResource>("brdf_lut")->getTexture();
-                break;
-            default:
-                break;
-        }
-
-        m_type = type;
-    }
 
   private:
     friend class RenderSystem;
-    MaterialType m_type = MaterialType::None;
+
 };
 } // namespace Airwave

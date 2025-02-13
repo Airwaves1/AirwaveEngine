@@ -41,7 +41,8 @@ class ResourceManager
         }
 
         auto resource = std::make_shared<T>();
-        if (resource->load(std::string(PROJECT_ROOT_DIR)+ "/assets/" + path, std::move(params)))
+
+        if (resource->load(std::string(PROJECT_ROOT_DIR) + "/assets/" + path, std::move(params)))
         {
             type_map[path] = resource;
             return resource;

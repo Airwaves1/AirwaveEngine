@@ -85,15 +85,17 @@ class RenderSystem : public AwSystem
         auto adminEntity   = m_scene->getAdminEntity();
         auto &rendererComp = reg.get<RendererComponent>(adminEntity);
 
-        auto &emptyMap      = rendererComp.emptyMap;
-        auto &defaultNormal = rendererComp.defaultNormal;
+        auto &emptyMap           = rendererComp.emptyMap;
+        auto &defaultNormal      = rendererComp.defaultNormal;
+        auto &lightsManager_comp = reg.get<LightsManagerComponent>(adminEntity);
 
         for (auto entity : renderObjects)
         {
-            auto &mat_comp           = reg.get<MaterialComponent>(entity);
-            auto &mesh_comp          = reg.get<MeshComponent>(entity);
-            auto &transform_comp     = reg.get<TransformComponent>(entity);
-            auto &lightsManager_comp = reg.get<LightsManagerComponent>(adminEntity);
+            auto &mat_comp       = reg.get<MaterialComponent>(entity);
+            auto &mesh_comp      = reg.get<MeshComponent>(entity);
+            auto &transform_comp = reg.get<TransformComponent>(entity);
+
+            auto &tag_comp = reg.get<TagComponent>(entity);
 
             if (!mat_comp.materialRenderParams.visible) continue;
 
@@ -141,7 +143,7 @@ class RenderSystem : public AwSystem
             renderer->set("u_material.normalMap", slots);
             slots++;
 
-            if(mat_comp.material->metallicRoughnessMap)
+            if (mat_comp.material->metallicRoughnessMap)
             {
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, mat_comp.material->metallicRoughnessMap->getHandle());
@@ -151,6 +153,8 @@ class RenderSystem : public AwSystem
                 glActiveTexture(GL_TEXTURE0 + slots);
                 glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
             }
+            renderer->set("u_material.metallicRoughnessMap", slots);
+            slots++;
 
             if (mat_comp.material->roughnessMap)
             {

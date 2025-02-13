@@ -11,6 +11,7 @@ class CameraComponent;
 class TrackballController;
 class MaterialComponent;
 class LightComponent;
+class MeshComponent;
 
 class PropertiesPanel : public Panel
 {
@@ -30,6 +31,7 @@ class PropertiesPanel : public Panel
     void drawCameraComponent(CameraComponent &cameraComponent);
     void drawTrackballControllerComponent(TrackballController &trackballController);
     void drawMaterialComponent(MaterialComponent &materialComponent);
+    void drawMeshComponent(MeshComponent &meshComponent);
     void drawLightComponent(LightComponent &lightComponent);
 
     static void DrawColorPresets(float *currentColor);

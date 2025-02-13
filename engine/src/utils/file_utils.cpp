@@ -56,4 +56,14 @@ std::string FileUtils::GetDirectory(const std::string &filepath)
     return filepath.substr(0, found);
 }
 
+std::string FileUtils::GetAssetPath(const std::string &filepath)
+{
+    std::string assetPath = filepath;
+    size_t pos = assetPath.find("/assets/");
+    if (pos != std::string::npos)
+    {
+        assetPath = assetPath.substr(pos + 8);
+    }
+    return assetPath;
+}
 } // namespace Airwave

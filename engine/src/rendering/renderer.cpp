@@ -15,17 +15,6 @@ Renderer::Renderer(Application *appContext) : m_appContext(appContext)
     spec.enableDepth = true;
 
     m_framebuffer = std::make_unique<Framebuffer>(spec);
-    auto texture  = std::make_shared<Texture>(TextureSpecification{.width           = spec.width,
-                                                                   .height          = spec.height,
-                                                                   .usage           = TextureUsage::ColorAttachment,
-                                                                   .internalFormat  = TextureInternalFormat::RGBA16F,
-                                                                   .format          = TextureFormat::RGBA,
-                                                                   .textureDataType = TextureDataType::FLOAT,
-                                                                   .generateMipmap  = false,
-                                                                   .enableMSAA      = false,
-                                                                   .isRenderTarget  = true});
-
-    m_framebuffer->attachColorTexture(texture);
 
     m_eventObserver = std::make_unique<EventObserver>();
     m_eventObserver->subscribe<WindowResizeEvent>(

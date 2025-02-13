@@ -33,11 +33,25 @@ Texture::Texture(TextureSpecification spec, void* data) : m_spec(spec)
         m_spec.textureDataType = TextureDataType::FLOAT;
     }
 
-    if (m_spec.usage == TextureUsage::DepthAttachment)
+    if(m_spec.channels == 1)
     {
-        m_spec.internalFormat = TextureInternalFormat::DEPTH24_STENCIL8;
-        m_spec.format         = TextureFormat::DEPTH_STENCIL;
-        m_spec.enableMSAA     = false;
+        m_spec.internalFormat = TextureInternalFormat::R8;
+        m_spec.format = TextureFormat::RED;
+    }
+    else if(m_spec.channels == 2)
+    {
+        m_spec.internalFormat = TextureInternalFormat::RG8;
+        m_spec.format = TextureFormat::RG;
+    }
+    else if(m_spec.channels == 3)
+    {
+        m_spec.internalFormat = TextureInternalFormat::RGB8;
+        m_spec.format = TextureFormat::RGB;
+    }
+    else if(m_spec.channels == 4)
+    {
+        m_spec.internalFormat = TextureInternalFormat::RGBA8;
+        m_spec.format = TextureFormat::RGBA;
     }
 
     glGenTextures(1, &m_handle);

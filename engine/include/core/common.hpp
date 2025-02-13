@@ -294,6 +294,7 @@ struct TextureSpecification
 
     uint32_t width  = 0;
     uint32_t height = 0;
+    uint32_t channels = 0;
 
     TextureType textureType = TextureType::TEXTURE_2D;
 
@@ -309,7 +310,7 @@ struct TextureSpecification
     TextureDataType textureDataType      = TextureDataType::UINT8;
 
     bool generateMipmap = true;
-    bool flip           = true;
+    bool flip           = false;
     bool sRGB           = false;
     bool isHDR          = false;
     uint32_t samples    = 1;

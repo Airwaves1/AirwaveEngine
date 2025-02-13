@@ -18,7 +18,8 @@ void Sandbox::onConfigurate(Airwave::ApplicationConfig &config)
 void Sandbox::onPreLoad()
 {
     // Model
-    // auto model = RES.load<ModelResource>(MODEL_PATH + "sponza/sponza.gltf");
+    auto model_0 = RES.load<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+
 }
 
 void Sandbox::onInit()
@@ -57,9 +58,19 @@ void Sandbox::onInit()
 
     // spheres 7 x 7
     TextureSpecification spec;
+    spec.sRGB      = true;
+    auto albedoMap = RES.load<TextureResource>("textures/rustediron1-alt2-Unreal-Engine/rustediron2_basecolor.png", spec);
+
+    spec.sRGB      = false;
+    auto normalMap = RES.load<TextureResource>("textures/rustediron1-alt2-Unreal-Engine/rustediron2_normal.png", spec);
+
+    auto metallicMap  = RES.load<TextureResource>("textures/rustediron1-alt2-Unreal-Engine/rustediron2_metallic.png", spec);
+    auto roughnessMap = RES.load<TextureResource>("textures/rustediron1-alt2-Unreal-Engine/rustediron2_roughness.png", spec);
+
     spec.isHDR          = true;
+    spec.flip           = true;
     spec.generateMipmap = false;
-    auto envMap = RES.load<TextureResource>("textures/hdr/newport_loft.hdr", spec);
+    auto envMap         = RES.load<TextureResource>("textures/hdr/newport_loft.hdr", spec);
 
     // HDR to Cubemap
     auto cube_map = TextureUtils::equirectangularToCubemap(m_renderer.get(), envMap->getTexture(), 1024, true);
@@ -96,14 +107,18 @@ void Sandbox::onInit()
     //         mesh_comp.primitives.push_back(sphere);
     //         auto &mat_comp = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
 
-    //         mat_comp.material->color     = glm::vec3(0.6f, 0.0f, 0.0f);
+    //         // mat_comp.material->color     = glm::vec3(0.6f, 0.0f, 0.0f);
+    //         mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
     //         mat_comp.material->metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
     //         mat_comp.material->roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
     //         mat_comp.material->ao        = 1.0f;
 
+    //         mat_comp.material->albedoMap     = albedoMap->getTexture();
+    //         mat_comp.material->normalMap     = normalMap->getTexture();
+    //         mat_comp.material->metallicMap   = metallicMap->getTexture();
+    //         mat_comp.material->roughnessMap  = roughnessMap->getTexture();
     //         mat_comp.material->irradianceMap = irradiance_map;
     //         mat_comp.material->prefilterMap  = prefilter_map;
-
 
     //         auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
     //         sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
@@ -111,6 +126,20 @@ void Sandbox::onInit()
     //     }
     // }
 
+    // model
+    auto model_resource = RES.get<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+    auto model_entity = m_scene->createDefaultEntity("model");
+    model_resource->instantiate(m_scene.get(), model_entity);
+    m_scene->traverseEntity(model_entity,
+                            [&](entt::entity entity)
+                            {
+                                if (m_scene->hasComponent<MaterialComponent>(entity))
+                                {
+                                    auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
+                                    mat_comp.material->irradianceMap = irradiance_map;
+                                    mat_comp.material->prefilterMap  = prefilter_map;
+                                }
+                            });
 }
 
 void Sandbox::onDestory() {}

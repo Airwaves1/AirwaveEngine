@@ -1,8 +1,5 @@
 #include "resource/texture_resource.hpp"
-
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image/stb_image.h>
-
 #include "core/log.hpp"
 #include "core/common.hpp"
 #include "rendering/texture.hpp"
@@ -37,6 +34,7 @@ bool Airwave::TextureResource::onLoad(const std::string &path, const std::any &p
 
     spec.width  = width;
     spec.height = height;
+    spec.channels = channels;
 
     m_texture = std::make_shared<Texture>(spec, data);
 

@@ -19,6 +19,9 @@ class FileUtils
     // 获取文件所在目录
     static std::string GetDirectory(const std::string &filepath);
 
+    // 截取/assets/后的路径
+    static std::string GetAssetPath(const std::string &filepath);
+
   private:
     FileUtils() = delete;
 };

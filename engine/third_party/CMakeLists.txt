@@ -19,8 +19,6 @@ add_subdirectory(glm)
 option(GLM_ENABLE_EXPERIMENTAL ON)
 option(GLM_ENABLE_CXX_20 "Enable C++ 20 features" ON)
 
-# stb_image
-add_subdirectory(stb_image)
 
 # imgui
 add_subdirectory(imgui)
@@ -38,7 +36,6 @@ target_link_libraries(third_party INTERFACE glfw)
 target_link_libraries(third_party INTERFACE glad)
 target_link_libraries(third_party INTERFACE glm)
 target_link_libraries(third_party INTERFACE ImGui)
-target_link_libraries(third_party INTERFACE stb_image)
 target_link_libraries(third_party INTERFACE nlohmann_json)
 target_link_libraries(third_party INTERFACE tiny_gltf)
 target_link_libraries(third_party INTERFACE tiny_obj)
