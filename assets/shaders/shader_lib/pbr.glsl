@@ -157,7 +157,11 @@ void main()
     vec3 Lo = vec3(0.0);
     for(int i = 0; i < u_lightCount; ++i)
     {
-        Light light = u_lights[i];
+        // Light light = u_lights[i];
+        Light light;
+        light.position = vec3(0.0, 0.0, 10.0);
+        light.color = vec3(1.0);
+        light.intensity = 100.0;
 
         // calculate per-light radiance
         vec3 L = normalize(light.position - v_fragPos);
@@ -206,6 +210,8 @@ void main()
 
     color = color / (color + vec3(1.0));
     color = pow(color, vec3(1.0 / 2.9));
+
+    color = Lo;
 
     FragColor = vec4(color, 1.0);
 }

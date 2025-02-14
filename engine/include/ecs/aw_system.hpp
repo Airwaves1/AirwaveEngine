@@ -1,7 +1,5 @@
 #pragma once
 
-#include "ecs/aw_scene.hpp"
-
 namespace Airwave
 {
 class AwScene;

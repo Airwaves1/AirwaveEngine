@@ -37,7 +37,7 @@ void Sandbox::onInit()
     m_scene->addComponent<CameraComponent>(main_camera_entity);
     m_scene->addComponent<TrackballController>(main_camera_entity);
     auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
-    camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 30.0f));
+    camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 
     // // lights
     for (int i = 0; i < 2; i++)
@@ -46,10 +46,10 @@ void Sandbox::onInit()
         {
             auto light_entity     = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
             auto &light_comp      = m_scene->addComponent<LightComponent>(light_entity);
-            light_comp.intensity  = 200.0f;
+            light_comp.intensity  = 300.0f;
             light_comp.color      = glm::vec3(1.0f);
             auto &light_transform = m_scene->getComponent<TransformComponent>(light_entity);
-            light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 10.0f));
+            light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 5.0f));
         }
     }
 
@@ -96,35 +96,35 @@ void Sandbox::onInit()
         ImGui::End();
     };
 
-    // auto sphere = GeometryUtils::CreateSphere(1.0f, 36, 32);
+    auto sphere = GeometryUtils::CreateSphere(1.0f, 36, 32);
 
-    // for (int i = 0; i < 7; i++)
-    // {
-    //     for (int j = 0; j < 7; j++)
-    //     {
-    //         auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
-    //         auto &mesh_comp    = m_scene->addComponent<MeshComponent>(sphere_entity);
-    //         mesh_comp.primitives.push_back(sphere);
-    //         auto &mat_comp = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
+    for (int i = 0; i < 7; i++)
+    {
+        for (int j = 0; j < 7; j++)
+        {
+            auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
+            auto &mesh_comp    = m_scene->addComponent<MeshComponent>(sphere_entity);
+            mesh_comp.primitives.push_back(sphere);
+            auto &mat_comp = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
 
-    //         // mat_comp.material->color     = glm::vec3(0.6f, 0.0f, 0.0f);
-    //         mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
-    //         mat_comp.material->metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
-    //         mat_comp.material->roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
-    //         mat_comp.material->ao        = 1.0f;
+            // mat_comp.material->color     = glm::vec3(0.6f, 0.0f, 0.0f);
+            mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            mat_comp.material->metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
+            mat_comp.material->roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
+            mat_comp.material->ao        = 1.0f;
 
-    //         mat_comp.material->albedoMap     = albedoMap->getTexture();
-    //         mat_comp.material->normalMap     = normalMap->getTexture();
-    //         mat_comp.material->metallicMap   = metallicMap->getTexture();
-    //         mat_comp.material->roughnessMap  = roughnessMap->getTexture();
-    //         mat_comp.material->irradianceMap = irradiance_map;
-    //         mat_comp.material->prefilterMap  = prefilter_map;
+            mat_comp.material->albedoMap     = albedoMap->getTexture();
+            mat_comp.material->normalMap     = normalMap->getTexture();
+            mat_comp.material->metallicMap   = metallicMap->getTexture();
+            mat_comp.material->roughnessMap  = roughnessMap->getTexture();
+            mat_comp.material->irradianceMap = irradiance_map;
+            mat_comp.material->prefilterMap  = prefilter_map;
 
-    //         auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
-    //         sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
-    //         m_scene->setEntityParent(sphere_entity, sphere_container_entity);
-    //     }
-    // }
+            auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
+            sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
+            m_scene->setEntityParent(sphere_entity, sphere_container_entity);
+        }
+    }
 
     // model
     auto model_resource = RES.get<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");

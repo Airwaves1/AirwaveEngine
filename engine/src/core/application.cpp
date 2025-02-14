@@ -3,6 +3,9 @@
 
 #include "utils/texture_utils.hpp"
 
+#include "ecs/components/camera_component.hpp"
+#include "ecs/components/singleton_components/renderer_component.hpp"
+
 #include "ecs/systems/transform_system.hpp"
 #include "ecs/systems/camera_system.hpp"
 #include "ecs/systems/render_system.hpp"
