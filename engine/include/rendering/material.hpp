@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 
+#include "utils/shader_utils.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture.hpp"
 
@@ -10,11 +11,35 @@
 #include "resource/shader_resource.hpp"
 
 #include "core/common.hpp"
-namespace Airwave
+namespace Airwave                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 {
 class Material
 {
   public:
+    ShaderKeyWord computeShaderKeyWord()
+    {
+        ShaderKeyWord key = ShaderKeyWord::NONE;
+
+        if (m_type == MaterialType::PBR) key = key | ShaderKeyWord::USE_PBR;
+        if (albedoMap) key = key | ShaderKeyWord::USE_ALBEDO_MAP;
+        if (normalMap) key = key | ShaderKeyWord::USE_NORMAL_MAP;
+        if (metallicRoughnessMap) key = key | ShaderKeyWord::USE_METALLIC_ROUGHNESS_MAP;
+        if (aoMap) key = key | ShaderKeyWord::USE_AO_MAP;
+        if (emissiveMap) key = key | ShaderKeyWord::USE_EMISSIVE_MAP;
+        if (irradianceMap && prefilterMap && brdfLUT) key = key | ShaderKeyWord::USE_IBL;
+        if (hasTanget) key = key | ShaderKeyWord::USE_TANGENT;
+        
+        if (key != m_shaderKeyWord)
+        {
+            m_shaderKeyWord = key;
+            shader          = ShaderUtils::GetInstance().get_new_variant_shader(shader, key);
+        }
+
+        return key;
+    }
+
+    bool hasTanget = false;
+
     float roughness = 1.0f;
     float metallic  = 1.0f;
     float ao        = 1.0f;
@@ -36,10 +61,7 @@ class Material
     std::shared_ptr<Texture> prefilterMap;
     std::shared_ptr<Texture> brdfLUT;
 
-    Material(MaterialType type = MaterialType::PBR)
-    {
-        setMaterialType(type);
-    }
+    Material(MaterialType type = MaterialType::PBR) { setMaterialType(type); }
 
     MaterialType getMaterialType() const { return m_type; }
 
@@ -64,7 +86,8 @@ class Material
     }
 
   private:
-    MaterialType m_type = MaterialType::None;
+    MaterialType m_type           = MaterialType::None;
+    ShaderKeyWord m_shaderKeyWord = ShaderKeyWord::NONE;
 };
 
 } // namespace Airwave

@@ -5,7 +5,6 @@
 
 namespace Airwave
 {
-
 std::shared_ptr<Shader> Shader::create_default_shader()
 {
     static std::shared_ptr<Shader> defaultShader = std::make_shared<Shader>(

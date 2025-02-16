@@ -180,6 +180,8 @@ enum class TextureInternalFormat : uint32_t
     RGBA              = GL_RGBA,
     SRGB              = GL_SRGB,
     SRGB_ALPHA        = GL_SRGB_ALPHA,
+    SRGB8             = GL_SRGB8,
+    SRGB8_ALPHA8      = GL_SRGB8_ALPHA8,
     R8                = GL_R8,
     RG8               = GL_RG8,
     RGB8              = GL_RGB8,
@@ -199,10 +201,15 @@ enum class TextureInternalFormat : uint32_t
     DEPTH32F          = GL_DEPTH_COMPONENT32F,
     DEPTH24_STENCIL8  = GL_DEPTH24_STENCIL8,
     DEPTH32F_STENCIL8 = GL_DEPTH32F_STENCIL8,
+    RGB10_A2          = GL_RGB10_A2,
+    RGB10_A2UI        = GL_RGB10_A2UI,
+    RGB9_E5           = GL_RGB9_E5,
+    RGBA8_SNORM       = GL_RGBA8_SNORM,
 };
 
 enum class TextureDataType : uint32_t
 {
+    INT8    = GL_BYTE,
     UINT8   = GL_UNSIGNED_BYTE,
     UINT16  = GL_UNSIGNED_SHORT,
     UINT32  = GL_UNSIGNED_INT,
@@ -211,6 +218,7 @@ enum class TextureDataType : uint32_t
     FLOAT32 = GL_FLOAT,
     SHORT   = GL_SHORT,
     INT     = GL_INT,
+    UINT_2_10_10_10_REV = GL_UNSIGNED_INT_2_10_10_10_REV,
 };
 
 enum class TextureFilter : uint32_t
@@ -292,8 +300,8 @@ struct TextureSpecification
 {
     TextureUsage usage = TextureUsage::ColorAttachment;
 
-    uint32_t width  = 0;
-    uint32_t height = 0;
+    uint32_t width    = 0;
+    uint32_t height   = 0;
     uint32_t channels = 0;
 
     TextureType textureType = TextureType::TEXTURE_2D;

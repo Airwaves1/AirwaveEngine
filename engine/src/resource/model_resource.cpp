@@ -144,32 +144,43 @@ void ModelResource::processNode(const tinygltf::Node &node, AwScene *scene, entt
 
 void ModelResource::processMesh(const tinygltf::Mesh &mesh, AwScene *scene, entt::entity entity, const glm::mat4 &transform)
 {
+    if (mesh.primitives.empty())
+    {
+        LOG_ERROR("Mesh has no primitives");
+        return;
+    }
+
     auto &mesh_comp     = scene->getComponent<MeshComponent>(entity);
     auto &material_comp = scene->getComponent<MaterialComponent>(entity);
 
+    bool hasTangent = false;
+
     for (const auto &primitive : mesh.primitives)
     {
-        auto primitivePtr = createPrimitive(primitive);
+        auto primitivePtr = createPrimitive(primitive, material_comp.material->shader->getHandle(), &hasTangent);
         if (!primitivePtr)
         {
             LOG_ERROR("Failed to create primitive");
         }
-
-        auto material = processMaterial(m_model->materials[primitive.material]);
-
-        auto cube = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f);
-
+        
         mesh_comp.primitives.push_back(primitivePtr);
-        // mesh_comp.primitives.push_back(cube);
-        material_comp.material = material;
     }
+
+    // 处理材质, 暂时只处理第一个primitive的材质
+    const auto &primitive = mesh.primitives[0];
+    auto material = processMaterial(m_model->materials[primitive.material]);
+    material_comp.material = material;
+    material_comp.material->hasTanget = hasTangent;
+
 }
 
-std::shared_ptr<Primitive> ModelResource::createPrimitive(const tinygltf::Primitive &gltfPrimitive) {
+std::shared_ptr<Primitive> ModelResource::createPrimitive(const tinygltf::Primitive &gltfPrimitive, uint32_t program, bool *hasTangent)
+{
     auto primitive = std::make_shared<Primitive>();
 
     // 检查必要属性
-    if (gltfPrimitive.attributes.find("POSITION") == gltfPrimitive.attributes.end()) {
+    if (gltfPrimitive.attributes.find("POSITION") == gltfPrimitive.attributes.end())
+    {
         LOG_ERROR("Primitive missing POSITION attribute");
         return nullptr;
     }
@@ -183,38 +194,54 @@ std::shared_ptr<Primitive> ModelResource::createPrimitive(const tinygltf::Primit
     glBindBuffer(GL_ARRAY_BUFFER, primitive->vbo);
 
     // 收集顶点数据
-    const auto& posAccessor = m_model->accessors[gltfPrimitive.attributes.at("POSITION")];
+    const auto &posAccessor  = m_model->accessors[gltfPrimitive.attributes.at("POSITION")];
     const size_t vertexCount = posAccessor.count;
 
     std::vector<VertexAttributes> vertices(vertexCount);
-    for (const auto& [name, accessorIdx] : gltfPrimitive.attributes) {
-        const auto& accessor = m_model->accessors[accessorIdx];
-        const auto& bufferView = m_model->bufferViews[accessor.bufferView];
-        const auto& buffer = m_model->buffers[bufferView.buffer];
-        const uint8_t* dataPtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+    for (const auto &[name, accessorIdx] : gltfPrimitive.attributes)
+    {
+        const auto &accessor   = m_model->accessors[accessorIdx];
+        const auto &bufferView = m_model->bufferViews[accessor.bufferView];
+        const auto &buffer     = m_model->buffers[bufferView.buffer];
+        const uint8_t *dataPtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
 
-        for (size_t i = 0; i < vertexCount; ++i) {
+        for (size_t i = 0; i < vertexCount; ++i)
+        {
             const size_t stride = bufferView.byteStride ? bufferView.byteStride : accessor.ByteStride(bufferView);
-            const uint8_t* src = dataPtr + i * stride;
+            const uint8_t *src  = dataPtr + i * stride;
 
-            if (name == "POSITION") {
+            if (name == "POSITION")
+            {
                 memcpy(&vertices[i].position, src, sizeof(glm::vec3));
-            } else if (name == "NORMAL") {
+            }
+            else if (name == "NORMAL")
+            {
                 memcpy(&vertices[i].normal, src, sizeof(glm::vec3));
-            } else if (name == "TEXCOORD_0") {
+            }
+            else if (name == "TEXCOORD_0")
+            {
                 memcpy(&vertices[i].uv, src, sizeof(glm::vec2));
-            } else if (name == "TANGENT") {
+            }
+            else if (name == "TANGENT")
+            {
                 memcpy(&vertices[i].tangent, src, sizeof(glm::vec4));
-            } else if (name == "JOINTS_0") {
+            }
+            else if (name == "JOINTS_0")
+            {
                 // 处理不同整数类型
-                if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE) {
-                    const auto* joints = reinterpret_cast<const uint8_t*>(src);
-                    vertices[i].joints = {joints[0], joints[1], joints[2], joints[3]};
-                } else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT) {
-                    const auto* joints = reinterpret_cast<const uint16_t*>(src);
+                if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE)
+                {
+                    const auto *joints = reinterpret_cast<const uint8_t *>(src);
                     vertices[i].joints = {joints[0], joints[1], joints[2], joints[3]};
                 }
-            } else if (name == "WEIGHTS_0") {
+                else if (accessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT)
+                {
+                    const auto *joints = reinterpret_cast<const uint16_t *>(src);
+                    vertices[i].joints = {joints[0], joints[1], joints[2], joints[3]};
+                }
+            }
+            else if (name == "WEIGHTS_0")
+            {
                 memcpy(&vertices[i].weights, src, sizeof(glm::vec4));
             }
         }
@@ -225,62 +252,86 @@ std::shared_ptr<Primitive> ModelResource::createPrimitive(const tinygltf::Primit
 
     // 设置顶点属性
     const GLsizei stride = sizeof(VertexAttributes);
-    size_t offset = 0;
+    size_t offset        = 0;
 
     // Position
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
-    offset += sizeof(glm::vec3);
+    if (gltfPrimitive.attributes.find("POSITION") != gltfPrimitive.attributes.end())
+    {
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void *)offset);
+        offset += sizeof(glm::vec3);
+    }
 
     // Normal
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)offset);
-    offset += sizeof(glm::vec3);
+    if (gltfPrimitive.attributes.find("NORMAL") != gltfPrimitive.attributes.end())
+    {
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void *)offset);
+        offset += sizeof(glm::vec3);
+    }
 
-    // UV
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)offset);
-    offset += sizeof(glm::vec2);
+    // texCoord
+    if (gltfPrimitive.attributes.find("TEXCOORD_0") != gltfPrimitive.attributes.end())
+    {
+        glEnableVertexAttribArray(2);
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void *)offset);
+        offset += sizeof(glm::vec2);
+    }
 
     // Tangent
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
-    offset += sizeof(glm::vec4);
+    if (gltfPrimitive.attributes.find("TANGENT") != gltfPrimitive.attributes.end())
+    {
+        glEnableVertexAttribArray(3);
+        glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, stride, (void *)offset);
+        offset += sizeof(glm::vec4);
+
+        if (hasTangent)
+        {
+            *hasTangent = true;
+        }
+    }
 
     // Joints
-    glEnableVertexAttribArray(4);
-    if (sizeof(glm::u16vec4::value_type) == 2) {
-        glVertexAttribIPointer(4, 4, GL_UNSIGNED_SHORT, stride, (void*)offset);
-    } else {
-        LOG_ERROR("Unsupported joints data type");
+    if (gltfPrimitive.attributes.find("JOINTS_0") != gltfPrimitive.attributes.end())
+    {
+        glEnableVertexAttribArray(4);
+        if (sizeof(glm::u16vec4::value_type) == 2)
+        {
+            glVertexAttribIPointer(4, 4, GL_UNSIGNED_SHORT, stride, (void *)offset);
+        }
+        else
+        {
+            LOG_ERROR("Unsupported joints data type");
+        }
+        offset += sizeof(glm::u16vec4);
     }
-    offset += sizeof(glm::u16vec4);
 
-    // Weights
-    glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, stride, (void*)offset);
+    if (gltfPrimitive.attributes.find("WEIGHTS_0") != gltfPrimitive.attributes.end())
+    {
+        glEnableVertexAttribArray(5);
+        glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, stride, (void *)offset);
+        offset += sizeof(glm::vec4);
+    }
 
     // 处理索引缓冲
-    if (gltfPrimitive.indices >= 0) {
-        const auto& indexAccessor = m_model->accessors[gltfPrimitive.indices];
-        const auto& bufferView = m_model->bufferViews[indexAccessor.bufferView];
-        const auto& buffer = m_model->buffers[bufferView.buffer];
-        
+    if (gltfPrimitive.indices >= 0)
+    {
+        const auto &indexAccessor = m_model->accessors[gltfPrimitive.indices];
+        const auto &bufferView    = m_model->bufferViews[indexAccessor.bufferView];
+        const auto &buffer        = m_model->buffers[bufferView.buffer];
+
         glGenBuffers(1, &primitive->ebo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, primitive->ebo);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferView.byteLength, 
-                    buffer.data.data() + bufferView.byteOffset + indexAccessor.byteOffset, 
-                    GL_STATIC_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, bufferView.byteLength, buffer.data.data() + bufferView.byteOffset + indexAccessor.byteOffset,
+                     GL_STATIC_DRAW);
 
         primitive->indexCount = indexAccessor.count;
-        primitive->indexType = indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT 
-                             ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
+        primitive->indexType  = indexAccessor.componentType == TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT ? GL_UNSIGNED_INT : GL_UNSIGNED_SHORT;
     }
 
     glBindVertexArray(0);
     return primitive;
 }
-
 
 std::shared_ptr<Material> ModelResource::processMaterial(const tinygltf::Material &gltfMaterial)
 {
@@ -300,7 +351,7 @@ std::shared_ptr<Material> ModelResource::processMaterial(const tinygltf::Materia
         const auto &sampler = m_model->samplers[texture.sampler];
 
         TextureSpecification spec;
-        spec.sRGB            = true;
+        spec.sRGB = true;
         // spec.flip            = true;
         auto textureResource = RES.load<TextureResource>(m_dir + image.uri, spec);
         material->albedoMap  = textureResource->getTexture();
@@ -326,10 +377,10 @@ std::shared_ptr<Material> ModelResource::processMaterial(const tinygltf::Materia
         const auto &sampler = m_model->samplers[texture.sampler];
 
         TextureSpecification spec;
-        spec.sRGB            = false;
-        spec.flip            = false;
-        spec.format          = TextureFormat::RGB;
-        spec.internalFormat  = TextureInternalFormat::RGB8;
+        spec.sRGB                      = false;
+        spec.flip                      = false;
+        spec.format                    = TextureFormat::RGB;
+        spec.internalFormat            = TextureInternalFormat::RGB8;
         auto textureResource           = RES.load<TextureResource>(m_dir + image.uri, spec);
         material->metallicRoughnessMap = textureResource->getTexture();
     }
@@ -349,7 +400,7 @@ std::shared_ptr<Material> ModelResource::processMaterial(const tinygltf::Materia
 
         TextureSpecification spec;
         auto textureResource = RES.load<TextureResource>(m_dir + image.uri, spec);
-        material->aoMap = textureResource->getTexture();
+        material->aoMap      = textureResource->getTexture();
     }
 
     // emissive texture

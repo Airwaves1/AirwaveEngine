@@ -10,7 +10,6 @@ namespace Airwave
 class Shader
 {
   public:
-    // static std::shared_ptr<Shader> defaultShader;
     static std::shared_ptr<Shader> create_default_shader();
 
     Shader(const std::string &vertexSrc, const std::string &fragmentSrc);
@@ -26,6 +25,9 @@ class Shader
 
     // 添加宏定义
     void add_defines(std::vector<std::pair<std::string, std::string>> defines);
+
+    std::string getVertexSrc() const { return m_vertexSrc; }
+    std::string getFragmentSrc() const { return m_fragmentSrc; }
 
   private:
     uint32_t m_handle;

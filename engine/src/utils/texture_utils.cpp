@@ -8,7 +8,6 @@
 #include "resource/resource_manager.hpp"
 #include "resource/shader_resource.hpp"
 
-
 #include "rendering/shader.hpp"
 #include "rendering/texture.hpp"
 #include "rendering/framebuffer.hpp"
@@ -93,6 +92,7 @@ std::shared_ptr<Texture> TextureUtils::equirectangularToCubemap(Renderer *render
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
 
     auto app        = renderer->getApplication();
     uint32_t width  = app->getWindowWidth();
@@ -109,8 +109,7 @@ std::shared_ptr<Texture> TextureUtils::equirectangularToCubemap(Renderer *render
     return cube_map;
 }
 
-std::shared_ptr<Texture> TextureUtils::irradianceConvolution(Renderer *renderer, const std::shared_ptr<Texture> &envMap,
-                                                                     uint32_t resolution)
+std::shared_ptr<Texture> TextureUtils::irradianceConvolution(Renderer *renderer, const std::shared_ptr<Texture> &envMap, uint32_t resolution)
 {
     auto &envMapSpec = envMap->getSpec();
     if (envMapSpec.textureType != TextureType::TEXTURE_CUBE_MAP)
@@ -173,6 +172,7 @@ std::shared_ptr<Texture> TextureUtils::irradianceConvolution(Renderer *renderer,
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
 
     auto app        = renderer->getApplication();
     uint32_t width  = app->getWindowWidth();
@@ -183,8 +183,8 @@ std::shared_ptr<Texture> TextureUtils::irradianceConvolution(Renderer *renderer,
     return irradiance_map;
 }
 
-std::shared_ptr<Texture> TextureUtils::prefilterEnvMap(Renderer *renderer, const std::shared_ptr<Texture> &envMap,
-                                                               uint32_t resolution, uint32_t maxMipLevels = 5)
+std::shared_ptr<Texture> TextureUtils::prefilterEnvMap(Renderer *renderer, const std::shared_ptr<Texture> &envMap, uint32_t resolution,
+                                                       uint32_t maxMipLevels = 5)
 {
     if (envMap == nullptr || envMap->getHandle() == 0)
     {
@@ -264,6 +264,7 @@ std::shared_ptr<Texture> TextureUtils::prefilterEnvMap(Renderer *renderer, const
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
 
     auto app        = renderer->getApplication();
     uint32_t width  = app->getWindowWidth();
@@ -318,6 +319,7 @@ std::shared_ptr<Texture> TextureUtils::generateBRDFLUT(Renderer *renderer, uint3
     primitive->draw();
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDeleteFramebuffers(1, &fbo);
 
     auto app        = renderer->getApplication();
     uint32_t width  = app->getWindowWidth();

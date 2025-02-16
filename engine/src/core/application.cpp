@@ -81,6 +81,27 @@ void Application::preLoad()
         // background shader
         auto background = RES.load<ShaderResource>("shaders/shader_lib/background.glsl");
 
+        // g_buffer shader
+        auto geometry_pass_shader = RES.load<ShaderResource>("shaders/shader_lib/geometry_pass.glsl");
+        auto lighting_pass_shader = RES.load<ShaderResource>("shaders/shader_lib/lighting_pass.glsl");
+
+        // empty map
+        std::shared_ptr<Texture> white_texture =
+            std::make_shared<Texture>(TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8},
+                                      std::vector<uint8_t>{255, 255, 255, 255}.data());
+        auto emptyMapResource = std::make_shared<TextureResource>();
+        emptyMapResource->setTexture(white_texture);
+        RES.add<TextureResource>("empty_map", emptyMapResource);
+
+        // default normal map
+        std::shared_ptr<Texture> default_normal_map =
+            std::make_shared<Texture>(TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8},
+                                      std::vector<uint8_t>{128, 128, 255, 255}.data());
+
+        auto defaultNormalResource = std::make_shared<TextureResource>();
+        defaultNormalResource->setTexture(default_normal_map);
+        RES.add<TextureResource>("default_normal", defaultNormalResource);
+
         // 生成BRDF LUT
         auto brdfLUT         = TextureUtils::generateBRDFLUT(m_renderer.get());
         auto brdfLUTResource = std::make_shared<TextureResource>(brdfLUT);

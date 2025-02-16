@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <glad/glad.h>
+#include <string>
 #include "core/math/aabb.hpp"
 
 namespace Airwave
@@ -9,7 +10,7 @@ namespace Airwave
 class Primitive
 {
   public:
-    Primitive()          = default;
+    Primitive() = default;
     ~Primitive();
 
     void draw();
@@ -26,6 +27,13 @@ class Primitive
     GLenum indexType    = GL_UNSIGNED_INT;
 
     Math::AABB bounding_box;
+
+    std::string position_name = "a_position";
+    std::string normal_name   = "a_normal";
+    std::string texcoord_name = "a_texcoord";
+    std::string tangent_name  = "a_tangent";
+    std::string joint_name    = "a_joint";
+    std::string weight_name   = "a_weight";
 };
 
 } // namespace Airwave

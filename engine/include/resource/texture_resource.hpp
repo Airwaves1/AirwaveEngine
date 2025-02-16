@@ -1,5 +1,6 @@
 #pragma once
 
+#include "resource/resource_manager.hpp"
 #include "resource/resource.hpp"
 #include "rendering/texture.hpp"
 namespace Airwave
@@ -16,7 +17,7 @@ class TextureResource : public Resource
     {
         if (m_texture == nullptr)
         {
-            return Texture::create_white_texture();
+            return RES.get<TextureResource>("empty_map")->getTexture();
         }
         return m_texture;
     }

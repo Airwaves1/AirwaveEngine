@@ -39,7 +39,7 @@ class ModelResource : public Resource
 
     void processMesh(const tinygltf::Mesh &mesh, AwScene *scene, entt::entity entity, const glm::mat4 &transform);
 
-    std::shared_ptr<Primitive> createPrimitive(const tinygltf::Primitive &gltfPrimitive);
+    std::shared_ptr<Primitive> createPrimitive(const tinygltf::Primitive &gltfPrimitive, uint32_t program, bool *hasTangent);
 
     std::shared_ptr<Material> processMaterial(const tinygltf::Material &gltfMaterial);
 

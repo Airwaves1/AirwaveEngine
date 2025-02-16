@@ -25,6 +25,18 @@ class GLUniforms
         Mat4
     };
 
+    struct UBOBinding
+    {
+        GLuint ubo          = 0;
+        GLuint bindingPoint = 0;
+        size_t dataSize     = 0;
+        bool dirty          = true;
+    };
+
+    void createUBO(const std::string& blockName, GLuint program, GLuint bindingPoint);
+    void setUBOData(const std::string& blockName, const void* data, size_t size);
+    void bindUBO(const std::string& blockName);
+
     void set(const std::string &name, const UniformValue &value)
     {
         auto it = m_uniforms.find(name);

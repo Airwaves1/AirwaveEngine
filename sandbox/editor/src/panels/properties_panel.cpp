@@ -529,7 +529,7 @@ void PropertiesPanel::drawMeshComponent(MeshComponent &meshComponent)
 
         // Column 2: Primitive ComboBox
         ImGui::TableNextColumn();
-        ImGui::Text("count: %d", meshComponent.primitives.size());
+        ImGui::Text("count: %d", static_cast<int>(meshComponent.primitives.size()));
 
         // 结束表格
         ImGui::EndTable();

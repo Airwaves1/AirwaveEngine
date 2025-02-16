@@ -10,21 +10,23 @@ namespace Airwave
 
 std::shared_ptr<Texture> Texture::create_white_texture()
 {
-    static std::shared_ptr<Texture> white_texture = std::make_shared<Texture>(
-        TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8}, std::vector<uint8_t>{255, 255, 255, 255}.data());
+    static std::shared_ptr<Texture> white_texture =
+        std::make_shared<Texture>(TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8},
+                                  std::vector<uint8_t>{255, 255, 255, 255}.data());
 
     return white_texture;
 }
 
 std::shared_ptr<Texture> Texture::create_default_normal_map()
 {
-    static std::shared_ptr<Texture> default_normal_map = std::make_shared<Texture>(
-        TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8}, std::vector<uint8_t>{128, 128, 255, 255}.data());
+    static std::shared_ptr<Texture> default_normal_map =
+        std::make_shared<Texture>(TextureSpecification{.width = 1, .height = 1, .internalFormat = TextureInternalFormat::RGBA8},
+                                  std::vector<uint8_t>{128, 128, 255, 255}.data());
 
     return default_normal_map;
 }
 
-Texture::Texture(TextureSpecification spec, void* data) : m_spec(spec)
+Texture::Texture(TextureSpecification spec, void *data) : m_spec(spec)
 {
     if (m_spec.isHDR)
     {
@@ -33,25 +35,25 @@ Texture::Texture(TextureSpecification spec, void* data) : m_spec(spec)
         m_spec.textureDataType = TextureDataType::FLOAT;
     }
 
-    if(m_spec.channels == 1)
+    if (m_spec.channels == 1)
     {
         m_spec.internalFormat = TextureInternalFormat::R8;
-        m_spec.format = TextureFormat::RED;
+        m_spec.format         = TextureFormat::RED;
     }
-    else if(m_spec.channels == 2)
+    else if (m_spec.channels == 2)
     {
         m_spec.internalFormat = TextureInternalFormat::RG8;
-        m_spec.format = TextureFormat::RG;
+        m_spec.format         = TextureFormat::RG;
     }
-    else if(m_spec.channels == 3)
+    else if (m_spec.channels == 3)
     {
         m_spec.internalFormat = TextureInternalFormat::RGB8;
-        m_spec.format = TextureFormat::RGB;
+        m_spec.format         = TextureFormat::RGB;
     }
-    else if(m_spec.channels == 4)
+    else if (m_spec.channels == 4)
     {
         m_spec.internalFormat = TextureInternalFormat::RGBA8;
-        m_spec.format = TextureFormat::RGBA;
+        m_spec.format         = TextureFormat::RGBA;
     }
 
     glGenTextures(1, &m_handle);
@@ -71,7 +73,6 @@ Texture::Texture(TextureSpecification spec, void* data) : m_spec(spec)
                     static_cast<GLint>(m_spec.minFilter));
     glTexParameteri(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
                     static_cast<GLint>(m_spec.magFilter));
-
 
     if (m_spec.textureType == TextureType::TEXTURE_CUBE_MAP)
     {
@@ -123,26 +124,40 @@ void Texture::unbind() const { glBindTexture(m_spec.textureType == TextureType::
 
 void Texture::resize(uint32_t width, uint32_t height)
 {
-    if (m_spec.isRenderTarget)
+    LOG_INFO("Texture::resize: width = {0}, height = {1}", width, height);
+
+    if (m_spec.width == width && m_spec.height == height)
     {
-        m_spec.width  = width;
-        m_spec.height = height;
+        return;
+    }
 
-        m_spec.textureType = TextureType::TEXTURE_2D;
+    m_spec.width  = width;
+    m_spec.height = height;
 
-        glBindTexture(GL_TEXTURE_2D, m_handle);
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, m_handle);
 
+    if (m_spec.textureType == TextureType::TEXTURE_CUBE_MAP)
+    {
+        for (size_t i = 0; i < 6; i++)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), m_spec.width, m_spec.width, 0,
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), nullptr);
+        }
+    }
+    else
+    {
         if (m_spec.enableMSAA)
         {
-            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_spec.samples, static_cast<GLint>(m_spec.internalFormat), width, height, GL_FALSE);
+            m_spec.samples     = m_spec.samples;
+            m_spec.textureType = TextureType::TEXTURE_2D_MULTISAMPLE;
+            glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_spec.samples, static_cast<GLint>(m_spec.internalFormat), m_spec.width, m_spec.height,
+                                    GL_FALSE);
         }
         else
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), width, height, 0, static_cast<GLenum>(m_spec.format),
-                         static_cast<GLenum>(m_spec.textureDataType), nullptr);
+            glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), m_spec.width, m_spec.height, 0,
+                         static_cast<GLenum>(m_spec.format), static_cast<GLenum>(m_spec.textureDataType), nullptr);
         }
-
-        glBindTexture(GL_TEXTURE_2D, 0);
     }
 }
 void Texture::setRenderTarget(bool enable) { m_spec.isRenderTarget = enable; }

@@ -19,7 +19,6 @@ void Sandbox::onPreLoad()
 {
     // Model
     auto model_0 = RES.load<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
-
 }
 
 void Sandbox::onInit()
@@ -87,14 +86,11 @@ void Sandbox::onInit()
     auto &renderer_comp         = m_scene->getComponent<RendererComponent>(adminEntity);
     renderer_comp.backgroundMap = cube_map;
     renderer_comp.envMap        = cube_map;
+    renderer_comp.irradianceMap = irradiance_map;
+    renderer_comp.prefilterMap  = prefilter_map;
+    renderer_comp.brdfLUT       = RES.get<TextureResource>("brdf_lut")->getTexture();
 
-    auto brdf_lut             = RES.get<TextureResource>("brdf_lut")->getTexture();
-    m_editor->onDrawDebugInfo = [this, brdf_lut]()
-    {
-        ImGui::Begin("Debug Info");
-        ImGui::Image((void *)(intptr_t)brdf_lut->getHandle(), ImVec2(256, 256), ImVec2(0, 1), ImVec2(1, 0));
-        ImGui::End();
-    };
+    auto brdf_lut = RES.get<TextureResource>("brdf_lut")->getTexture();
 
     auto sphere = GeometryUtils::CreateSphere(1.0f, 36, 32);
 
@@ -107,16 +103,16 @@ void Sandbox::onInit()
             mesh_comp.primitives.push_back(sphere);
             auto &mat_comp = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
 
-            // mat_comp.material->color     = glm::vec3(0.6f, 0.0f, 0.0f);
-            mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
+            mat_comp.material->color = glm::vec3(0.6f, 0.0f, 0.0f);
+            // mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
             mat_comp.material->metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
             mat_comp.material->roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
             mat_comp.material->ao        = 1.0f;
 
-            mat_comp.material->albedoMap     = albedoMap->getTexture();
-            mat_comp.material->normalMap     = normalMap->getTexture();
-            mat_comp.material->metallicMap   = metallicMap->getTexture();
-            mat_comp.material->roughnessMap  = roughnessMap->getTexture();
+            // mat_comp.material->albedoMap     = albedoMap->getTexture();
+            // mat_comp.material->normalMap     = normalMap->getTexture();
+            // mat_comp.material->metallicMap   = metallicMap->getTexture();
+            // mat_comp.material->roughnessMap  = roughnessMap->getTexture();
             mat_comp.material->irradianceMap = irradiance_map;
             mat_comp.material->prefilterMap  = prefilter_map;
 
@@ -126,20 +122,95 @@ void Sandbox::onInit()
         }
     }
 
-    // model
     auto model_resource = RES.get<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
-    auto model_entity = m_scene->createDefaultEntity("model");
-    model_resource->instantiate(m_scene.get(), model_entity);
-    m_scene->traverseEntity(model_entity,
-                            [&](entt::entity entity)
-                            {
-                                if (m_scene->hasComponent<MaterialComponent>(entity))
+
+    // model_1
+        auto model_entity = m_scene->createDefaultEntity("model");
+        model_resource->instantiate(m_scene.get(), model_entity);
+        m_scene->traverseEntity(model_entity,
+                                [&](entt::entity entity)
                                 {
-                                    auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
-                                    mat_comp.material->irradianceMap = irradiance_map;
-                                    mat_comp.material->prefilterMap  = prefilter_map;
-                                }
-                            });
+                                    if (m_scene->hasComponent<MaterialComponent>(entity))
+                                    {
+                                        auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
+                                        mat_comp.material->irradianceMap = irradiance_map;
+                                        mat_comp.material->prefilterMap  = prefilter_map;
+                                    }
+                                });
+
+        // model_2
+        auto model_entity_2 = m_scene->createDefaultEntity("model_2");
+        model_resource->instantiate(m_scene.get(), model_entity_2);
+        m_scene->traverseEntity(model_entity_2,
+                                [&](entt::entity entity)
+                                {
+                                    if (m_scene->hasComponent<MaterialComponent>(entity))
+                                    {
+                                        auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
+                                        mat_comp.material->irradianceMap = irradiance_map;
+                                        mat_comp.material->prefilterMap  = prefilter_map;
+                                    }
+                                });
+
+    m_editor->onDrawDebugInfo = [&, adminEntity, albedoMap, normalMap]()
+    {
+        ImGui::Begin("Debug Info");
+
+        auto g_buffer = m_renderer->getGBuffer();
+        if (g_buffer)
+        {
+            auto pos = g_buffer->getColorAttachment(0);
+            if (pos)
+            {
+                ImGui::Text("Position");
+                ImGui::Image((void *)(intptr_t)pos->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+
+            auto normal = g_buffer->getColorAttachment(1);
+            if (normal)
+            {
+                ImGui::Text("Normal");
+                ImGui::Image((void *)(intptr_t)normal->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+
+            auto albedo = g_buffer->getColorAttachment(2);
+            if (albedo)
+            {
+                ImGui::Text("Albedo");
+                ImGui::Image((void *)(intptr_t)albedo->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+
+            auto material = g_buffer->getColorAttachment(3);
+            if (material)
+            {
+                ImGui::Text("Material");
+                ImGui::Image((void *)(intptr_t)material->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+
+            auto depth = m_renderer->getFramebuffer()->getDepthAttachment();
+            if (depth)
+            {
+                ImGui::Text("Depth");
+                ImGui::Image((void *)(intptr_t)depth->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+
+            auto empty_map = m_scene->getComponent<RendererComponent>(adminEntity).emptyMap;
+            if (empty_map)
+            {
+                ImGui::Text("Empty Map");
+                ImGui::Image((void *)(intptr_t)empty_map->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+
+            auto default_normal = m_scene->getComponent<RendererComponent>(adminEntity).defaultNormal;
+            if (default_normal)
+            {
+                ImGui::Text("Default Normal");
+                ImGui::Image((void *)(intptr_t)default_normal->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+        }
+
+        ImGui::End();
+    };
 }
 
 void Sandbox::onDestory() {}

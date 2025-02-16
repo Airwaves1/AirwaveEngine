@@ -1,0 +1,10 @@
+struct Light
+{
+    int type;
+    vec3 position;
+    vec3 direction;
+    vec3 color;
+    float intensity;
+};
+uniform int u_lightCount;
+uniform Light u_lights[MAX_LIGHT_COUNT]; // max lights

@@ -45,6 +45,7 @@ class Renderer
     void setViewport(int x, int y, int width, int height) { glViewport(x, y, width, height); }
 
     std::shared_ptr<Framebuffer> getFramebuffer() { return m_framebuffer; }
+    std::shared_ptr<Framebuffer> getGBuffer() { return m_gBuffer; }
 
     Application *getApplication() { return m_appContext; }
 
@@ -75,6 +76,8 @@ class Renderer
     Application *m_appContext;
 
     std::shared_ptr<Framebuffer> m_framebuffer;
+
+    std::shared_ptr<Framebuffer> m_gBuffer;
 
     std::unique_ptr<EventObserver> m_eventObserver;
 };
