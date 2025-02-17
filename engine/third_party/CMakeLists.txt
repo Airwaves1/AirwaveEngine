@@ -32,6 +32,19 @@ add_subdirectory(tiny_gltf)
 #tiny_obj
 add_subdirectory(tiny_obj)
 
+# bullet
+add_subdirectory(bullet3)
+option(BUILD_BULLET2_DEMOS OFF)
+option(BUILD_CPU_DEMOS OFF)
+option(BUILD_OPENGL3_DEMOS OFF)
+option(BUILD_EXTRAS OFF)
+option(BUILD_UNIT_TESTS OFF)
+option(BUILD_BULLET3 OFF)
+option(BUILD_PYBULLET OFF)
+option(BUILD_BULLET2_DEMOS OFF)
+option(BUILD_CPU_DEMOS OFF)
+
+
 target_link_libraries(third_party INTERFACE glfw)
 target_link_libraries(third_party INTERFACE glad)
 target_link_libraries(third_party INTERFACE glm)
@@ -39,3 +52,4 @@ target_link_libraries(third_party INTERFACE ImGui)
 target_link_libraries(third_party INTERFACE nlohmann_json)
 target_link_libraries(third_party INTERFACE tiny_gltf)
 target_link_libraries(third_party INTERFACE tiny_obj)
+target_link_libraries(third_party INTERFACE BulletDynamics)

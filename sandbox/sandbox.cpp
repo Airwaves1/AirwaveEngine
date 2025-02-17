@@ -122,6 +122,23 @@ void Sandbox::onInit()
         }
     }
 
+    // ground
+    auto ground_entity = m_scene->createDefaultEntity("ground");
+    auto ground        = GeometryUtils::CreatePlane(100.0f, 100.0f, 1, 1);
+    auto &mesh_comp    = m_scene->addComponent<MeshComponent>(ground_entity);
+    mesh_comp.primitives.push_back(ground);
+    auto &mat_comp = m_scene->addComponent<MaterialComponent>(ground_entity, MaterialType::PBR);
+    mat_comp.material->color     = glm::vec3(0.6f, 0.6f, 0.6f);
+    mat_comp.material->metallic  = 0.0f;
+    mat_comp.material->roughness = 0.5f;
+    mat_comp.material->ao        = 1.0f;
+    mat_comp.material->irradianceMap = irradiance_map;
+    mat_comp.material->prefilterMap  = prefilter_map;
+
+    auto &ground_transform = reg.get<TransformComponent>(ground_entity);
+    ground_transform.setPosition(glm::vec3(0.0f, 0.0f, -10.0f));
+
+
     auto model_resource = RES.get<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
     // model_1

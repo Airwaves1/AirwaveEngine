@@ -124,7 +124,6 @@ void Texture::unbind() const { glBindTexture(m_spec.textureType == TextureType::
 
 void Texture::resize(uint32_t width, uint32_t height)
 {
-    LOG_INFO("Texture::resize: width = {0}, height = {1}", width, height);
 
     if (m_spec.width == width && m_spec.height == height)
     {

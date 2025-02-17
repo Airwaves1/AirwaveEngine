@@ -6,17 +6,17 @@ namespace Airwave
 {
 namespace Math
 {
+// 平面方程为 normal * x + d = 0
 class Plane
 {
   public:
-    glm::vec3 normal;
     float d;
+    glm::vec3 normal;
 
     Plane(const glm::vec3 &normal = glm::vec3(0.0f), float d = 0.0f) : normal(glm::normalize(normal)), d(d) {}
 
     // 通过法线+平面上一点构造
-    Plane(const glm::vec3 &normal, const glm::vec3 &point) 
-        : normal(glm::normalize(normal)), d(-glm::dot(glm::normalize(normal), point)) {}
+    Plane(const glm::vec3 &normal, const glm::vec3 &point) : normal(glm::normalize(normal)), d(-glm::dot(glm::normalize(normal), point)) {}
 
     // 通过3点构造平面
     Plane(const glm::vec3 &point1, const glm::vec3 &point2, const glm::vec3 &point3)
