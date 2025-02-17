@@ -33,9 +33,10 @@ void Sandbox::onInit()
     auto &reg = m_scene->getRegistry();
 
     auto main_camera_entity = m_scene->createDefaultEntity("main_camera");
-    m_scene->addComponent<CameraComponent>(main_camera_entity);
+    auto &camera_comp = m_scene->addComponent<CameraComponent>(main_camera_entity);
     m_scene->addComponent<TrackballController>(main_camera_entity);
     auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
+    camera_comp.setFarPlane(1000.0f);
     camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
 
     // // lights
@@ -118,7 +119,15 @@ void Sandbox::onInit()
 
             auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
             sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
+            
+            auto& sphere_rb = m_scene->addComponent<RigidBodyComponent>(sphere_entity);
+            sphere_rb.mass = 1.0f;
+            sphere_rb.colliderType = ColliderType::Sphere;
+            sphere_rb.shapeSize = glm::vec3(1.0f);
+
+            
             m_scene->setEntityParent(sphere_entity, sphere_container_entity);
+
         }
     }
 
@@ -127,47 +136,70 @@ void Sandbox::onInit()
     auto ground        = GeometryUtils::CreatePlane(100.0f, 100.0f, 1, 1);
     auto &mesh_comp    = m_scene->addComponent<MeshComponent>(ground_entity);
     mesh_comp.primitives.push_back(ground);
-    auto &mat_comp = m_scene->addComponent<MaterialComponent>(ground_entity, MaterialType::PBR);
-    mat_comp.material->color     = glm::vec3(0.6f, 0.6f, 0.6f);
-    mat_comp.material->metallic  = 0.0f;
-    mat_comp.material->roughness = 0.5f;
-    mat_comp.material->ao        = 1.0f;
+    auto &mat_comp                   = m_scene->addComponent<MaterialComponent>(ground_entity, MaterialType::PBR);
+    mat_comp.material->color         = glm::vec3(0.6f, 0.6f, 0.6f);
+    mat_comp.material->metallic      = 0.0f;
+    mat_comp.material->roughness     = 0.5f;
+    mat_comp.material->ao            = 1.0f;
     mat_comp.material->irradianceMap = irradiance_map;
     mat_comp.material->prefilterMap  = prefilter_map;
 
     auto &ground_transform = reg.get<TransformComponent>(ground_entity);
-    ground_transform.setPosition(glm::vec3(0.0f, 0.0f, -10.0f));
+    ground_transform.setPosition(glm::vec3(0.0f, -10.0f, 0.0f));
+    ground_transform.setScale(glm::vec3(10.0f, 1.0f, 10.0f));
+
+    auto& ground_rb = m_scene->addComponent<RigidBodyComponent>(ground_entity);
+    ground_rb.mass = 0.0f;
+    ground_rb.colliderType = ColliderType::Box;
+    ground_rb.shapeSize = glm::vec3(1000.0f, 0.1f, 1000.0f);
 
 
+
+    // model 
     auto model_resource = RES.get<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
     // model_1
-        auto model_entity = m_scene->createDefaultEntity("model");
-        model_resource->instantiate(m_scene.get(), model_entity);
-        m_scene->traverseEntity(model_entity,
-                                [&](entt::entity entity)
+    auto model_entity = m_scene->createDefaultEntity("model");
+    model_resource->instantiate(m_scene.get(), model_entity);
+    m_scene->traverseEntity(model_entity,
+                            [&](entt::entity entity)
+                            {
+                                if (m_scene->hasComponent<MaterialComponent>(entity))
                                 {
-                                    if (m_scene->hasComponent<MaterialComponent>(entity))
-                                    {
-                                        auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
-                                        mat_comp.material->irradianceMap = irradiance_map;
-                                        mat_comp.material->prefilterMap  = prefilter_map;
-                                    }
-                                });
+                                    auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
+                                    mat_comp.material->irradianceMap = irradiance_map;
+                                    mat_comp.material->prefilterMap  = prefilter_map;
+                                }
+                            });
+    auto &model_transform = m_scene->getComponent<TransformComponent>(model_entity);
+    model_transform.setPosition(glm::vec3(-10.0f, 0.0f, 0.0f));
+                        
+    auto &model_rb = m_scene->addComponent<RigidBodyComponent>(model_entity);
+    model_rb.mass = 1.0f;
+    model_rb.colliderType = ColliderType::Box;
+    model_rb.shapeSize = glm::vec3(0.9f);
 
-        // model_2
-        auto model_entity_2 = m_scene->createDefaultEntity("model_2");
-        model_resource->instantiate(m_scene.get(), model_entity_2);
-        m_scene->traverseEntity(model_entity_2,
-                                [&](entt::entity entity)
+
+    // model_2
+    auto model_entity_2 = m_scene->createDefaultEntity("model_2");
+    model_resource->instantiate(m_scene.get(), model_entity_2);
+    m_scene->traverseEntity(model_entity_2,
+                            [&](entt::entity entity)
+                            {
+                                if (m_scene->hasComponent<MaterialComponent>(entity))
                                 {
-                                    if (m_scene->hasComponent<MaterialComponent>(entity))
-                                    {
-                                        auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
-                                        mat_comp.material->irradianceMap = irradiance_map;
-                                        mat_comp.material->prefilterMap  = prefilter_map;
-                                    }
-                                });
+                                    auto &mat_comp                   = m_scene->getComponent<MaterialComponent>(entity);
+                                    mat_comp.material->irradianceMap = irradiance_map;
+                                    mat_comp.material->prefilterMap  = prefilter_map;
+                                }
+                            });
+    auto &model_transform_2 = m_scene->getComponent<TransformComponent>(model_entity_2);
+    model_transform_2.setPosition(glm::vec3(10.0f, 0.0f, 0.0f));
+
+    auto &model_rb_2 = m_scene->addComponent<RigidBodyComponent>(model_entity_2);
+    model_rb_2.mass = 1.0f;
+    model_rb_2.colliderType = ColliderType::Box;
+    model_rb_2.shapeSize = glm::vec3(0.9f);
 
     m_editor->onDrawDebugInfo = [&, adminEntity, albedoMap, normalMap]()
     {

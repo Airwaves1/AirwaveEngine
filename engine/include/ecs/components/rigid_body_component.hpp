@@ -1,6 +1,9 @@
 #pragma once
 
 #include <glm/glm.hpp>
+#include <memory>
+#include <btBulletCollisionCommon.h>
+#include "ecs/aw_component.hpp"
 
 namespace Airwave
 {
@@ -12,15 +15,15 @@ enum ColliderType
     Mesh
 };
 
-class RigidBodyComponent
+class RigidBodyComponent : public AwComponent
 {
   public:
-    float mass                = 1.0f;      // 质量
-    glm::vec3 velocity        = {0, 0, 0}; // 速度
-    glm::vec3 angularVelocity = {0, 0, 0}; // 角速度
-    bool isKinematic          = false;     // 是否是动力学刚体
-    float linearDamping       = 0.01f;     // 线性阻尼
-    float angularDamping      = 0.05f;     // 角阻尼
+    float mass = 0.0; // 质量, 0表示静态物体
+    std::unique_ptr<btRigidBody> rigidBody;           // 刚体
+    std::shared_ptr<btCollisionShape> collisionShape; // 碰撞形状
+    ColliderType colliderType = ColliderType::Sphere;
+    glm::vec3 shapeSize       = glm::vec3(1.0f);
+    bool isTrigger            = false;
 };
 
 } // namespace Airwave

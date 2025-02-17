@@ -68,6 +68,7 @@ include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/nlohmann_json)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/tiny_gltf)
 include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/tiny_obj)
+include_directories(${CMAKE_SOURCE_DIR}/engine/third_party/bullet3/src)
 
 include_directories(${CMAKE_SOURCE_DIR}/sandbox/editor/include)
 include_directories(${CMAKE_SOURCE_DIR}/sandbox/game/include)

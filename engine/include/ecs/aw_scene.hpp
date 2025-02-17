@@ -97,6 +97,7 @@ class AwScene
     entt::entity getEntityParent(entt::entity entity);
 
     entt::registry &getRegistry() { return m_registry; }
+    entt::dispatcher &getDispatcher() { return m_dispatcher; }
     entt::entity getAdminEntity() { return m_adminEntity; }
 
     // 系统管理
@@ -115,6 +116,7 @@ class AwScene
 
   private:
     entt::registry m_registry;
+    entt::dispatcher m_dispatcher;
 
     entt::entity m_adminEntity = entt::null;
 

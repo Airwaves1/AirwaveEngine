@@ -8,6 +8,12 @@
 
 namespace Airwave
 {
+  class test_event{
+    public:
+      int a = 0;
+      int b = 1;
+  };
+  
 class Sandbox : public Airwave::Application
 {
   public:
@@ -26,6 +32,7 @@ class Sandbox : public Airwave::Application
   private:
     std::unique_ptr<Airwave::Editor> m_editor;
 };
+
 
 } // namespace Airwave
 

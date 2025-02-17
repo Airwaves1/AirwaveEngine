@@ -20,10 +20,12 @@
 #include "ecs/components/material_component.hpp"
 #include "ecs/components/camera_component.hpp"
 #include "ecs/components/light_component.hpp"
+#include "ecs/components/rigid_body_component.hpp"
 
 #include "ecs/components/singleton_components/input_component.hpp"
 #include "ecs/components/singleton_components/lights_manager_component.hpp"
 #include "ecs/components/singleton_components/renderer_component.hpp"
+#include "ecs/components/singleton_components/physics_world_component.hpp"
 
 #include "ecs/systems/transform_system.hpp"
 #include "ecs/systems/camera_system.hpp"

@@ -5,13 +5,15 @@
 
 #include "ecs/components/camera_component.hpp"
 #include "ecs/components/singleton_components/renderer_component.hpp"
-
+#include "ecs/components/singleton_components/input_component.hpp"
+#include "ecs/components/singleton_components/lights_manager_component.hpp"
+#include "ecs/components/singleton_components/physics_world_component.hpp"
 #include "ecs/systems/transform_system.hpp"
 #include "ecs/systems/camera_system.hpp"
 #include "ecs/systems/render_system.hpp"
 #include "ecs/systems/input_system.hpp"
 #include "ecs/systems/light_system.hpp"
-
+#include "ecs/systems/physics_system.hpp"
 #include "resource/resource_manager.hpp"
 #include "resource/shader_resource.hpp"
 #include "resource/texture_resource.hpp"
@@ -45,6 +47,7 @@ void Application::start(int argc, char **argv)
     m_scene = std::make_unique<AwScene>(this);
     m_scene->addSystem<InputSystem>(0);
     m_scene->addSystem<TransformSystem>(0);
+    m_scene->addSystem<PhysicsSystem>(0);
     m_scene->addSystem<CameraSystem>(0);
     m_scene->addSystem<LightSystem>(0);
     m_scene->addSystem<RenderSystem>(2);
@@ -55,6 +58,7 @@ void Application::start(int argc, char **argv)
     m_scene->addComponent<RendererComponent>(adminEntity);
     m_scene->addComponent<InputComponent>(adminEntity);
     m_scene->addComponent<LightsManagerComponent>(adminEntity);
+    m_scene->addComponent<PhysicsWorldComponent>(adminEntity);
 
     // 初始化
     onInit();

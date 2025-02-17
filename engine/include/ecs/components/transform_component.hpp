@@ -84,5 +84,7 @@ class TransformComponent : public AwComponent
     bool m_dirty; // 标记是否需要更新矩阵
 
     friend class TransformSystem;
+    friend class PhysicsSystem;
+    friend class RenderSystem;
 };
 } // namespace Airwave
