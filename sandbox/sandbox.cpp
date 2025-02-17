@@ -105,8 +105,8 @@ void Sandbox::onInit()
 
             mat_comp.material->color = glm::vec3(0.6f, 0.0f, 0.0f);
             // mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
-            mat_comp.material->metallic  = glm::clamp(i / 6.0f, 0.0f, 1.0f);
-            mat_comp.material->roughness = glm::clamp(j / 6.0f, 0.05f, 1.0f);
+            mat_comp.material->metallic  = glm::clamp(i / 7.0f, 0.05f, 1.0f);
+            mat_comp.material->roughness = glm::clamp(j / 7.0f, 0.05f, 1.0f);
             mat_comp.material->ao        = 1.0f;
 
             // mat_comp.material->albedoMap     = albedoMap->getTexture();

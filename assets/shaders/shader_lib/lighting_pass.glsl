@@ -93,7 +93,7 @@ void main()
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
 
     vec3 kS = F;
-    vec3 kD = vec3(1.0) - kS;
+    vec3 kD = 1.0 - kS;
     kD *= 1.0 - metallic;
 
     vec3 irradiance = texture(u_irradianceMap, N).rgb;
