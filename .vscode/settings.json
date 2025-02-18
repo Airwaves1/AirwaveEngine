@@ -1,5 +1,8 @@
 {
     "files.associations": {
+        "*.frag": "cg",
+        "*.vert": "cg",
+        "*.glsl": "glsl",
         "memory": "cpp",
         "algorithm": "cpp",
         "any": "cpp",
@@ -89,7 +92,8 @@
         "resumable": "cpp",
         "future": "cpp",
         "queue": "cpp",
-        "regex": "cpp"
+        "regex": "cpp",
+        "complex": "cpp"
     },
     "C_Cpp.default.compilerPath": "cl.exe"
 }

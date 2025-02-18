@@ -23,6 +23,9 @@ add_subdirectory(glm)
 # imgui
 add_subdirectory(imgui)
 
+# imguizmo
+add_subdirectory(imguizmo)
+
 # nlohmann_json
 add_subdirectory(nlohmann_json)
 

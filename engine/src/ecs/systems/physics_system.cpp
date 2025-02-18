@@ -3,6 +3,7 @@
 #include "ecs/components/singleton_components/physics_world_component.hpp"
 #include "ecs/components/transform_component.hpp"
 #include "ecs/components/rigid_body_component.hpp"
+#include "ecs/components/tag_component.hpp"
 
 #include "ecs/events/collosion_event.hpp"
 #include "ecs/events/trigger_event.hpp"
@@ -61,6 +62,12 @@ void PhysicsSystem::createRigidBody(AwScene *scene, entt::entity entity)
     btMotionState *motion_state = new btDefaultMotionState(bt_transform);
     btRigidBody::btRigidBodyConstructionInfo rigid_body_info(rigid_body_comp.mass, motion_state, collision_shape, inertia);
     rigid_body_comp.rigidBody = std::make_unique<btRigidBody>(rigid_body_info);
+
+    if(rigid_body_comp.rigidBody == nullptr)
+    {
+        LOG_ERROR("rigid_body_comp.rigidBody is nullptr");
+        return;
+    }
 
     // 设置是否为触发器
     if (rigid_body_comp.isTrigger)

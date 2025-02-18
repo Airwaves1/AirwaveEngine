@@ -1,8 +1,10 @@
 #include "sandbox.hpp"
 #include <glad/glad.h>
 
-#include "controller/trackball_camera_system.hpp"
-#include "controller/trackball_controller_component.hpp"
+// #include "controller/trackball_camera_system.hpp"
+// #include "controller/trackball_controller_component.hpp"
+#include "game/components/fps_controller.hpp"
+#include "game/components/fps_controller_system.hpp"
 
 // #include "resource/model_resource.hpp"
 
@@ -25,7 +27,8 @@ void Sandbox::onInit()
 {
     m_editor = std::make_unique<Airwave::Editor>(this);
 
-    m_scene->addSystem<TrackballCameraSystem>();
+    // m_scene->addSystem<TrackballCameraSystem>();
+    m_scene->addSystem<FPSControllerSystem>();
 
     // entity
 
@@ -34,7 +37,8 @@ void Sandbox::onInit()
 
     auto main_camera_entity = m_scene->createDefaultEntity("main_camera");
     auto &camera_comp = m_scene->addComponent<CameraComponent>(main_camera_entity);
-    m_scene->addComponent<TrackballController>(main_camera_entity);
+    // m_scene->addComponent<TrackballController>(main_camera_entity);
+    auto& fps_controller = m_scene->addComponent<FPSControllerComponent>(main_camera_entity);
     auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
     camera_comp.setFarPlane(1000.0f);
     camera_transform.setPosition(glm::vec3(0.0f, 0.0f, 10.0f));
@@ -125,15 +129,14 @@ void Sandbox::onInit()
             sphere_rb.colliderType = ColliderType::Sphere;
             sphere_rb.shapeSize = glm::vec3(1.0f);
 
-            
             m_scene->setEntityParent(sphere_entity, sphere_container_entity);
-
         }
     }
 
     // ground
+    glm::vec3 ground_size = glm::vec3(1000.0f, 0.01f, 1000.0f);
     auto ground_entity = m_scene->createDefaultEntity("ground");
-    auto ground        = GeometryUtils::CreatePlane(100.0f, 100.0f, 1, 1);
+    auto ground        = GeometryUtils::CreatePlane(1.0f, 1.0f, 1, 1);
     auto &mesh_comp    = m_scene->addComponent<MeshComponent>(ground_entity);
     mesh_comp.primitives.push_back(ground);
     auto &mat_comp                   = m_scene->addComponent<MaterialComponent>(ground_entity, MaterialType::PBR);
@@ -145,14 +148,30 @@ void Sandbox::onInit()
     mat_comp.material->prefilterMap  = prefilter_map;
 
     auto &ground_transform = reg.get<TransformComponent>(ground_entity);
-    ground_transform.setPosition(glm::vec3(0.0f, -10.0f, 0.0f));
-    ground_transform.setScale(glm::vec3(10.0f, 1.0f, 10.0f));
+    ground_transform.setPosition(glm::vec3(0.0f, -15.0f, 0.0f));
+    ground_transform.setScale(ground_size);
 
     auto& ground_rb = m_scene->addComponent<RigidBodyComponent>(ground_entity);
     ground_rb.mass = 0.0f;
     ground_rb.colliderType = ColliderType::Box;
-    ground_rb.shapeSize = glm::vec3(1000.0f, 0.1f, 1000.0f);
+    ground_rb.shapeSize = ground_size;
 
+    // walls
+    // auto wall_0_entity = m_scene->createDefaultEntity("wall_0");
+    // auto wall_0        = GeometryUtils::CreatePlane(1.0f, 1.0f, 1, 1);
+    // auto &mesh_comp_0  = m_scene->addComponent<MeshComponent>(wall_0_entity);
+    // mesh_comp_0.primitives.push_back(wall_0);
+    // auto &mat_comp_0                   = m_scene->addComponent<MaterialComponent>(wall_0_entity, MaterialType::PBR);
+    // mat_comp_0.material->color         = glm::vec3(0.6f, 0.6f, 0.6f);
+    // mat_comp_0.material->metallic      = 0.0f;
+    // mat_comp_0.material->roughness     = 0.5f;
+    // mat_comp_0.material->ao            = 1.0f;
+    // mat_comp_0.material->irradianceMap = irradiance_map;
+    // mat_comp_0.material->prefilterMap  = prefilter_map;
+
+    // auto &wall_transform_0 = reg.get<TransformComponent>(wall_0_entity);
+    // wall_transform_0.setPosition(glm::vec3(0.0f, 0.0f, -500.0f));
+    // wall_transform_0.setScale(glm::vec3(1000.0f, 1000.0f, 1.0f));
 
 
     // model 
@@ -178,7 +197,6 @@ void Sandbox::onInit()
     model_rb.mass = 1.0f;
     model_rb.colliderType = ColliderType::Box;
     model_rb.shapeSize = glm::vec3(0.9f);
-
 
     // model_2
     auto model_entity_2 = m_scene->createDefaultEntity("model_2");

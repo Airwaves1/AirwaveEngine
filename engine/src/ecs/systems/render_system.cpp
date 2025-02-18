@@ -201,17 +201,16 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
 
         if (!mat_comp.materialRenderParams.visible) continue;
 
-
         renderer->set("u_worldMatrix", transform_comp.getWorldMatrix());
         renderer->set("u_normalMatrix", glm::transpose(glm::inverse(glm::mat3(transform_comp.getWorldMatrix()))));
 
         const auto &material = mat_comp.material;
-        
+
         renderer->set("u_material.albedo", material->color);
         renderer->set("u_material.roughness", material->roughness);
         renderer->set("u_material.metallic", material->metallic);
         renderer->set("u_material.ao", material->ao);
-        
+
         int slots = 0;
 
         // albedo
@@ -333,7 +332,7 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
         LOG_ERROR("RenderSystem::deferredRender: g_buffer attachment is nullptr");
         return;
     }
-    
+
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, g_position->getHandle());
 
@@ -369,6 +368,8 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
         auto light_entity = lightsManager_comp.lights[i];
         auto &lightComp   = reg.get<LightComponent>(light_entity);
         auto &lightTrans  = reg.get<TransformComponent>(light_entity);
+        // 0: Directional, 1: Point, 2: Spot
+        renderer->set("u_lights[" + std::to_string(i) + "].type", static_cast<int>(lightComp.type));
         renderer->set("u_lights[" + std::to_string(i) + "].position", lightTrans.getPosition());
         renderer->set("u_lights[" + std::to_string(i) + "].color", lightComp.color);
         renderer->set("u_lights[" + std::to_string(i) + "].intensity", lightComp.intensity);
@@ -385,18 +386,17 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
     // copy depth buffer
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer->getHandle());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderer->getFramebuffer()->getHandle());
-    // blit to default framebuffer. Note that this may or may not work as the internal formats of 
+    // blit to default framebuffer. Note that this may or may not work as the internal formats of
     // both the FBO and default framebuffer have to match.
-    // the internal formats are implementation defined. 
+    // the internal formats are implementation defined.
     // This works on all of my systems, but if it doesn't on yours you'll likely have to write to the
-    // depth buffer in another shader stage (or somehow see to match the default framebuffer's 
+    // depth buffer in another shader stage (or somehow see to match the default framebuffer's
     // internal format with the FBO's internal format)
-    const auto& src_spec = g_buffer->getSpecification();
-    const auto& dst_spec = renderer->getFramebuffer()->getSpecification();
+    const auto &src_spec = g_buffer->getSpecification();
+    const auto &dst_spec = renderer->getFramebuffer()->getSpecification();
     glBlitFramebuffer(0, 0, src_spec.width, src_spec.height, 0, 0, dst_spec.width, dst_spec.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, renderer->getFramebuffer()->getHandle());  
+    glBindFramebuffer(GL_FRAMEBUFFER, renderer->getFramebuffer()->getHandle());
     // end copy depth buffer
-
 }
 
 void RenderSystem::uploadMaterialUniforms(Renderer *renderer, Material *material, int &slots)

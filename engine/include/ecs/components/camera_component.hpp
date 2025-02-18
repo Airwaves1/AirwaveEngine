@@ -15,11 +15,43 @@ class CameraComponent : public AwComponent
         Orthographic // 正交相机
     };
 
+    // glm::vec4 viewport = glm::vec4(0.0f, 0.0f, 1280.0f, 720.0f);
+
+    /**
+     * @brief 屏幕坐标转射线
+     * @param screenPoint 屏幕坐标
+     * @param viewport 视口
+     * @return std::pair<glm::vec3, glm::vec3> 射线起点和方向
+     */
+    std::pair<glm::vec3, glm::vec3> screenPointToRay(glm::vec2 screenPoint, glm::vec4 viewport)
+    {
+        // 转换到NDC坐标
+        glm::vec3 rayStartNDC((2.0f * screenPoint.x) / viewport.z - 1.0f, 1.0f - (2.0f * screenPoint.y) / viewport.w,
+                              -1.0f // 近平面
+        );
+
+        glm::vec3 rayEndNDC((2.0f * screenPoint.x) / viewport.z - 1.0f, 1.0f - (2.0f * screenPoint.y) / viewport.w,
+                            1.0f // 远平面
+        );
+
+        // 获取视图投影矩阵的逆
+        glm::mat4 invVP = glm::inverse(getProjectionMatrix() * getWorldInverseMatrix());
+
+        // 转换到世界坐标
+        glm::vec4 rayStartWorld = invVP * glm::vec4(rayStartNDC, 1.0f);
+        rayStartWorld /= rayStartWorld.w;
+
+        glm::vec4 rayEndWorld = invVP * glm::vec4(rayEndNDC, 1.0f);
+        rayEndWorld /= rayEndWorld.w;
+
+        return std::make_pair(glm::vec3(rayStartWorld), glm::vec3(rayEndWorld - rayStartWorld));
+    }
+
     bool enable = true;
 
     CameraComponent()
-        : m_cameraType(CameraType::Perspective), m_fov(45.0f), m_aspectRatio(16.0f / 9.0f),
-          m_nearPlane(0.1f), m_farPlane(100.0f), m_orthoSize(10.0f), m_dirty(true)
+        : m_cameraType(CameraType::Perspective), m_fov(45.0f), m_aspectRatio(16.0f / 9.0f), m_nearPlane(0.1f), m_farPlane(100.0f), m_orthoSize(10.0f),
+          m_dirty(true)
     {
     }
 
@@ -62,15 +94,13 @@ class CameraComponent : public AwComponent
 
         if (m_cameraType == CameraType::Perspective)
         {
-            m_projectionMatrix =
-                glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
+            m_projectionMatrix = glm::perspective(glm::radians(m_fov), m_aspectRatio, m_nearPlane, m_farPlane);
         }
         else if (m_cameraType == CameraType::Orthographic)
         {
-            float halfWidth  = m_orthoSize * m_aspectRatio * 0.5f;
-            float halfHeight = m_orthoSize * 0.5f;
-            m_projectionMatrix =
-                glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, m_nearPlane, m_farPlane);
+            float halfWidth    = m_orthoSize * m_aspectRatio * 0.5f;
+            float halfHeight   = m_orthoSize * 0.5f;
+            m_projectionMatrix = glm::ortho(-halfWidth, halfWidth, -halfHeight, halfHeight, m_nearPlane, m_farPlane);
         }
 
         m_dirty = false;
@@ -117,9 +147,8 @@ class CameraComponent : public AwComponent
     void setOrthoSize(float orthoSize)
     {
         m_orthoSize = orthoSize;
-        m_dirty    = true;
+        m_dirty     = true;
     }
-    
 
   private:
     CameraType m_cameraType; // 相机类型

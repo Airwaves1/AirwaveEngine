@@ -8,10 +8,10 @@ class AwSystem
   public:
     virtual ~AwSystem() = default;
 
+    virtual void onInit() {}
   protected:
     AwSystem() = default;
 
-    virtual void onInit() {}
     virtual void onUpdate(float deltaTime) = 0;
     virtual void afterAllSystemsUpdated(float deltaTime) {}
 

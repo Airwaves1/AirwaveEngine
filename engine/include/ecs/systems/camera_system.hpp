@@ -20,6 +20,7 @@ class CameraSystem : public AwSystem
             {
                 if (camera.enable)
                 {
+
                     camera.m_worldInverseMatrix = glm::inverse(transform.getWorldMatrix());
                     camera.m_position           = transform.getPosition();
                     camera.update();
