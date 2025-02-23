@@ -9,12 +9,21 @@
 #include "ecs/components/tag_component.hpp"
 #include "ecs/components/hierarchy_component.hpp"
 
+#include "core/log.hpp"
+
 namespace Airwave
 {
 class SceneHierarchyPanel : public Panel
 {
   public:
-    SceneHierarchyPanel(Editor *editor, const std::string &title, bool startOpened = true) : Panel(editor, title, startOpened) {}
+    SceneHierarchyPanel(Editor *editor, const std::string &title, bool startOpened = true) : Panel(editor, title, startOpened)
+    {
+        m_editor->onSelectedEntityChanged = [&]()
+        {
+            buildSelectedPath(m_editor->getContext()->getScene(), m_editor->getSelectedEntity());
+            m_shouldScrollToSelected = true; // 设置滚动标志
+        };
+    }
 
     virtual ~SceneHierarchyPanel() = default;
 
@@ -25,57 +34,79 @@ class SceneHierarchyPanel : public Panel
         auto adminEntity = scene->getAdminEntity();
         ImGui::Begin(m_title.c_str(), &m_isOpen);
 
-        // 获取所有实体并按层次结构绘制
-        drawEntityHierarchy(scene, adminEntity, false);
+        bool hasScrolled = false;
+        drawEntityHierarchy(scene, scene->getAdminEntity(), hasScrolled);
+
+        // 如果未找到目标但需要滚动，则重置标志
+        if (m_shouldScrollToSelected && !hasScrolled)
+        {
+            m_shouldScrollToSelected = false;
+        }
 
         ImGui::End();
+
     }
 
   private:
-    // 递归绘制实体层次结构
-    void drawEntityHierarchy(AwScene *scene, entt::entity entity, bool drawCurrentLevel = true)
+    bool m_shouldScrollToSelected = false; // 滚动标志
+    std::vector<entt::entity> m_selectionPath;
+    void buildSelectedPath(AwScene *scene, entt::entity target)
     {
-        // 判断当前entity是否具有tag和hierarchy组件
-        if (scene->getRegistry().all_of<TagComponent, HierarchyComponent>(entity))
+        m_selectionPath.clear();
+        if (!scene->isValideEntity(target)) return;
+
+        entt::entity current = target;
+        while (current != entt::null)
         {
-            auto &tag       = scene->getRegistry().get<TagComponent>(entity);
-            auto &hierarchy = scene->getRegistry().get<HierarchyComponent>(entity);
+            m_selectionPath.insert(m_selectionPath.begin(), current); // 反向插入路径
+            if (!scene->getRegistry().valid(current)) break;
 
-            if (drawCurrentLevel)
+            auto &hierarchy = scene->getComponent<HierarchyComponent>(current);
+            current         = hierarchy.getParent();
+        }
+    }
+
+    void drawEntityHierarchy(AwScene *scene, entt::entity entity, bool &hasScrolled)
+    {
+        if (!scene->getRegistry().valid(entity)) return;
+
+        auto &reg = scene->getRegistry();
+        if (reg.all_of<TagComponent, HierarchyComponent>(entity))
+        {
+            auto &tag       = reg.get<TagComponent>(entity);
+            auto &hierarchy = reg.get<HierarchyComponent>(entity);
+
+            bool inPath     = std::find(m_selectionPath.begin(), m_selectionPath.end(), entity) != m_selectionPath.end();
+            bool isSelected = (entity == m_editor->getSelectedEntity());
+
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+            if (inPath) flags |= ImGuiTreeNodeFlags_DefaultOpen;
+            if (isSelected) flags |= ImGuiTreeNodeFlags_Selected;
+
+            bool forceOpen = inPath && (entity != m_selectionPath.front());
+            bool nodeOpen =
+                ImGui::TreeNodeEx((void *)(intptr_t)entity, flags | (forceOpen ? ImGuiTreeNodeFlags_DefaultOpen : 0), "%s", tag.name.c_str());
+
+            // 滚动聚焦逻辑
+            if (isSelected && m_shouldScrollToSelected && !hasScrolled)
             {
-                // 创建一个树节点
-                bool isSelect                = m_editor->getSelectedEntity() == entity;
-                ImGuiTreeNodeFlags nodeFlags = ImGuiTreeNodeFlags_OpenOnArrow;
-                if (isSelect) nodeFlags |= ImGuiTreeNodeFlags_Selected;
-                bool isOpen = ImGui::TreeNodeEx(tag.name.c_str(), nodeFlags);
-
-                // 处理点击事件
-                if (ImGui::IsItemClicked(ImGuiMouseButton_Left) && !ImGui::IsItemToggledOpen())
-                {
-                    m_editor->setSelectedEntity(entity);
-                    if (m_editor->onSelectedEntityChanged)
-                    {
-                        m_editor->onSelectedEntityChanged();
-                    }
-                }
-
-                // 如果当前节点展开，递归绘制子实体
-                if (isOpen)
-                {
-                    for (auto &child : hierarchy.getChildren())
-                    {
-                        drawEntityHierarchy(scene, child);
-                    }
-                    ImGui::TreePop();
-                }
+                ImGui::SetScrollHereY(0.5f); // 垂直居中
+                hasScrolled = true;
             }
-            else
+
+            if (ImGui::IsItemClicked())
             {
-                // 递归绘制子实体
-                for (auto &child : hierarchy.getChildren())
+                m_editor->setSelectedEntity(entity);
+            }
+
+            if (nodeOpen || forceOpen)
+            {
+                for (auto child : hierarchy.getChildren())
                 {
-                    drawEntityHierarchy(scene, child);
+                    bool childHasScrolled = false;
+                    drawEntityHierarchy(scene, child, hasScrolled);
                 }
+                ImGui::TreePop();
             }
         }
     }

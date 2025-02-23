@@ -30,7 +30,7 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "ImGuizmo.h"
-
+#include <iostream>
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <malloc.h>
 #endif
@@ -2149,6 +2149,7 @@ namespace IMGUIZMO_NAMESPACE
         return false;
       }
       const ImGuiIO& io = ImGui::GetIO();
+
       const bool applyRotationLocaly = gContext.mMode == LOCAL || type == MT_MOVE_SCREEN;
       bool modified = false;
 
@@ -2237,6 +2238,7 @@ namespace IMGUIZMO_NAMESPACE
             ImGui::CaptureMouseFromApp();
 #endif
          }
+
          if (CanActivate() && type != MT_NONE)
          {
             gContext.mbUsing = true;
@@ -2673,6 +2675,7 @@ namespace IMGUIZMO_NAMESPACE
       {
          if (!gContext.mbUsingBounds)
          {
+            gContext.mbOverGizmoHotspot = false;
             manipulated = HandleTranslation(matrix, deltaMatrix, operation, type, snap) ||
                           HandleScale(matrix, deltaMatrix, operation, type, snap) ||
                           HandleRotation(matrix, deltaMatrix, operation, type, snap);

@@ -34,6 +34,11 @@ class TransformComponent : public AwComponent
         m_dirty    = true;
     }
 
+    void setRotation(const glm::vec3 &eulerAngles)
+    {
+        setRotation(glm::quat(eulerAngles));
+    }
+
     // 设置缩放
     void setScale(const glm::vec3 &scale)
     {
@@ -41,6 +46,18 @@ class TransformComponent : public AwComponent
         m_scale = scale;
         m_dirty = true;
     }
+
+    void setForward(const glm::vec3 &forward)
+    {
+
+    }
+
+    void setLookAt(const glm::vec3 &target, const glm::vec3 &up = glm::vec3(0.0f, 1.0f, 0.0f))
+    {
+
+    }
+
+    
 
     // 获取位置、旋转、缩放
     const glm::vec3 &getPosition() const { return m_position; }
@@ -73,8 +90,19 @@ class TransformComponent : public AwComponent
         return translation * rotation * scale;
     }
 
+    void updateWorldMatrix()
+    {
+        if (m_dirty)
+        {
+            localMatrix = calculateTransformMatrix();
+            worldMatrix = parentMatrix * localMatrix;
+            m_dirty     = false;
+        }
+    }
+
     glm::mat4 localMatrix; // 缓存的变换矩阵
     glm::mat4 worldMatrix; // 缓存的世界矩阵
+    glm::mat4 parentMatrix = glm::mat4(1.0f); // 父级矩阵
 
   private:
     glm::vec3 m_position; // 位置

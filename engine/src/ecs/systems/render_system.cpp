@@ -386,17 +386,12 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
     // copy depth buffer
     glBindFramebuffer(GL_READ_FRAMEBUFFER, g_buffer->getHandle());
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderer->getFramebuffer()->getHandle());
-    // blit to default framebuffer. Note that this may or may not work as the internal formats of
-    // both the FBO and default framebuffer have to match.
-    // the internal formats are implementation defined.
-    // This works on all of my systems, but if it doesn't on yours you'll likely have to write to the
-    // depth buffer in another shader stage (or somehow see to match the default framebuffer's
-    // internal format with the FBO's internal format)
+
     const auto &src_spec = g_buffer->getSpecification();
     const auto &dst_spec = renderer->getFramebuffer()->getSpecification();
     glBlitFramebuffer(0, 0, src_spec.width, src_spec.height, 0, 0, dst_spec.width, dst_spec.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->getFramebuffer()->getHandle());
-    // end copy depth buffer
+
 }
 
 void RenderSystem::uploadMaterialUniforms(Renderer *renderer, Material *material, int &slots)

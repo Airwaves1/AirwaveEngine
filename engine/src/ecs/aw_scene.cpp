@@ -46,6 +46,21 @@ entt::entity AwScene::getEntity(const std::string &name)
     return entt::null;
 }
 
+entt::entity AwScene::cloneEntity(entt::entity entity)
+{
+    if (!m_registry.valid(entity))
+    {
+        LOG_ERROR("entity is not valid");
+        return entt::null;
+    }
+
+    auto clone = m_registry.create();
+    m_registry.emplace<TagComponent>(clone, m_registry.get<TagComponent>(entity));
+    m_registry.emplace<TransformComponent>(clone, m_registry.get<TransformComponent>(entity));
+    m_registry.emplace<HierarchyComponent>(clone, m_registry.get<HierarchyComponent>(entity));
+    return clone;
+}
+
 void Airwave::AwScene::traverseEntity(entt::entity entity, std::function<void(entt::entity)> callback)
 {
     if (m_registry.all_of<HierarchyComponent>(entity))

@@ -27,6 +27,8 @@ class AwScene
 
     entt::entity getEntity(const std::string &name);
 
+    entt::entity cloneEntity(entt::entity entity);
+
     void traverseEntity(entt::entity entity, std::function<void(entt::entity)> callback);
 
     void destroyEntity(entt::entity entity);
@@ -86,6 +88,7 @@ class AwScene
     template <typename T> T *tryGetComponent(entt::entity entity) { return m_registry.try_get<T>(entity); }
 
     template <typename... T> auto getView() { return m_registry.view<T...>(); }
+
 
     bool isValideEntity(entt::entity entity) { return m_registry.valid(entity); }
 

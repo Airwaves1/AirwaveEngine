@@ -26,18 +26,18 @@ class TransformSystem : public AwSystem
             if (transform.m_dirty)
             {
                 transform.localMatrix = transform.calculateTransformMatrix();
-                transform.m_dirty       = false;
+                transform.m_dirty     = false;
             }
 
             if (registry.all_of<HierarchyComponent>(entity))
             {
                 auto &hierarchy = registry.get<HierarchyComponent>(entity);
                 auto parent     = hierarchy.getParent();
-                if(parent!= entt::null && registry.all_of<TransformComponent>(parent))
+                if (parent != entt::null && registry.all_of<TransformComponent>(parent))
                 {
-                    auto &parentTransform = registry.get<TransformComponent>(parent);
-                    transform.worldMatrix =
-                        parentTransform.worldMatrix * transform.localMatrix;
+                    auto &parentTransform  = registry.get<TransformComponent>(parent);
+                    transform.worldMatrix  = parentTransform.worldMatrix * transform.localMatrix;
+                    transform.parentMatrix = parentTransform.worldMatrix;
                 }
                 else
                 {
@@ -46,7 +46,6 @@ class TransformSystem : public AwSystem
             }
         }
     }
-
 
   private:
 };

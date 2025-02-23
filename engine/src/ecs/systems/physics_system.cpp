@@ -32,10 +32,13 @@ void PhysicsSystem::createRigidBody(AwScene *scene, entt::entity entity)
             collision_shape = new btSphereShape(rigid_body_comp.shapeSize.x);
             break;
         case ColliderType::Box:
-            collision_shape = new btBoxShape(btVector3(rigid_body_comp.shapeSize.x, rigid_body_comp.shapeSize.y, rigid_body_comp.shapeSize.z));
+            collision_shape = new btBoxShape(btVector3(rigid_body_comp.shapeSize.x * 0.5,
+                                                       rigid_body_comp.shapeSize.y * 0.5,
+                                                       rigid_body_comp.shapeSize.z * 0.5));
             break;
         case ColliderType::Capsule:
-            collision_shape = new btCapsuleShape(rigid_body_comp.shapeSize.x, rigid_body_comp.shapeSize.y);
+            collision_shape = new btCapsuleShape(rigid_body_comp.shapeSize.x,
+                                                 rigid_body_comp.shapeSize.y);
             break;
         case ColliderType::Mesh:
             LOG_WARN("Mesh collider is not supported yet");
@@ -63,7 +66,7 @@ void PhysicsSystem::createRigidBody(AwScene *scene, entt::entity entity)
     btRigidBody::btRigidBodyConstructionInfo rigid_body_info(rigid_body_comp.mass, motion_state, collision_shape, inertia);
     rigid_body_comp.rigidBody = std::make_unique<btRigidBody>(rigid_body_info);
 
-    if(rigid_body_comp.rigidBody == nullptr)
+    if (rigid_body_comp.rigidBody == nullptr)
     {
         LOG_ERROR("rigid_body_comp.rigidBody is nullptr");
         return;
@@ -113,6 +116,19 @@ void PhysicsSystem::onUpdate(float deltaTime)
             rigid_body_comp.rigidBody->setWorldTransform(bt_transform);
             rigid_body_comp.rigidBody->activate(); // 激活
         }
+
+        if (!rigid_body_comp.isActivate)
+        {
+            btTransform bt_transform;
+            bt_transform.setIdentity();
+            bt_transform.setOrigin(btVector3(transform_comp.m_position.x, transform_comp.m_position.y, transform_comp.m_position.z));
+            bt_transform.setRotation(
+                btQuaternion(transform_comp.m_rotation.x, transform_comp.m_rotation.y, transform_comp.m_rotation.z, transform_comp.m_rotation.w));
+            rigid_body_comp.rigidBody->setWorldTransform(bt_transform);
+
+            rigid_body_comp.rigidBody->setWorldTransform(bt_transform);
+            rigid_body_comp.rigidBody->activate(); // 激活
+        }
     }
 
     // 物理模拟
@@ -138,6 +154,7 @@ void PhysicsSystem::onUpdate(float deltaTime)
         }
 
         // 处理碰撞事件
+        processCollisionEvent();
     }
 }
 

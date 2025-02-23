@@ -24,6 +24,8 @@ class RigidBodyComponent : public AwComponent
     ColliderType colliderType = ColliderType::Sphere;
     glm::vec3 shapeSize       = glm::vec3(1.0f);
     bool isTrigger            = false;
+    bool isSimulatePhysics    = true;
+    bool isActivate           = true;
 };
 
 } // namespace Airwave

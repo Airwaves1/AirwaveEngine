@@ -42,7 +42,14 @@ class Editor
     void renderPanels();
 
   public:
-    void setSelectedEntity(entt::entity entity) { m_selectedEntity = entity; }
+    void setSelectedEntity(entt::entity entity)
+    {
+        m_selectedEntity = entity;
+        if (onSelectedEntityChanged)
+        {
+            onSelectedEntityChanged();
+        }
+    }
     entt::entity getSelectedEntity() { return m_selectedEntity; }
 
     std::function<void()> onSelectedEntityChanged;

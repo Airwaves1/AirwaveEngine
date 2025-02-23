@@ -138,6 +138,8 @@ void Application::mainLoop()
         m_deltaTime = deltaTime;
 
         // 更新和渲染
+        onImGuiRender();
+        
         if (!b_pause)
         {
             onUpdate(deltaTime);
@@ -147,7 +149,6 @@ void Application::mainLoop()
             onRender();
         }
 
-        onImGuiRender();
 
         m_window->swapBuffers();
     }

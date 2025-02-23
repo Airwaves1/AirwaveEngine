@@ -14,7 +14,7 @@ class HierarchyComponent : public AwComponent
     const std::vector<entt::entity> &getChildren() const { return children; }
 
   private:
-    entt::entity parent;
+    entt::entity parent = entt::null;
     std::vector<entt::entity> children;
 
     friend class AwScene;

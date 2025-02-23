@@ -20,6 +20,8 @@ class Sandbox : public Airwave::Application
     Sandbox() {}
     ~Sandbox() {}
 
+    entt::entity createStairs(std::string name, glm::vec3 position, glm::vec3 size, glm::vec3 rotation, int step);
+
   protected:
     void onConfigurate(Airwave::ApplicationConfig &config) override;
     void onInit() override;
@@ -31,6 +33,7 @@ class Sandbox : public Airwave::Application
 
   private:
     std::unique_ptr<Airwave::Editor> m_editor;
+
 };
 
 
