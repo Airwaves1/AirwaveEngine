@@ -28,6 +28,16 @@ class FPSControllerSystem : public AwSystem
             auto &fpsController = view.get<FPSControllerComponent>(entity);
             auto &transform     = view.get<TransformComponent>(entity);
 
+
+            // 计算当前相机的yaw和pitch
+            fpsController.yaw   = glm::degrees(glm::atan(transform.getForward().z, transform.getForward().x));
+            fpsController.pitch = glm::degrees(glm::asin(transform.getForward().y));
+
+            fpsController.up    = transform.getUp();
+            fpsController.right = transform.getRight();
+            fpsController.front = transform.getForward();
+
+
             if (!fpsController.b_useFPSController) continue;
 
             // 处理鼠标输入
@@ -70,7 +80,7 @@ class FPSControllerSystem : public AwSystem
             if (input.isKeyPressed(GLFW_KEY_SPACE)) position += transform.getUp() * speed * deltaTime;
             if (input.isKeyPressed(GLFW_KEY_Q)) position -= transform.getUp() * speed * deltaTime;
             if (input.isKeyPressed(GLFW_KEY_E)) position += glm::vec3(0.0f, 1.0f, 0.0f) * speed * deltaTime;
-            if (input.isKeyPressed(GLFW_KEY_R)) position = glm::vec3(0.0f);
+            // if (input.isKeyPressed(GLFW_KEY_R)) position = glm::vec3(0.0f);
             transform.setPosition(position);
         }
     }

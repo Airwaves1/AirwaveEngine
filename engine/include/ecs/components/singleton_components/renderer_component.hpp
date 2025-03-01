@@ -26,6 +26,7 @@ class RendererComponent : public AwComponent
     std::shared_ptr<Shader> basicShader;
     std::shared_ptr<Shader> geometryPassShader;
     std::shared_ptr<Shader> lightingPassShader;
+    std::shared_ptr<Shader> shadowShader;
 
     std::shared_ptr<Texture> emptyMap;
     std::shared_ptr<Texture> defaultNormal;
@@ -43,6 +44,8 @@ class RendererComponent : public AwComponent
         basicShader      = RES.get<ShaderResource>("shaders/shader_lib/basic.glsl")->getShader();
         geometryPassShader = RES.get<ShaderResource>("shaders/shader_lib/geometry_pass.glsl")->getShader();
         lightingPassShader = RES.get<ShaderResource>("shaders/shader_lib/lighting_pass.glsl")->getShader();
+        shadowShader = RES.get<ShaderResource>("shaders/shader_lib/shadow.glsl")->getShader();
+
 
         emptyMap      = RES.get<TextureResource>("empty_map")->getTexture();
         defaultNormal = RES.get<TextureResource>("default_normal")->getTexture();

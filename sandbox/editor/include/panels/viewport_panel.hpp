@@ -51,8 +51,19 @@ class ViewportPanel : public Panel
 
         // //
         auto camera_view   = reg.view<CameraComponent, TransformComponent>();
-        auto camera_entity = camera_view.front();
-        auto &camera_comp  = scene->getComponent<CameraComponent>(camera_entity);
+        auto camera_entity = [&]() -> entt::entity
+        {
+            for (auto entity : camera_view)
+            {
+                auto &camera_comp = camera_view.get<CameraComponent>(entity);
+                if (camera_comp.isMainCamera)
+                {
+                    return entity;
+                }
+            }
+            return entt::null;
+        }();
+        auto &camera_comp = scene->getComponent<CameraComponent>(camera_entity);
 
         // 更新渲染器视口
         camera_comp.setAspectRatio(availableSize.x / availableSize.y);
@@ -100,7 +111,6 @@ class ViewportPanel : public Panel
                     rigid.isActivate = false;
                 }
 
-                LOG_DEBUG("IsUsing");
                 glm::vec3 translation, rotation, scale;
                 ImGuizmo::DecomposeMatrixToComponents(glm::value_ptr(model), glm::value_ptr(translation), glm::value_ptr(rotation),
                                                       glm::value_ptr(scale));
@@ -120,22 +130,24 @@ class ViewportPanel : public Panel
                     auto &rigid      = reg.get<RigidBodyComponent>(selected_entity);
                     rigid.isActivate = true;
                 }
-
             }
 
-            if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_W)))
+            // 长按右键的时候不能切换操作
+            if (!ImGui::IsMouseDown(ImGuiMouseButton_Right))
             {
-                mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+                if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_W)))
+                {
+                    mCurrentGizmoOperation = ImGuizmo::TRANSLATE;
+                }
+                if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_R)))
+                {
+                    mCurrentGizmoOperation = ImGuizmo::ROTATE;
+                }
+                if (ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_E)))
+                {
+                    mCurrentGizmoOperation = ImGuizmo::SCALE;
+                }
             }
-            if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_R)))
-            {
-                mCurrentGizmoOperation = ImGuizmo::ROTATE;
-            }
-            if(ImGui::IsKeyPressed(ImGui::GetKeyIndex(ImGuiKey_E)))
-            {
-                mCurrentGizmoOperation = ImGuizmo::SCALE;
-            }
-
         }
 
         // 射线检测

@@ -139,4 +139,19 @@ void Framebuffer::blitToScreen(uint32_t width, uint32_t height) const
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Airwave::Framebuffer::dispose()
+{
+    if (m_handle != 0)
+    {
+        glDeleteFramebuffers(1, &m_handle);
+    }
+
+    if (m_depthAttachment)
+    {
+        m_depthAttachment.reset();
+    }
+
+    m_colorAttachments.clear();
+}
+
 } // namespace Airwave

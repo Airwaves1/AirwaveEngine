@@ -84,10 +84,11 @@ void Application::preLoad()
         auto pbr = RES.load<ShaderResource>("shaders/shader_lib/pbr.glsl");
         // background shader
         auto background = RES.load<ShaderResource>("shaders/shader_lib/background.glsl");
-
         // g_buffer shader
         auto geometry_pass_shader = RES.load<ShaderResource>("shaders/shader_lib/geometry_pass.glsl");
         auto lighting_pass_shader = RES.load<ShaderResource>("shaders/shader_lib/lighting_pass.glsl");
+        // shadow shader
+        auto shadow_shader = RES.load<ShaderResource>("shaders/shader_lib/shadow.glsl");
 
         // empty map
         std::shared_ptr<Texture> white_texture =

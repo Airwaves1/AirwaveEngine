@@ -231,22 +231,36 @@ void PropertiesPanel::drawCameraComponent(CameraComponent &cameraComponent)
                                                                                     // takes remaining
                                                                                     // width
 
+        if(cameraComponent.getCameraType() == CameraComponent::CameraType::Perspective){
+            currentCameraTypeIndex = 0;
+        }else{
+            currentCameraTypeIndex = 1;
+        }
+
         // Column 1: CameraType label
         ImGui::TableNextColumn();
         ImGui::Text("CameraType");
 
         // Column 2: CameraType ComboBox
         ImGui::TableNextColumn();
-        if (ImGui::Combo("##CameraType", &currentCameraTypeIndex, cameraTypeItems, IM_ARRAYSIZE(cameraTypeItems)))
+        CameraComponent::CameraType cameraType = cameraComponent.getCameraType();
+        if (ImGui::BeginCombo("##CameraType", cameraTypeItems[currentCameraTypeIndex]))
         {
-            if (currentCameraTypeIndex == 0)
+            for (int i = 0; i < IM_ARRAYSIZE(cameraTypeItems); i++)
             {
-                cameraComponent.setCameraType(CameraComponent::CameraType::Perspective);
+                bool isSelected = (cameraType == (CameraComponent::CameraType)i);
+                if (ImGui::Selectable(cameraTypeItems[i], isSelected))
+                {
+                    cameraType = (CameraComponent::CameraType)i;
+                    cameraComponent.setCameraType(cameraType);
+                    currentCameraTypeIndex = i;
+                }
+                if (isSelected)
+                {
+                    ImGui::SetItemDefaultFocus();
+                }
             }
-            else
-            {
-                cameraComponent.setCameraType(CameraComponent::CameraType::Orthographic);
-            }
+            ImGui::EndCombo();
         }
 
         // clip
@@ -288,6 +302,18 @@ void PropertiesPanel::drawCameraComponent(CameraComponent &cameraComponent)
             if (ImGui::DragFloat("##Fov", &fov, 0.1f, 0.0f, 0.0f, "%.2f"))
             {
                 cameraComponent.setFOV(fov);
+            }
+        }else{
+            // Ortho Size label
+            ImGui::TableNextColumn();
+            ImGui::Text("Ortho Size");
+
+            // Ortho Size control
+            ImGui::TableNextColumn();
+            float orthoSize = cameraComponent.getOrthoSize();
+            if (ImGui::DragFloat("##OrthoSize", &orthoSize, 0.1f, 0.0f, 0.0f, "%.2f"))
+            {
+                cameraComponent.setOrthoSize(orthoSize);
             }
         }
 
@@ -608,6 +634,75 @@ void PropertiesPanel::drawLightComponent(LightComponent &lightComponent)
         }
 
         DrawColorControl("Color", lightComponent.color);
+
+        // shadow
+        // Column 1: CastShadow label
+        ImGui::TableNextColumn();
+        ImGui::Text("Cast Shadow");
+        
+        // Column 2: CastShadow CheckBox
+        ImGui::TableNextColumn();
+        bool castShadow = lightComponent.castShadow;
+        if (ImGui::Checkbox("##CastShadow", &castShadow))
+        {
+            lightComponent.castShadow = castShadow;
+        }
+
+        // bias
+        // Column 1: ShadowBias label
+        ImGui::TableNextColumn();
+        ImGui::Text("Shadow Bias");
+
+        // Column 2: ShadowBias DragFloat
+        ImGui::TableNextColumn();
+
+        float shadowBias = lightComponent.shadowBias;
+        if (ImGui::DragFloat("##ShadowBias", &shadowBias, 0.0001f, 0.0f, 0.0f, "%.4f"))
+        {
+            lightComponent.shadowBias = shadowBias;
+        }
+
+        // radius
+        // Column 1: ShadowRadius label
+        ImGui::TableNextColumn();
+        ImGui::Text("Shadow Radius");
+
+        // Column 2: ShadowRadius DragFloat
+        ImGui::TableNextColumn();
+
+        float shadowRadius = lightComponent.shadowRadius;
+        if (ImGui::DragFloat("##ShadowRadius", &shadowRadius, 0.1f, 0.0f, 0.0f, "%.2f"))
+        {
+            lightComponent.shadowRadius = shadowRadius;
+        }
+
+        // strength
+        // Column 1: ShadowStrength label
+        ImGui::TableNextColumn();
+        ImGui::Text("Shadow Strength");
+
+        // Column 2: ShadowStrength DragFloat
+        ImGui::TableNextColumn();
+
+        float shadowStrength = lightComponent.shadowStrength;
+        if (ImGui::DragFloat("##ShadowStrength", &shadowStrength, 0.1f, 0.0f, 0.0f, "%.2f"))
+        {
+            lightComponent.shadowStrength = shadowStrength;
+        }
+
+        // light size
+        // Column 1: LightSize label
+        ImGui::TableNextColumn();
+        ImGui::Text("Light Size");
+
+        // Column 2: LightSize DragFloat
+        ImGui::TableNextColumn();
+
+        float lightSize = lightComponent.lightSize;
+        if (ImGui::DragFloat("##LightSize", &lightSize, 0.1f, 0.0f, 0.0f, "%.2f"))
+        {
+            lightComponent.lightSize = lightSize;
+        }
 
         // 结束表格
         ImGui::EndTable();

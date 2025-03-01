@@ -6,6 +6,7 @@
 #include "core/event/event.hpp"
 #include "core/event/event_dispatcher.hpp"
 #include "core/event/event_observer.hpp"
+#include "core/common.hpp"
 
 #include "core/math/plane.hpp"
 #include "core/math/aabb.hpp"

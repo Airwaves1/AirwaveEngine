@@ -20,7 +20,7 @@ void RenderSystem::onUpdate(float deltaTime)
     for (auto entity : cameraView)
     {
         auto &camera = cameraView.get<CameraComponent>(entity);
-        if (!camera.enable)
+        if (!camera.enable && camera.lightCamera)
         {
             continue;
         }
@@ -178,12 +178,72 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
 
     auto g_buffer = renderer->getGBuffer();
 
+    // shadow pass
+    for (auto light_entity : lightsManager_comp.lights)
+    {
+        if(!reg.valid(light_entity)) continue;
+        if(!m_scene->hasComponent<CameraComponent>(light_entity)) continue;
+
+        auto &light_comp = reg.get<LightComponent>(light_entity);
+        if (light_comp.castShadow)
+        {
+            if(!light_comp.depth_framebuffer)
+            {
+                FramebufferSpecification spec;
+                spec.width = light_comp.shadowMapSize.x;
+                spec.height = light_comp.shadowMapSize.y;
+                spec.enableDepth = true;
+                light_comp.depth_framebuffer = std::make_shared<Framebuffer>(spec);
+            }
+
+            light_comp.depth_framebuffer->bind();
+            renderer->enable(GL_DEPTH_TEST);
+            renderer->setClearMask(GL_DEPTH_BUFFER_BIT);
+            renderer->clear();
+            renderer->setViewport(0, 0, light_comp.shadowMapSize.x, light_comp.shadowMapSize.y);
+
+            auto shadow_shader = rendererComp.shadowShader->getHandle();
+            if (shadow_shader == 0) return;
+            renderer->bindShader(shadow_shader);
+
+            auto &light_camera = reg.get<CameraComponent>(light_entity);
+
+            renderer->set("u_lightSpaceMatrix", light_camera.getProjectionMatrix() * light_camera.getWorldInverseMatrix());
+
+            for(auto entity : renderObjects)
+            {
+                auto &tag_comp = reg.get<TagComponent>(entity);
+                auto &mesh_comp = reg.get<MeshComponent>(entity);
+                auto &transform_comp = reg.get<TransformComponent>(entity);
+
+                renderer->set("u_worldMatrix", transform_comp.getWorldMatrix());
+                renderer->uploadUniforms(shadow_shader);
+
+                for(auto &primitive : mesh_comp.primitives)
+                {
+                    primitive->draw();
+                }
+            }
+
+            light_comp.depth_framebuffer->unbind();
+        }
+        else
+        {
+            if (light_comp.depth_framebuffer)
+            {
+                light_comp.depth_framebuffer->dispose();
+                light_comp.depth_framebuffer = nullptr;
+            }
+        }
+    }
+
     // geometry pass
     g_buffer->bind();
 
     renderer->enable(GL_DEPTH_TEST);
     renderer->setClearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     renderer->clear();
+    renderer->setViewport(0, 0, g_buffer->getSpecification().width, g_buffer->getSpecification().height);
 
     auto g_buffer_shader = rendererComp.geometryPassShader->getHandle();
     if (g_buffer_shader == 0) return;
@@ -210,6 +270,7 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
         renderer->set("u_material.roughness", material->roughness);
         renderer->set("u_material.metallic", material->metallic);
         renderer->set("u_material.ao", material->ao);
+        renderer->set("u_material.uvScale", material->uvScale);
 
         int slots = 0;
 
@@ -373,6 +434,25 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
         renderer->set("u_lights[" + std::to_string(i) + "].position", lightTrans.getPosition());
         renderer->set("u_lights[" + std::to_string(i) + "].color", lightComp.color);
         renderer->set("u_lights[" + std::to_string(i) + "].intensity", lightComp.intensity);
+        renderer->set("u_lights[" + std::to_string(i) + "].direction", lightTrans.getForward());
+
+        glActiveTexture(GL_TEXTURE7 + i);
+        if(lightComp.castShadow)
+        {
+            glBindTexture(GL_TEXTURE_2D, lightComp.depth_framebuffer->getDepthAttachment()->getHandle());
+            auto &light_camera = reg.get<CameraComponent>(light_entity);
+            renderer->set("u_lights[" + std::to_string(i) + "].lightSpaceMatrix", light_camera.getProjectionMatrix() * light_camera.getWorldInverseMatrix());
+
+        }else{
+            glBindTexture(GL_TEXTURE_2D, emptyMap->getHandle());
+        }
+        
+        renderer->set("u_shadowMaps[" + std::to_string(i) + "]", 7 + i);
+        renderer->set("u_lights[" + std::to_string(i) + "].shadowBias", lightComp.shadowBias);
+        renderer->set("u_lights[" + std::to_string(i) + "].shadowRadius", lightComp.shadowRadius);
+        renderer->set("u_lights[" + std::to_string(i) + "].shadowStrength", lightComp.shadowStrength);
+        // renderer->set("u_lights[" + std::to_string(i) + "].lightSize", lightComp.lightSize);
+
     }
     renderer->set("u_cameraPosition", camera.getCameraPosition());
 
@@ -391,7 +471,6 @@ void RenderSystem::deferredRender(Renderer *renderer, CameraComponent &camera)
     const auto &dst_spec = renderer->getFramebuffer()->getSpecification();
     glBlitFramebuffer(0, 0, src_spec.width, src_spec.height, 0, 0, dst_spec.width, dst_spec.height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
     glBindFramebuffer(GL_FRAMEBUFFER, renderer->getFramebuffer()->getHandle());
-
 }
 
 void RenderSystem::uploadMaterialUniforms(Renderer *renderer, Material *material, int &slots)

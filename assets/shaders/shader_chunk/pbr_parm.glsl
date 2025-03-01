@@ -5,6 +5,7 @@ struct PBRMaterial
     float metallic;
     float roughness;
     float ao;
+    vec2 uvScale;
 
 #ifdef USE_ALBEDO_MAP
 

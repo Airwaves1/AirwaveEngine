@@ -57,6 +57,8 @@ class Material
     std::shared_ptr<Texture> aoMap;
     std::shared_ptr<Texture> emissiveMap;
 
+    glm::vec2 uvScale = glm::vec2(1.0f, 1.0f);
+
     std::shared_ptr<Texture> irradianceMap;
     std::shared_ptr<Texture> prefilterMap;
     std::shared_ptr<Texture> brdfLUT;

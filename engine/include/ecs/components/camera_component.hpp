@@ -6,16 +6,13 @@
 namespace Airwave
 {
 
+
 class CameraComponent : public AwComponent
 {
   public:
-    enum class CameraType
-    {
-        Perspective, // 透视相机
-        Orthographic // 正交相机
-    };
-
     // glm::vec4 viewport = glm::vec4(0.0f, 0.0f, 1280.0f, 720.0f);
+    bool lightCamera = false;
+    bool isMainCamera = false;
 
     /**
      * @brief 屏幕坐标转射线
@@ -48,6 +45,12 @@ class CameraComponent : public AwComponent
     }
 
     bool enable = true;
+
+    enum class CameraType
+    {
+        Perspective, // 透视相机
+        Orthographic // 正交相机
+    };
 
     CameraComponent()
         : m_cameraType(CameraType::Perspective), m_fov(45.0f), m_aspectRatio(16.0f / 9.0f), m_nearPlane(0.1f), m_farPlane(100.0f), m_orthoSize(10.0f),

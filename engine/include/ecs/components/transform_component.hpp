@@ -47,16 +47,33 @@ class TransformComponent : public AwComponent
         m_dirty = true;
     }
 
-    void setForward(const glm::vec3 &forward)
+    void setTarget(const glm::vec3& target) 
     {
-
+        const glm::vec3 worldUp(0.0f, 1.0f, 0.0f);
+        glm::vec3 forward = target - m_position;
+        
+        if (glm::length(forward) < FLT_EPSILON) return;
+        forward = glm::normalize(forward);
+    
+        // 计算欧拉角
+        float yaw = atan2f(forward.z, forward.x);           // Y轴旋转（偏航）
+        float pitch = -asinf(forward.y);                    // X轴旋转（俯仰）
+    
+        // 创建四元数（注意旋转顺序）
+        glm::quat qYaw = glm::angleAxis(yaw, worldUp);      // 先执行：绕世界Y轴
+        glm::quat qPitch = glm::angleAxis(pitch, glm::vec3(1,0,0)); // 后执行：绕局部X轴
+        
+        m_rotation = qYaw * qPitch;  // 四元数乘法顺序与旋转应用顺序相反
+        
+        // 强制消除Roll分量
+        glm::vec3 currentUp = getUp();
+        glm::vec3 fixedUp = glm::normalize(glm::vec3(currentUp.x, worldUp.y, currentUp.z));
+        m_rotation = glm::quatLookAt(forward, fixedUp);
+        
+        // 更新变换矩阵
+        localMatrix = calculateTransformMatrix();
+        
     }
-
-    void setLookAt(const glm::vec3 &target, const glm::vec3 &up = glm::vec3(0.0f, 1.0f, 0.0f))
-    {
-
-    }
-
     
 
     // 获取位置、旋转、缩放

@@ -66,18 +66,20 @@ void main()
     // position
     g_position = v_fragPos;
 
+    vec2 uv = v_uv * u_material.uvScale;
+
     // normal
-    vec3 N = getNormalFromMap(u_material.normalMap, v_uv, v_fragPos, v_normal);
+    vec3 N = getNormalFromMap(u_material.normalMap, uv, v_fragPos, v_normal);
     N = (N + 1.0) * 0.5;
     g_normal = vec4(N, 1.0);
 
     // albedo, metallic, roughness
-    vec3 albedo = texture(u_material.albedoMap, v_uv).rgb * u_material.albedo;
+    vec3 albedo = texture(u_material.albedoMap, uv).rgb * u_material.albedo;
 
-    vec3 mr = texture(u_material.metallicRoughnessMap, v_uv).rgb;
+    vec3 mr = texture(u_material.metallicRoughnessMap, uv).rgb;
 
-    float metallic = texture(u_material.metallicMap, v_uv).r * mr.b * u_material.metallic;
-    float roughness = texture(u_material.roughnessMap, v_uv).r * mr.g * u_material.roughness;
+    float metallic = texture(u_material.metallicMap, uv).r * mr.b * u_material.metallic;
+    float roughness = texture(u_material.roughnessMap, uv).r * mr.g * u_material.roughness;
 
     g_albedo = vec4(albedo, 1.0);
 

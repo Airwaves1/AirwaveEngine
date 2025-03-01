@@ -35,6 +35,8 @@ class Framebuffer
 
     const FramebufferSpecification &getSpecification() const { return m_spec; }
 
+    void dispose();
+
   private:
     uint32_t m_handle;
 

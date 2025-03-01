@@ -22,6 +22,19 @@ void Sandbox::onPreLoad()
 {
     // Model
     auto model_0 = RES.load<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+
+    // Textures
+    TextureSpecification spec;
+    spec.sRGB             = true;
+    spec.wrapS            = TextureWrap::REPEAT;
+    spec.wrapT            = TextureWrap::REPEAT;
+    spec.generateMipmap   = true;
+    auto ground_albedoMap = RES.load<TextureResource>("textures/rubber_tiles_1k/textures/rubber_tiles_diff_1k.jpg", spec);
+
+    spec.sRGB             = false;
+    auto ground_normalMap = RES.load<TextureResource>("textures/rubber_tiles_1k/textures/rubber_tiles_nor_gl_1k.jpg", spec);
+
+    auto ground_metallicMap = RES.load<TextureResource>("textures/rubber_tiles_1k/textures/rubber_tiles_arm_1k.jpg", spec);
 }
 
 void Sandbox::onInit()
@@ -42,22 +55,26 @@ void Sandbox::onInit()
     auto &fps_controller   = m_scene->addComponent<FPSControllerComponent>(main_camera_entity);
     auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
     camera_comp.setFarPlane(1000.0f);
+    camera_comp.isMainCamera = true;
     camera_transform.setPosition(glm::vec3(-50.0f, 30.0f, 50.0f));
-    camera_transform.setLookAt(glm::vec3(0.0f, 0.0f, 0.0f));
+    camera_transform.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // // lights
-    for (int i = 0; i < 2; i++)
-    {
-        for (int j = 0; j < 2; j++)
-        {
-            auto light_entity     = m_scene->createDefaultEntity("light_" + std::to_string(i) + "_" + std::to_string(j));
-            auto &light_comp      = m_scene->addComponent<LightComponent>(light_entity);
-            light_comp.intensity  = 300.0f;
-            light_comp.color      = glm::vec3(1.0f);
-            auto &light_transform = m_scene->getComponent<TransformComponent>(light_entity);
-            light_transform.setPosition(glm::vec3(i * 10.0f - 5.0f, j * 10.0f - 5.0f, 5.0f));
-        }
-    }
+    auto main_light_entity  = m_scene->createDefaultEntity("main_light");
+    auto &light_comp        = m_scene->addComponent<LightComponent>(main_light_entity);
+    auto &light_transform   = reg.get<TransformComponent>(main_light_entity);
+    auto &light_camera_comp = m_scene->addComponent<CameraComponent>(main_light_entity);
+    light_transform.setPosition(glm::vec3(6.0f, 50.0f, 60.0f));
+    light_transform.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
+    light_camera_comp.lightCamera = true;
+    light_camera_comp.setCameraType(CameraComponent::CameraType::Orthographic);
+    light_camera_comp.setOrthographic(200.0f, 1.0f, 1.0f, 300.0f);
+
+    light_comp.color     = glm::vec3(1.0f, 1.0f, 1.0f);
+    light_comp.intensity = 20.0f;
+    light_comp.type      = LightType::Directional;
+    light_comp.shadowBias = 0.008f;
+    light_comp.lightSize = 0.5f;
 
     // sphere container
     auto sphere_container_entity = m_scene->createDefaultEntity("sphere_container");
@@ -99,45 +116,9 @@ void Sandbox::onInit()
 
     auto brdf_lut = RES.get<TextureResource>("brdf_lut")->getTexture();
 
-    // auto sphere = GeometryUtils::CreateSphere(1.0f, 36, 32);
-
-    // for (int i = 0; i < 7; i++)
-    // {
-    //     for (int j = 0; j < 7; j++)
-    //     {
-    //         auto sphere_entity = m_scene->createDefaultEntity("sphere_" + std::to_string(i) + "_" + std::to_string(j));
-    //         auto &mesh_comp    = m_scene->addComponent<MeshComponent>(sphere_entity);
-    //         mesh_comp.primitives.push_back(sphere);
-    //         auto &mat_comp = m_scene->addComponent<MaterialComponent>(sphere_entity, MaterialType::PBR);
-
-    //         mat_comp.material->color = glm::vec3(0.6f, 0.0f, 0.0f);
-    //         // mat_comp.material->color     = glm::vec3(1.0f, 1.0f, 1.0f);
-    //         mat_comp.material->metallic  = glm::clamp(i / 7.0f, 0.05f, 1.0f);
-    //         mat_comp.material->roughness = glm::clamp(j / 7.0f, 0.05f, 1.0f);
-    //         mat_comp.material->ao        = 1.0f;
-
-    //         // mat_comp.material->albedoMap     = albedoMap->getTexture();
-    //         // mat_comp.material->normalMap     = normalMap->getTexture();
-    //         // mat_comp.material->metallicMap   = metallicMap->getTexture();
-    //         // mat_comp.material->roughnessMap  = roughnessMap->getTexture();
-    //         mat_comp.material->irradianceMap = irradiance_map;
-    //         mat_comp.material->prefilterMap  = prefilter_map;
-
-    //         auto &sphere_transform = reg.get<TransformComponent>(sphere_entity);
-    //         sphere_transform.setPosition(glm::vec3(j * 3.0f - 8.0f, i * 3.0f - 8.0f, 0.0f));
-
-    //         auto &sphere_rb        = m_scene->addComponent<RigidBodyComponent>(sphere_entity);
-    //         sphere_rb.mass         = 1.0f;
-    //         sphere_rb.colliderType = ColliderType::Sphere;
-    //         sphere_rb.shapeSize    = glm::vec3(1.0f);
-
-    //         m_scene->setEntityParent(sphere_entity, sphere_container_entity);
-    //     }
-    // }
-
     auto play_ground_entity = m_scene->createDefaultEntity("play_ground");
 
-    auto cube = GeometryUtils::CreateCube(1.0f, 1.0f, 1);
+    auto cube = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f, 5.0f, 5.0f, 5.0f);
     // ground
     glm::vec3 ground_size = glm::vec3(150.0f, 0.01f, 100.0f);
     glm::vec3 ground_pos  = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -145,12 +126,16 @@ void Sandbox::onInit()
     auto &mesh_comp       = m_scene->addComponent<MeshComponent>(ground_entity);
     mesh_comp.primitives.push_back(cube);
     auto &mat_comp                   = m_scene->addComponent<MaterialComponent>(ground_entity, MaterialType::PBR);
-    mat_comp.material->color         = glm::vec3(0.6f, 0.6f, 0.6f);
-    mat_comp.material->metallic      = 0.0f;
-    mat_comp.material->roughness     = 0.5f;
+    mat_comp.material->color         = glm::vec3(1.0f, 1.0f, 1.0f);
+    mat_comp.material->metallic      = 1.0f;
+    mat_comp.material->roughness     = 1.0f;
     mat_comp.material->ao            = 1.0f;
     mat_comp.material->irradianceMap = irradiance_map;
     mat_comp.material->prefilterMap  = prefilter_map;
+    mat_comp.material->albedoMap     = RES.get<TextureResource>("textures/rubber_tiles_1k/textures/rubber_tiles_diff_1k.jpg")->getTexture();
+    mat_comp.material->normalMap     = RES.get<TextureResource>("textures/rubber_tiles_1k/textures/rubber_tiles_nor_gl_1k.jpg")->getTexture();
+    mat_comp.material->metallicMap   = RES.get<TextureResource>("textures/rubber_tiles_1k/textures/rubber_tiles_arm_1k.jpg")->getTexture();
+    mat_comp.material->uvScale       = glm::vec2(5.0f, 2.0f);
 
     auto &ground_transform = reg.get<TransformComponent>(ground_entity);
     ground_transform.setPosition(ground_pos);
@@ -339,6 +324,19 @@ void Sandbox::onInit()
     m_editor->onDrawDebugInfo = [&, adminEntity, albedoMap, normalMap]()
     {
         ImGui::Begin("Debug Info");
+
+        // 深度图
+        auto main_light = m_scene->getEntity("main_light");
+        auto &light_comp = m_scene->getComponent<LightComponent>(main_light);
+        if (light_comp.depth_framebuffer)
+        {
+            auto depth = light_comp.depth_framebuffer->getDepthAttachment();
+            if (depth)
+            {
+                ImGui::Text("Depth");
+                ImGui::Image((void *)(intptr_t)depth->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+            }
+        }
 
         auto g_buffer = m_renderer->getGBuffer();
         if (g_buffer)

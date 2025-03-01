@@ -34,6 +34,107 @@ uniform sampler2D u_brdf_lut;
 
 uniform vec3 u_cameraPosition;
 
+float calculateShadowFactor(sampler2D shadowMap, vec3 projCoords, float bias)
+{
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    float currentDepth = projCoords.z;
+
+    float shadow = currentDepth - bias > closestDepth ? 0.0 : 1.0;
+
+    return shadow;
+}
+
+// 基础版3x3 PCF（9次采样）
+float calculateShadowFactor_PCF(sampler2D shadowMap, vec3 projCoords, float bias)
+{
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    float shadow = 0.0;
+    
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            vec2 offset = vec2(x, y) * texelSize;
+            float closestDepth = texture(shadowMap, projCoords.xy + offset).r;
+            shadow += (projCoords.z - bias) > closestDepth ? 0.0 : 1.0;
+        }
+    }
+    return shadow / 9.0;
+}
+
+// 优化版5x5旋转采样（13次采样实现25次效果）
+float calculateShadowFactor_PCF_Optimized(sampler2D shadowMap, vec3 projCoords, float bias)
+{
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    float shadow = 0.0;
+    const vec2 offsets[25] = vec2[](
+        vec2(-0.92, -0.92), vec2(-0.58, -0.58), vec2(-0.24, -0.24), // 旋转采样模式
+        vec2( 0.09,  0.09), vec2( 0.43,  0.43), vec2( 0.77,  0.77),
+        vec2(-0.92,  0.09), vec2(-0.58,  0.43), vec2(-0.24,  0.77),
+        vec2( 0.09, -0.92), vec2( 0.43, -0.58), vec2( 0.77, -0.24),
+        vec2(-0.92,  0.77), vec2(-0.58,  0.43), vec2(-0.24,  0.09),
+        vec2( 0.09, -0.24), vec2( 0.43, -0.58), vec2( 0.77, -0.92),
+        vec2(-0.92, -0.24), vec2(-0.58, -0.58), vec2(-0.24, -0.92),
+        vec2( 0.09,  0.77), vec2( 0.43,  0.43), vec2( 0.77,  0.09),
+        vec2( 0.00,  0.00) // 中心采样
+    );
+    
+    for(int i = 0; i < 13; ++i) { // 利用对称性减少采样次数
+        float sample1 = texture(shadowMap, projCoords.xy + offsets[i]*texelSize).r;
+        float sample2 = texture(shadowMap, projCoords.xy - offsets[i]*texelSize).r;
+        shadow += (projCoords.z - bias) > sample1 ? 0.0 : 1.0;
+        shadow += (projCoords.z - bias) > sample2 ? 0.0 : 1.0;
+    }
+    return shadow / 25.0;
+}
+
+float calculateShadowFactor_PCSS(sampler2D shadowMap, vec3 projCoords, float bias, float lightSize, float minSamples)
+{
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+
+    // Step 1: Blocker Search - 在小范围内找到遮挡者的平均深度
+    float avgBlockerDepth = 0.0;
+    int blockerCount = 0;
+    const int blockerSampleCount = 16;
+    
+    for(int i = 0; i < blockerSampleCount; i++)
+    {
+        vec2 sampleOffset = texelSize * vec2(sin(float(i)), cos(float(i))) * 3.0;
+        float sampleDepth = texture(shadowMap, projCoords.xy + sampleOffset).r;
+        
+        if (sampleDepth < projCoords.z - bias)
+        {
+            avgBlockerDepth += sampleDepth;
+            blockerCount++;
+        }
+    }
+
+    if (blockerCount == 0)
+        return 1.0; // 如果没有找到遮挡者，直接返回无阴影
+
+    avgBlockerDepth /= float(blockerCount);
+
+    // Step 2: Penumbra Size Calculation - 计算软阴影核大小
+    float penumbraRatio = (projCoords.z - avgBlockerDepth) / avgBlockerDepth;
+    float filterRadius = lightSize * penumbraRatio;
+
+    // Step 3: PCF Filtering - 使用自适应核大小进行阴影过滤
+    float shadow = 0.0;
+    int filterSampleCount = clamp(int(minSamples + filterRadius * 8.0), 1, 16);
+    float totalSamples = float(filterSampleCount * filterSampleCount);
+
+    for(int x = -filterSampleCount/2; x <= filterSampleCount/2; x++)
+    {
+        for(int y = -filterSampleCount/2; y <= filterSampleCount/2; y++)
+        {
+            vec2 offset = vec2(x, y) * texelSize;
+            float sampleDepth = texture(shadowMap, projCoords.xy + offset).r;
+            shadow += (projCoords.z - bias) > sampleDepth ? 0.0 : 1.0;
+        }
+    }
+
+    return shadow / totalSamples;
+}
+
+
 void main()
 {
     // retrieve data from g-buffer
@@ -64,30 +165,83 @@ void main()
         Light light = u_lights[i];
 
         // calculate per-light radiance
-        vec3 L = normalize(light.position - position);
-        vec3 H = normalize(V + L);
-        float distance = length(light.position - position);
-        float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = light.color * light.intensity * attenuation;
+        switch(light.type)
+        {
+            case 0:
+            {
+                vec3 L = normalize(-light.direction);
+                vec3 H = normalize(V + L);
 
-        // Cook-Torrance BRDF
-        float NDF = distributionGGX(N, H, roughness);
-        float G = geometrySmith(N, V, L, roughness);
-        vec3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+                vec3 radiance = light.color * light.intensity;
 
-        vec3 numerator = NDF * G * F;
-        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.01;
-        vec3 specular = numerator / denominator;
+                // Cook-Torrance BRDF
+                float NDF = distributionGGX(N, H, roughness);
+                float G = geometrySmith(N, V, L, roughness);
+                vec3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
 
-        vec3 kS = F;
+                vec3 numerator = NDF * G * F;
+                float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.01;
+                vec3 specular = numerator / denominator;
 
-        vec3 kD = vec3(1.0) - kS;
+                vec3 kS = F;
 
-        kD *= 1.0 - metallic;
+                vec3 kD = vec3(1.0) - kS;
 
-        float NdotL = max(dot(N, L), 0.0);
+                kD *= 1.0 - metallic;
 
-        Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+                float NdotL = max(dot(N, L), 0.0);
+
+                Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+
+                // shadow
+                vec4 fragPosLightSpace = light.lightSpaceMatrix * vec4(position, 1.0);
+                vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+                projCoords = projCoords * 0.5 + 0.5;
+
+                float bias = max(light.shadowBias * 2.0 * (1.0 - dot(N, L)), light.shadowBias);
+                // float shadow = calculateShadowFactor(u_shadowMaps[i], projCoords, bias);
+                // float shadow = calculateShadowFactor_PCF_Optimized(u_shadowMaps[i], projCoords, bias);
+                float shadow = calculateShadowFactor_PCSS(u_shadowMaps[i], projCoords, bias, 0.01, 16.0);
+                Lo *= shadow;
+            }
+            break;
+            case 1:
+            {
+                vec3 L = normalize(light.position - position);
+                vec3 H = normalize(V + L);
+                float distance = length(light.position - position);
+                float attenuation = 1.0 / (distance * distance);
+                vec3 radiance = light.color * light.intensity * attenuation;
+
+                // Cook-Torrance BRDF
+                float NDF = distributionGGX(N, H, roughness);
+                float G = geometrySmith(N, V, L, roughness);
+                vec3 F = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
+
+                vec3 numerator = NDF * G * F;
+                float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.01;
+                vec3 specular = numerator / denominator;
+
+                vec3 kS = F;
+
+                vec3 kD = vec3(1.0) - kS;
+
+                kD *= 1.0 - metallic;
+
+                float NdotL = max(dot(N, L), 0.0);
+
+                Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+            }
+            break;
+            case 2:
+            {
+
+            }
+            break;
+            default:
+                break;
+        }
+
     }
 
     vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
