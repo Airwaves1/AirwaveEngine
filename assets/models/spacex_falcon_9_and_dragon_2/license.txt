@@ -1,0 +1,11 @@
+Model Information:
+* title:	SpaceX Falcon 9 and Dragon 2
+* source:	https://sketchfab.com/3d-models/spacex-falcon-9-and-dragon-2-f709fc945bb2413faf2878aa613cde3d
+* author:	Forest Katsch (https://sketchfab.com/ForestKatsch)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "SpaceX Falcon 9 and Dragon 2" (https://sketchfab.com/3d-models/spacex-falcon-9-and-dragon-2-f709fc945bb2413faf2878aa613cde3d) by Forest Katsch (https://sketchfab.com/ForestKatsch) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

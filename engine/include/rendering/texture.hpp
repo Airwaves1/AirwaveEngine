@@ -35,6 +35,8 @@ class Texture
 
     void setRenderTarget(bool enable = true);
 
+    std::shared_ptr<Texture> copy();
+
   private:
     uint32_t m_handle;
     TextureSpecification m_spec;

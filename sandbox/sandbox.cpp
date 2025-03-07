@@ -23,6 +23,8 @@ void Sandbox::onPreLoad()
     // Model
     auto model_0 = RES.load<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
 
+    auto model_1 = RES.load<ModelResource>("models/spacex_falcon_9_and_dragon_2/scene.gltf");
+
     // Textures
     TextureSpecification spec;
     spec.sRGB             = true;
@@ -56,7 +58,7 @@ void Sandbox::onInit()
     auto &camera_transform = reg.get<TransformComponent>(main_camera_entity);
     camera_comp.setFarPlane(1000.0f);
     camera_comp.isMainCamera = true;
-    camera_transform.setPosition(glm::vec3(-50.0f, 30.0f, 50.0f));
+    camera_transform.setPosition(glm::vec3(80.0f, 50.0f, -80.0f));
     camera_transform.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
 
     // // lights
@@ -64,7 +66,7 @@ void Sandbox::onInit()
     auto &light_comp        = m_scene->addComponent<LightComponent>(main_light_entity);
     auto &light_transform   = reg.get<TransformComponent>(main_light_entity);
     auto &light_camera_comp = m_scene->addComponent<CameraComponent>(main_light_entity);
-    light_transform.setPosition(glm::vec3(6.0f, 50.0f, 60.0f));
+    light_transform.setPosition(glm::vec3(-30.0f, 50.0f, 60.0f));
     light_transform.setTarget(glm::vec3(0.0f, 0.0f, 0.0f));
     light_camera_comp.lightCamera = true;
     light_camera_comp.setCameraType(CameraComponent::CameraType::Orthographic);
@@ -246,7 +248,7 @@ void Sandbox::onInit()
     m_scene->setEntityParent(right_entity, play_ground_entity);
 
     // boxs
-    int box_num = 30;
+    int box_num = 10;
     for (int i = 0; i < box_num; i++)
     {
         auto box_entity = m_scene->createDefaultEntity("box_" + std::to_string(i));
@@ -263,7 +265,7 @@ void Sandbox::onInit()
 
         // 随机位置
         auto &box_transform = reg.get<TransformComponent>(box_entity);
-        box_transform.setScale(glm::vec3(glm::linearRand(2.0f, 10.0f)));
+        box_transform.setScale(glm::vec3(glm::linearRand(5.0f, 20.0f)));
         box_transform.setPosition(glm::vec3(glm::linearRand(-ground_size.x / 3, ground_size.x / 3), box_transform.getScale().y * 0.5f,
                                             glm::linearRand(-ground_size.z / 2, ground_size.z / 2)));
         box_transform.setRotation(glm::angleAxis(glm::linearRand(0.0f, glm::two_pi<float>()), glm::vec3(0.0f, 1.0f, 0.0f)));
@@ -278,6 +280,7 @@ void Sandbox::onInit()
 
     // model
     auto model_resource = RES.get<ModelResource>("models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+    auto model_resource_2 = RES.get<ModelResource>("models/spacex_falcon_9_and_dragon_2/scene.gltf");
 
     // model_1
     auto model_entity = m_scene->createDefaultEntity("model");
@@ -293,16 +296,18 @@ void Sandbox::onInit()
                                 }
                             });
     auto &model_transform = m_scene->getComponent<TransformComponent>(model_entity);
-    model_transform.setPosition(glm::vec3(-10.0f, 0.0f, 0.0f));
+    model_transform.setPosition(glm::vec3(20.0f, 10.0f, 0.0f));
+    model_transform.setScale(glm::vec3(5.0f));
 
     auto &model_rb        = m_scene->addComponent<RigidBodyComponent>(model_entity);
     model_rb.mass         = 1.0f;
     model_rb.colliderType = ColliderType::Box;
-    model_rb.shapeSize    = glm::vec3(1.1);
+    model_rb.shapeSize    = glm::vec3(5.1);
 
     // model_2
     auto model_entity_2 = m_scene->createDefaultEntity("model_2");
-    model_resource->instantiate(m_scene.get(), model_entity_2);
+    // model_resource->instantiate(m_scene.get(), model_entity_2);
+    model_resource_2->instantiate(m_scene.get(), model_entity_2);
     m_scene->traverseEntity(model_entity_2,
                             [&](entt::entity entity)
                             {
@@ -314,85 +319,93 @@ void Sandbox::onInit()
                                 }
                             });
     auto &model_transform_2 = m_scene->getComponent<TransformComponent>(model_entity_2);
-    model_transform_2.setPosition(glm::vec3(10.0f, 0.0f, 0.0f));
+    model_transform_2.setPosition(glm::vec3(40.0f, 10.0f, 0.0f));
+    model_transform_2.setRotation(glm::angleAxis(glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
 
-    auto &model_rb_2        = m_scene->addComponent<RigidBodyComponent>(model_entity_2);
-    model_rb_2.mass         = 1.0f;
-    model_rb_2.colliderType = ColliderType::Box;
-    model_rb_2.shapeSize    = glm::vec3(1.1);
+    // auto &model_rb_2        = m_scene->addComponent<RigidBodyComponent>(model_entity_2);
+    // model_rb_2.mass         = 1.0f;
+    // model_rb_2.colliderType = ColliderType::Box;
+    // model_rb_2.shapeSize    = glm::vec3(10);
 
-    m_editor->onDrawDebugInfo = [&, adminEntity, albedoMap, normalMap]()
-    {
-        ImGui::Begin("Debug Info");
+    // m_editor->onDrawDebugInfo = [&, adminEntity, albedoMap, normalMap]()
+    // {
+    //     ImGui::Begin("Debug Info");
 
-        // 深度图
-        auto main_light = m_scene->getEntity("main_light");
-        auto &light_comp = m_scene->getComponent<LightComponent>(main_light);
-        if (light_comp.depth_framebuffer)
-        {
-            auto depth = light_comp.depth_framebuffer->getDepthAttachment();
-            if (depth)
-            {
-                ImGui::Text("Depth");
-                ImGui::Image((void *)(intptr_t)depth->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
-        }
+    //     auto render_comp = m_scene->getComponent<RendererComponent>(adminEntity);
+    //     auto tone_map    = render_comp.toneMappingPass->m_renderTarget;
+    //     if (tone_map)
+    //     {
+    //         ImGui::Text("Tone Mapping");
+    //         ImGui::Image((void *)(intptr_t)tone_map->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //     }
 
-        auto g_buffer = m_renderer->getGBuffer();
-        if (g_buffer)
-        {
-            auto pos = g_buffer->getColorAttachment(0);
-            if (pos)
-            {
-                ImGui::Text("Position");
-                ImGui::Image((void *)(intptr_t)pos->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
+    //     // 深度图
+    //     auto frame_buffer = m_renderer->getFramebuffer();
+    //     if (frame_buffer)
+    //     {
+    //         auto depth = frame_buffer->getDepthAttachment();
+    //         if (depth)
+    //         {
+    //             ImGui::Text("Depth");
+    //             ImGui::Image((void *)(intptr_t)depth->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
+    //     }
 
-            auto normal = g_buffer->getColorAttachment(1);
-            if (normal)
-            {
-                ImGui::Text("Normal");
-                ImGui::Image((void *)(intptr_t)normal->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
+    //     auto g_buffer = m_renderer->getGBuffer();
+    //     if (g_buffer)
+    //     {
+    //         auto pos = g_buffer->getColorAttachment(0);
+    //         if (pos)
+    //         {
+    //             ImGui::Text("Position");
+    //             ImGui::Image((void *)(intptr_t)pos->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
 
-            auto albedo = g_buffer->getColorAttachment(2);
-            if (albedo)
-            {
-                ImGui::Text("Albedo");
-                ImGui::Image((void *)(intptr_t)albedo->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
+    //         auto normal = g_buffer->getColorAttachment(1);
+    //         if (normal)
+    //         {
+    //             ImGui::Text("Normal");
+    //             ImGui::Image((void *)(intptr_t)normal->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
 
-            auto material = g_buffer->getColorAttachment(3);
-            if (material)
-            {
-                ImGui::Text("Material");
-                ImGui::Image((void *)(intptr_t)material->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
+    //         auto albedo = g_buffer->getColorAttachment(2);
+    //         if (albedo)
+    //         {
+    //             ImGui::Text("Albedo");
+    //             ImGui::Image((void *)(intptr_t)albedo->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
 
-            auto depth = m_renderer->getFramebuffer()->getDepthAttachment();
-            if (depth)
-            {
-                ImGui::Text("Depth");
-                ImGui::Image((void *)(intptr_t)depth->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
+    //         auto material = g_buffer->getColorAttachment(3);
+    //         if (material)
+    //         {
+    //             ImGui::Text("Material");
+    //             ImGui::Image((void *)(intptr_t)material->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
 
-            auto empty_map = m_scene->getComponent<RendererComponent>(adminEntity).emptyMap;
-            if (empty_map)
-            {
-                ImGui::Text("Empty Map");
-                ImGui::Image((void *)(intptr_t)empty_map->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
+    //         auto depth = m_renderer->getFramebuffer()->getDepthAttachment();
+    //         if (depth)
+    //         {
+    //             ImGui::Text("Depth");
+    //             ImGui::Image((void *)(intptr_t)depth->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
 
-            auto default_normal = m_scene->getComponent<RendererComponent>(adminEntity).defaultNormal;
-            if (default_normal)
-            {
-                ImGui::Text("Default Normal");
-                ImGui::Image((void *)(intptr_t)default_normal->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
-            }
-        }
+    //         auto empty_map = m_scene->getComponent<RendererComponent>(adminEntity).emptyMap;
+    //         if (empty_map)
+    //         {
+    //             ImGui::Text("Empty Map");
+    //             ImGui::Image((void *)(intptr_t)empty_map->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
 
-        ImGui::End();
-    };
+    //         auto default_normal = m_scene->getComponent<RendererComponent>(adminEntity).defaultNormal;
+    //         if (default_normal)
+    //         {
+    //             ImGui::Text("Default Normal");
+    //             ImGui::Image((void *)(intptr_t)default_normal->getHandle(), ImVec2(350, 256), ImVec2(0, 1), ImVec2(1, 0));
+    //         }
+    //     }
+
+    //     ImGui::End();
+    // };
 }
 
 void Sandbox::onDestory() {}

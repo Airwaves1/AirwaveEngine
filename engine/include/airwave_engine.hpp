@@ -41,6 +41,10 @@
 #include "rendering/uniforms.hpp"
 #include "rendering/framebuffer.hpp"
 
+#include "rendering/postprocess_effect.hpp"
+#include "rendering/passes/pass.hpp"
+#include "rendering/passes/tone_mapping_pass.hpp"
+
 #include "utils/geometry_utils.hpp"
 #include "utils/texture_utils.hpp"
 #include "utils/file_utils.hpp"

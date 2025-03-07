@@ -30,7 +30,7 @@ Framebuffer::Framebuffer(FramebufferSpecification spec) : m_spec(spec)
 
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        LOG_ERROR("Framebuffer incomplete");
+        // LOG_ERROR("Framebuffer incomplete");
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -71,7 +71,7 @@ void Framebuffer::attachColorTexture(std::shared_ptr<Texture> texture, uint32_t 
         drawBuffers.push_back(GL_COLOR_ATTACHMENT0 + i);
     }
 
-    glDrawBuffers(attachmentCount, drawBuffers.data());
+    glDrawBuffers(attachmentCount, drawBuffers.data()); // 设置多个颜色附件
 }
 
 void Framebuffer::attachDepthTexture(std::shared_ptr<Texture> texture)

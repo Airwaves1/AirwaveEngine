@@ -10,8 +10,11 @@
 #include "rendering/texture.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/primitive.hpp"
-
+#include "rendering/postprocess_effect.hpp"
+#include "rendering/passes/pass.hpp"
+#include "rendering/passes/tone_mapping_pass.hpp"
 #include "utils/geometry_utils.hpp"
+#include "utils/profiler.hpp"
 
 #include <glm/glm.hpp>
 
@@ -21,6 +24,7 @@ class RendererComponent : public AwComponent
 {
   public:
     uint64_t drawCalls = 0;
+    std::shared_ptr<Profiler> profiler;
 
     std::shared_ptr<Shader> backgroundShader;
     std::shared_ptr<Shader> basicShader;
@@ -38,20 +42,36 @@ class RendererComponent : public AwComponent
     std::shared_ptr<Texture> envMap;
     std::shared_ptr<Texture> backgroundMap;
 
+    // 后处理
+    std::shared_ptr<PostProcessEffect> postProcessEffect;
+    std::shared_ptr<ToneMappingPass> toneMappingPass;
+    std::shared_ptr<Shader> tonemappingShader;
+
     RendererComponent()
     {
-        backgroundShader = RES.get<ShaderResource>("shaders/shader_lib/background.glsl")->getShader();
-        basicShader      = RES.get<ShaderResource>("shaders/shader_lib/basic.glsl")->getShader();
-        geometryPassShader = RES.get<ShaderResource>("shaders/shader_lib/geometry_pass.glsl")->getShader();
-        lightingPassShader = RES.get<ShaderResource>("shaders/shader_lib/lighting_pass.glsl")->getShader();
-        shadowShader = RES.get<ShaderResource>("shaders/shader_lib/shadow.glsl")->getShader();
+        profiler = std::make_shared<Profiler>();
 
+        backgroundShader =
+            RES.get<ShaderResource>("shaders/shader_lib/background.glsl")->getShader();
+        basicShader = RES.get<ShaderResource>("shaders/shader_lib/basic.glsl")->getShader();
+        geometryPassShader =
+            RES.get<ShaderResource>("shaders/shader_lib/geometry_pass.glsl")->getShader();
+        lightingPassShader =
+            RES.get<ShaderResource>("shaders/shader_lib/lighting_pass.glsl")->getShader();
+        shadowShader = RES.get<ShaderResource>("shaders/shader_lib/shadow.glsl")->getShader();
 
         emptyMap      = RES.get<TextureResource>("empty_map")->getTexture();
         defaultNormal = RES.get<TextureResource>("default_normal")->getTexture();
 
         cube = GeometryUtils::CreateCube(1.0f, 1.0f, 1.0f, 1, 1, 1);
         quad = GeometryUtils::CreateQuad(1.0f, 1.0f, 1, 1);
+
+        postProcessEffect = std::make_shared<PostProcessEffect>();
+        tonemappingShader = RES.get<ShaderResource>("shaders/shader_lib/postprocess/"
+                                                    "tone_mapping.glsl")
+                                ->getShader();
+        toneMappingPass = std::make_shared<ToneMappingPass>(tonemappingShader);
+        postProcessEffect->addPass(toneMappingPass);
     }
 
   private:

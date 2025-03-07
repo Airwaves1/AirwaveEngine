@@ -26,6 +26,7 @@ class RenderSystem : public AwSystem
 
     void forwardRender(Renderer *renderer, CameraComponent &camera);
     void deferredRender(Renderer *renderer, CameraComponent &camera);
+    void postProcess(Renderer *renderer, CameraComponent &camera);
 
     void uploadMaterialUniforms(Renderer *renderer, Material *material, int &slots);
 };

@@ -3,6 +3,7 @@
 #include <functional>
 #include <chrono>
 #include "panels/panel.hpp" 
+#include "ecs/components/singleton_components/renderer_component.hpp"
  
 namespace Airwave 
 {
@@ -43,9 +44,18 @@ class DebugPanel : public Panel
             frameCount = 0;
             fpsTimer = currentTime;
         }
- 
+
+        auto adminEntity = app->getScene()->getAdminEntity();
+        auto &renderer_comp = app->getScene()->getComponent<RendererComponent>(adminEntity);
+        auto& profiler = renderer_comp.profiler;
+        
+        ImGui::Text("CPU Frame Time: %.2f ms", profiler->getCPUFrameTime());
+        ImGui::Text("GPU Frame Time: %.2f ms", profiler->getGPUFrameTime());
+        ImGui::Text("FPS: %d", profiler->getFPS());
+
+        
         // 显示FPS和Draw Calls 
-        ImGui::Text("FPS: %.2f", fps);
+        ImGui::Text("imgui_FPS: %.2f", fps);
         ImGui::Text("Draw Calls: %llu", app->getRenderer()->drawCalls);
  
         ImGui::End();

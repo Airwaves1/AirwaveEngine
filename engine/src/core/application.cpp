@@ -89,6 +89,8 @@ void Application::preLoad()
         auto lighting_pass_shader = RES.load<ShaderResource>("shaders/shader_lib/lighting_pass.glsl");
         // shadow shader
         auto shadow_shader = RES.load<ShaderResource>("shaders/shader_lib/shadow.glsl");
+        // tonemapping shader
+        auto tonemapping_shader = RES.load<ShaderResource>("shaders/shader_lib/postprocess/tone_mapping.glsl");
 
         // empty map
         std::shared_ptr<Texture> white_texture =
@@ -114,13 +116,14 @@ void Application::preLoad()
 
         // 加载资源
         onPreLoad();
+        
+        LOG_INFO("Preload resources done");
     }
     catch (const std::exception &e)
     {
         LOG_ERROR("Failed to preload resources: {0}", e.what());
     }
 
-    LOG_INFO("Preload resources done");
 }
 
 void Application::mainLoop()

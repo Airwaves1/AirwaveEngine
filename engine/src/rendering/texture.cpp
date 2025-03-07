@@ -161,4 +161,27 @@ void Texture::resize(uint32_t width, uint32_t height)
 }
 void Texture::setRenderTarget(bool enable) { m_spec.isRenderTarget = enable; }
 
+std::shared_ptr<Texture> Airwave::Texture::copy()
+{
+    auto texture = std::make_shared<Texture>(m_spec);
+
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, m_handle);
+
+    if (m_spec.textureType == TextureType::TEXTURE_CUBE_MAP)
+    {
+        for (size_t i = 0; i < 6; i++)
+        {
+            glCopyTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, static_cast<GLint>(m_spec.internalFormat), 0, 0, m_spec.width, m_spec.height, 0);
+        }
+    }
+    else
+    {
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(m_spec.internalFormat), 0, 0, m_spec.width, m_spec.height, 0);
+    }
+
+    glBindTexture(m_spec.textureType == TextureType::TEXTURE_CUBE_MAP ? GL_TEXTURE_CUBE_MAP : GL_TEXTURE_2D, 0);
+
+    return texture;
+}
+
 } // namespace Airwave
