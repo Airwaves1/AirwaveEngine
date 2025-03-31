@@ -1722,7 +1722,7 @@ class TinyGLTF {
 
 #ifndef TINYGLTF_NO_INCLUDE_JSON
 #ifndef TINYGLTF_USE_RAPIDJSON
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 #else
 #ifndef TINYGLTF_NO_INCLUDE_RAPIDJSON
 #include "document.h"
