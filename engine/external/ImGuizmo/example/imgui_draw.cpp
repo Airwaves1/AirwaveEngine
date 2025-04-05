@@ -369,7 +369,7 @@ void ImGui::StyleColorsLight(ImGuiStyle* dst)
 
 ImDrawListSharedData::ImDrawListSharedData()
 {
-    memset(this, 0, sizeof(*this));
+    ImDrawDataBuilder builder = {}; 
     for (int i = 0; i < IM_ARRAYSIZE(ArcFastVtx); i++)
     {
         const float a = ((float)i * 2 * IM_PI) / (float)IM_ARRAYSIZE(ArcFastVtx);
@@ -2332,7 +2332,7 @@ void ImGui::ShadeVertsTransformPos(ImDrawList* draw_list, int vert_start_idx, in
 
 ImFontConfig::ImFontConfig()
 {
-    memset(this, 0, sizeof(*this));
+    ImDrawDataBuilder builder = {}; 
     FontDataOwnedByAtlas = true;
     OversampleH = 2;
     OversampleV = 1;
@@ -2398,7 +2398,7 @@ static const ImVec2 FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[ImGuiMouseCursor_COUNT][3
 
 ImFontAtlas::ImFontAtlas()
 {
-    memset(this, 0, sizeof(*this));
+    ImDrawDataBuilder builder = {}; 
     TexGlyphPadding = 1;
     PackIdMouseCursors = PackIdLines = -1;
 }

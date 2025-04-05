@@ -1,14 +1,23 @@
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 cmake_minimum_required(VERSION 3.10)
 
-project(WaveEngine)
+project(Airwave)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if (MSVC)
+    add_compile_options(/std:c++20)
+endif()
+
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os -Wall")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=deprecated-declarations")
+
+add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
+
+add_compile_options(/wd4996)
+add_compile_options(-wd4530)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -51,6 +60,11 @@ message("CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 message("PROJECT_ROOT_DIR: ${PROJECT_ROOT_DIR}")
 message("ASSETS_DIR: ${ASSETS_DIR}")
 
+
+# 设置编译器选项
+install(FILES ${CMAKE_SOURCE_DIR}/EngineConfig.json DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG})
+
+
 # 添加头文件搜索路径
 include_directories(${CMAKE_SOURCE_DIR}/engine/source)
 
@@ -64,9 +78,11 @@ include_directories(${CMAKE_SOURCE_DIR}/engine/external/imgui)
 include_directories(${CMAKE_SOURCE_DIR}/engine/external/ImGuizmo)
 include_directories(${CMAKE_SOURCE_DIR}/engine/external/nlohmann_json)
 include_directories(${CMAKE_SOURCE_DIR}/engine/external/tiny_gltf)
-include_directories(${CMAKE_SOURCE_DIR}/engine/external/spdlog)
+include_directories(${CMAKE_SOURCE_DIR}/engine/external/spdlog/include)
 
 
 # 添加子目录
 add_subdirectory(engine)
 add_subdirectory(sandbox)
+
+

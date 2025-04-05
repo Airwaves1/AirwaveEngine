@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-add_library(third_party INTERFACE)
+add_library(external INTERFACE)
 
 add_definitions(-D_SILENCE_STDEXT_ARR_ITERS_DEPRECATION_WARNING)
 set(SPDLOG_FMT_EXTERNAL ON)
@@ -32,10 +32,10 @@ add_subdirectory(nlohmann_json)
 add_subdirectory(tiny_gltf)
 
 
-target_link_libraries(third_party INTERFACE glfw)
-target_link_libraries(third_party INTERFACE glad)
-target_link_libraries(third_party INTERFACE glm)
-target_link_libraries(third_party INTERFACE ImGui)
-target_link_libraries(third_party INTERFACE ImGuizmo)
-target_link_libraries(third_party INTERFACE nlohmann_json)
-target_link_libraries(third_party INTERFACE tiny_gltf)
+target_link_libraries(external INTERFACE glfw)
+target_link_libraries(external INTERFACE glad)
+target_link_libraries(external INTERFACE glm)
+target_link_libraries(external INTERFACE ImGui)
+target_link_libraries(external INTERFACE ImGuizmo)
+target_link_libraries(external INTERFACE nlohmann_json)
+target_link_libraries(external INTERFACE tiny_gltf)

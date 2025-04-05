@@ -1,0 +1,32 @@
+{
+    "engine": {
+        "name": "AirwaveEngine",
+        "version": "1.0.0",
+        "assets_path": "C:/Dev/Project/AirwaveEngine/assets/",
+        "sandbox": {
+            "config": {
+                "name": "SandBox",
+                "description": "A sandbox game for testing and development.",
+                "author": "Airwave",
+                "license": "MIT",
+                "version": "1.0.0"
+            }
+        },
+        "window": {
+            "config": {
+                "width": 1920,
+                "height": 1080,
+                "title": "SandBox",
+                "fullscreen": true,
+                "vSync": true
+            }
+        },
+        "render": {
+            "config": {
+                "antialiasing": true,
+                "shadows": true,
+                "textureQuality": "high"
+            }
+        }
+    }
+}
