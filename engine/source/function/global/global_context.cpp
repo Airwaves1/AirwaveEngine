@@ -3,6 +3,13 @@
 #include <fstream>
 #include <iostream>
 
+#include "core/event/event_bus.hpp"
+#include "function/ecs/system/transform_system.hpp"
+#include "function/ecs/system/camera_system.hpp"
+#include "function/ecs/system/render_system.hpp"
+#include "function/ecs/component/single_component/input_component.hpp"
+#include "function/ecs/system/input_system.hpp"
+
 namespace Airwave
 {
 RuntimeGlobalContext g_runtime_global_context;
@@ -31,12 +38,32 @@ void RuntimeGlobalContext::startRuntimeSystem(const std::string &config_file_pat
     // 创建世界
     world = std::make_shared<World>();
 
+    // world->addSingletonComponent<InputComponent>();  
+    auto& reg = world->getRegistry();
+    reg.ctx().emplace<InputComponent>();
+
+    world->registerSystem<TransformSystem>(1);
+    world->registerSystem<RenderSystem>(3);
+
+
     LOG_INFO("Airwave Engine Start!");
 }
 
 void RuntimeGlobalContext::shutdownRuntimeSystem() {}
 
-void RuntimeGlobalContext::update(float delta_time) {}
+void RuntimeGlobalContext::update(float delta_time)
+{ // 处理事件
+    EventBus::getInstance().dispatchEvents();
+    window->pollEvents();
+    window->swapBuffers();
+    world->update(delta_time);
+
+    auto input = world->tryGetSingletonComponent<InputComponent>();
+    if (input)
+    {
+        input->updateHeldTimes(delta_time);
+    }
+}
 
 EngineConfig RuntimeGlobalContext::serializeConfig(const std::string &config_file_path)
 {

@@ -9,8 +9,8 @@ class Event
 {
   public:
     virtual ~Event()                        = default;
-    virtual std::string getName() const     = 0;
-    virtual std::type_index getType() const = 0;
+    virtual std::string getName() const     { return "Event"; }
+    virtual std::type_index getType() const { return typeid(Event); }
 };
 
 class WindowResizeEvent : public Event

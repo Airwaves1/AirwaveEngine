@@ -1,8 +1,14 @@
 #include "world.hpp"
 
+#include <queue>
+#include "serializer.hpp"
 #include "core/uuid/uuid.hpp"
 #include "base_component.hpp"
-#include "serializer.hpp"
+#include "function/ecs/component/transform_component.hpp"
+#include "function/ecs/component/camera_component.hpp"
+#include "function/ecs/component/first_person_controller.hpp"
+#include "function/ecs/component/mesh_component.hpp"
+
 
 namespace Airwave
 {
@@ -11,11 +17,16 @@ World::World()
     // 创建根实体
     m_adminEntity = createEntity("adminEntity", "none", true);
     m_registry.emplace<HierarchyComponent>(m_adminEntity);
+    m_registry.emplace<TransformComponent>(m_adminEntity); // 添加变换组件
 
     m_serializer = std::make_unique<Serializer>();
-    m_serializer->registerComponent<UUIDComponent>();
     m_serializer->registerComponent<TagComponent>();
+    m_serializer->registerComponent<UUIDComponent>();
     m_serializer->registerComponent<HierarchyComponent>();
+    m_serializer->registerComponent<TransformComponent>();
+    m_serializer->registerComponent<CameraComponent>();
+    m_serializer->registerComponent<FirstPersonControllerComponent>();
+    m_serializer->registerComponent<MeshComponent>();
 }
 
 World::~World()
@@ -37,9 +48,12 @@ entt::entity World::createEntity(const std::string &name, const std::string &tag
 }
 entt::entity World::createDefaultEntity(const std::string &name, const std::string &tag, bool is_active)
 {
-    entt::entity entity        = createEntity(name, tag, is_active);
-    auto &hierarchy_component  = m_registry.emplace<HierarchyComponent>(entity);
-    hierarchy_component.parent = m_adminEntity; // 设置父实体为根实体
+    entt::entity entity     = createEntity(name, tag, is_active);
+    auto &entity_hierarchy  = m_registry.emplace<HierarchyComponent>(entity);
+    auto &admin_hierarchy   = m_registry.get<HierarchyComponent>(m_adminEntity);
+    entity_hierarchy.parent = m_adminEntity;        // 设置父实体为根实体
+    admin_hierarchy.children.push_back(entity);     // 将新实体添加到根实体的子实体列表中
+    m_registry.emplace<TransformComponent>(entity); // 添加变换组件
     return entity;
 }
 void World::destroyEntity(entt::entity &entity, bool recursive)
@@ -159,16 +173,16 @@ void World::setParent(entt::entity child, entt::entity parent)
 
     if (old_parent != entt::null)
     {
-        removeChild(old_parent, child);
+        auto &old_parent_hierarchy = m_registry.get_or_emplace<HierarchyComponent>(old_parent);
+        // 从旧父实体的子实体列表中移除子实体
+        old_parent_hierarchy.children.erase(std::remove(old_parent_hierarchy.children.begin(), old_parent_hierarchy.children.end(), child),
+                                            old_parent_hierarchy.children.end());
     }
 
     // 设置新父实体
     child_hierarchy.parent = parent;
-    if (parent != entt::null)
-    {
-        auto &parent_hierarchy = m_registry.get_or_emplace<HierarchyComponent>(parent);
-        parent_hierarchy.children.push_back(child);
-    }
+    auto &parent_hierarchy = m_registry.get_or_emplace<HierarchyComponent>(parent);
+    parent_hierarchy.children.push_back(child); // 将子实体添加到新父实体的子实体列表中
 }
 void World::addChild(entt::entity parent, entt::entity child)
 {
@@ -272,6 +286,70 @@ void World::traverseHierarchy(entt::entity entity, std::function<void(entt::enti
     }
 }
 
+void World::traverseHierarchyUp(entt::entity entity, std::function<void(entt::entity)> func, bool include_self)
+{
+    if (entity == entt::null) return;
+    auto *hierarchy = m_registry.try_get<HierarchyComponent>(entity);
+    if (hierarchy == nullptr) return;                   // 如果没有层级组件，直接返回
+    traverseHierarchyUp(hierarchy->parent, func, true); // 递归遍历父实体
+    if (include_self) func(entity);                     // 执行传入的函数
+}
+
+void World::traverseHierarchyBFS(entt::entity entity, std::function<void(entt::entity)> func, bool include_self)
+{
+    if (entity == entt::null) return;
+
+    std::queue<entt::entity> queue;
+    if (include_self) queue.push(entity); // 如果包含自身，先将自身加入队列
+
+    auto *hierarchy = m_registry.try_get<HierarchyComponent>(entity);
+    if (hierarchy == nullptr) return; // 如果没有层级组件，直接返回
+
+    for (auto child : hierarchy->children)
+    {
+        queue.push(child); // 将子实体加入队列
+    }
+
+    while (!queue.empty())
+    {
+        entt::entity current = queue.front();
+        queue.pop();
+        func(current); // 执行传入的函数
+
+        auto *child_hierarchy = m_registry.try_get<HierarchyComponent>(current);
+        if (child_hierarchy != nullptr)
+        {
+            for (auto child : child_hierarchy->children)
+            {
+                queue.push(child); // 将子实体加入队列
+            }
+        }
+    }
+}
+
+void World::printHierarchy(entt::entity entity, int depth, bool include_self) const
+{
+    if (entity == entt::null) return;
+
+    if (include_self)
+    {
+        auto *tag = m_registry.try_get<TagComponent>(entity);
+        if (tag)
+        {
+            std::string indent(depth * 2, ' ');
+            LOG_INFO("{}Entity: {}, Tag: {}", indent, tag->name, tag->tag);
+        }
+    }
+
+    auto *hierarchy = m_registry.try_get<HierarchyComponent>(entity);
+    if (hierarchy == nullptr) return; // 如果没有层级组件，直接返回
+
+    for (auto child : hierarchy->children)
+    {
+        printHierarchy(child, depth + 1); // 递归打印子实体
+    }
+}
+
 entt::entity World::getEntityByUUID(const UUID &uuid) const
 {
     auto view = m_registry.view<UUIDComponent>();
@@ -316,6 +394,20 @@ void World::loadScene(const std::string &scene_name)
     destroyAllEntities();                                   // 销毁所有实体
     m_serializer->DeserializeScene(m_registry, this, json); // 反序列化场景
 }
+
+void World::update(float deltaTime)
+{
+    // 根据优先级更新系统
+    auto self = std::weak_ptr<World>(shared_from_this());
+    for (auto &[priority, system] : m_systemsByPriority)
+    {
+        if (system != nullptr)
+        {
+            system->onUpdate(self, deltaTime);
+        }
+    }
+}
+
 bool World::isAncestor(entt::entity entity, entt::entity potentialAncestor) const
 {
     entt::entity current = entity;

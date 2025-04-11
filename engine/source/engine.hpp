@@ -9,6 +9,10 @@
 #include "function/ecs/world.hpp"
 #include "function/ecs/system.hpp"
 #include "function/ecs/base_component.hpp"
+#include "function/ecs/component/transform_component.hpp"
+#include "function/ecs/component/camera_component.hpp"
+#include "function/ecs/component/mesh_component.hpp"
+#include "function/ecs/component/first_person_controller.hpp"
 
 #include "function/render/texture/texture.hpp"
 #include "function/render/shader/shader.hpp"

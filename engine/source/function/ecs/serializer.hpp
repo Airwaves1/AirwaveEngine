@@ -181,7 +181,6 @@ class Serializer
             if (it != uuidToEntityMap.end())
             {
                 auto &parent_hierarchy = registry.get<HierarchyComponent>(it->second);
-                auto &parent_tag       = registry.get<TagComponent>(it->second);
 
                 hierarchy.parent = it->second;               // 设置父实体
                 parent_hierarchy.children.push_back(entity); // 添加子实体到父实体

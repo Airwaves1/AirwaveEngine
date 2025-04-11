@@ -11,9 +11,6 @@ class Sandbox : public Airwave::Application
     virtual void onShutdown() override;
 
   private:
-    uint32_t m_vao{0};
-    uint32_t m_vbo{0};
-    uint32_t m_ebo{0};
     std::shared_ptr<Airwave::Texture> m_texture{nullptr};
     std::shared_ptr<Airwave::Shader> m_shader{nullptr};
 };

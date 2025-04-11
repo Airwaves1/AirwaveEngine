@@ -40,19 +40,10 @@ void Application::mainLoop()
         auto now             = std::chrono::steady_clock::now();
         auto delta_time      = std::chrono::duration_cast<std::chrono::milliseconds>(now - m_lastFrameTimePoint).count();
         m_lastFrameTimePoint = now;
-
-        
         int fps = calculateFPS(delta_time / 1000.f);
         GlobalContext.window->setTitle("Airwave Engine - FPS: " + std::to_string(fps));
-        
         GlobalContext.update(delta_time / 1000.f);
-        
         onUpdate(delta_time / 1000.f);
-        
-        // 处理事件
-        EventBus::getInstance().dispatchEvents();
-        GlobalContext.window->pollEvents();
-        GlobalContext.window->swapBuffers();
     }
 }
 

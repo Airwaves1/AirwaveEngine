@@ -5,6 +5,7 @@
 #include "platform/file/file_utils.hpp"
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <memory>
 
 namespace Airwave
 {
@@ -148,6 +149,14 @@ void AwWindow::setupWindowCallbacks()
                                        EventBus::getInstance().postEvent(event);
                                    }
                                });
+
+    glfwSetCursorPosCallback(m_window,
+                             [](GLFWwindow *window, double x, double y)
+                             {
+                                // EventBus::getInstance().queueEvent(std::make_unique<MouseMoveEvent>(static_cast<int>(x), static_cast<int>(y)));
+                                MouseMoveEvent event(static_cast<int>(x), static_cast<int>(y));
+                                EventBus::getInstance().postEvent(event);
+                             });
 }
 
 } // namespace Airwave
