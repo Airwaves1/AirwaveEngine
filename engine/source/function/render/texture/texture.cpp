@@ -5,7 +5,7 @@
 
 namespace Airwave
 {
-Texture::Texture(TextureConfig &textureConifg, const std::string &resource_path)
+Texture::Texture(const std::string &resource_path, TextureConfig &textureConifg)
     : IGLResource(GL_TEXTURE_2D, resource_path), m_textureConfig(textureConifg)
 {
 }

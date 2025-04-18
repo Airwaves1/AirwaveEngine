@@ -26,7 +26,7 @@ World::World()
     m_serializer->registerComponent<TransformComponent>();
     m_serializer->registerComponent<CameraComponent>();
     m_serializer->registerComponent<FirstPersonControllerComponent>();
-    m_serializer->registerComponent<MeshComponent>();
+    // m_serializer->registerComponent<MeshComponent>();
 }
 
 World::~World()

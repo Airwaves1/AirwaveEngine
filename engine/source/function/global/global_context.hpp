@@ -6,7 +6,7 @@
 #include "nlohmann/json.hpp"
 #include "function/window/aw_window.hpp"
 #include "function/ecs/world.hpp"
-
+#include "core/resource/resource_manager.hpp"
 namespace Airwave
 {
 struct SandboxConfig
@@ -47,5 +47,6 @@ class RuntimeGlobalContext
     EngineConfig engine_config;
     std::shared_ptr<AwWindow> window = nullptr;
     std::shared_ptr<World> world     = nullptr;
+    std::shared_ptr<ResourceManager> resource_manager = nullptr;
 };
 } // namespace Airwave

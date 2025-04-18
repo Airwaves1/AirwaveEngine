@@ -22,7 +22,7 @@ class IResource
     IResource(const std::string &resource_path) : m_resource_path(resource_path) {}
     virtual ~IResource() = default;
     virtual void load() {}
-    virtual void reload() = 0;
+    virtual void reload() {};
     virtual void release() = 0;
 
     const std::string &getResourcePath() const { return m_resource_path; }

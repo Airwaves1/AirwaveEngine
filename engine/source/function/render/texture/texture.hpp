@@ -104,7 +104,7 @@ struct TextureConfig
 class Texture : public IGLResource
 {
   public:
-    Texture(TextureConfig &textureConifg, const std::string &resource_path = "");
+    Texture(const std::string &resource_path, TextureConfig &textureConifg);
     ~Texture() override;
 
     virtual void load() override;

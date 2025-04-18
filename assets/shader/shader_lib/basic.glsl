@@ -16,7 +16,8 @@ void main()
 {
     gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
     v_uv = a_uv;
-    v_normal = a_normal;
+    
+    v_normal = mat3(transpose(inverse(u_model))) * a_normal;
 }
 
 #shader fragment
@@ -30,9 +31,6 @@ uniform sampler2D u_texture_0;
 
 void main()
 {
-    vec3 normal = normalize(v_normal);
-    // vec4 texColor = texture(u_texture_0, v_uv);
-    // fragColor = texColor;
-    vec3 normal_color = vec3(0.5) + normal * 0.5;
-    fragColor = vec4(normal_color, 1.0);
+    vec4 texColor = texture(u_texture_0, v_uv);
+    fragColor = texColor;
 }

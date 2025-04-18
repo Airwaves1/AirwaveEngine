@@ -38,6 +38,8 @@ void RuntimeGlobalContext::startRuntimeSystem(const std::string &config_file_pat
     // 创建世界
     world = std::make_shared<World>();
 
+    resource_manager = std::make_shared<ResourceManager>();
+
     // world->addSingletonComponent<InputComponent>();  
     auto& reg = world->getRegistry();
     reg.ctx().emplace<InputComponent>();
